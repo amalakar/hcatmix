@@ -1,0 +1,75 @@
+PigMix
+======
+PigMix is a set of queries used test pig performance from release to release. There are queries that test latency (how long does it take to run this query?), and queries that test scalability (how many fields or records can pig handle before it fails?). In addition it includes a set of map reduce java programs to run equivalent map reduce jobs directly.
+
+http://wiki.apache.org/pig/PigMix
+
+Compilation
+===========
+
+Compile the source code using 'ant' to generate the pigperf.jar
+
+
+Data Generation
+===============
+
+./scripts/generate_data.sh num_maps num_rows output_dir
+
+where:
+   num_maps:   The number of map tasks to use to generate data
+   num_rows:   The number of rows to output (100000 ~ 1GB)
+   output_dir: The output directory on the DFS
+
+Note: Data generation will launch 19 MapReduce jobs in sequence.
+
+Tip: You can verify the output size using
+>$ ${HADOOP_HOME}/bin/hadoop fs -dus output_dir
+
+
+Run Benchmark
+=============
+
+./scripts/run_pigmix.sh input_dir output_dir reducers [num_runs [exec_mode]]
+
+where:
+   input_dir:  The pigmix input directory on the DFS (used with generate_data.sh)
+   output_dir: The output directory on the DFS
+   reducers:   The number of reduce tasks to use per MapReduce job
+   num_runs:   The number of repetitions for each script (def is 1)
+   exec_mode:  0 to run just Pig, 1 to run just MR, 2 to run both (def is 0)
+
+Note: The benchmark produces a significant amount of output that might not fit 
+your console.
+
+Tip: You can redirect the output to a file using tee. For example:
+>$ ./scripts/run_pigmix.sh input_dir output_dir 30  2>&1 | tee out.log
+
+Tip: You can get the tab-separated timings using:
+>$ grep "times (sec)" out.log
+
+
+Run Individual Scripts
+======================
+
+cd scripts
+
+${PIG_HOME}/bin/pig $hadoop_opts -param input=<input_dir> -param output=<output_dir> -param factor=<reducers> -f <script_name>
+
+where:
+   input_dir:  The pigmix input directory on the DFS
+   output_dir: The output directory on the DFS
+   reducers:   The number of reduce tasks to user per MapReduce job
+   <script_name>: One of the L<X>.pig script in the scripts dir, 1<=X<=17
+
+
+Run Individual MapReduce jobs
+=============================
+
+${HADOOP_HOME}/bin/hadoop jar pigperf.jar org.apache.pig.test.pigmix.mapreduce.L<X>  $hadoop_opts <input_dir> <output_dir> <reducers>
+
+where:
+   input_dir:  The pigmix input directory on the DFS
+   output_dir: The output directory on the DFS
+   reducers:   The number of reduce tasks to user per MapReduce job
+   X:          The number of the MapReduce job to run, 1<=X<=17 (without <>)
+
