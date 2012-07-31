@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project basedir="." default="jar" name="pigmix">
+
+	<property name="debuglevel" value="source,lines,vars" />
+	<property name="target" value="1.6" />
+	<property name="source" value="1.6" />
+
+    <property name="src.dir" value="src"/>
+    <property name="build.dir" value="build"/>
+    <property name="lib.dir" value="lib"/>
+    
+    <property name="jar.file" value="pigperf.jar"/>
+    
+    <property name="proj.title" value="Pig Mix 2"/>
+
+	<!-- Classpath -->
+	<path id="pigmix.classpath">
+		<pathelement location="${build.dir}" />
+		<fileset dir="${lib.dir}">
+			<include name="**/*.jar" />
+		</fileset>
+	</path>
+
+	<!-- init command -->
+	<target name="init" description="Creates necessary directory structure">
+		<mkdir dir="${build.dir}" />
+		<copy includeemptydirs="false" todir="${build.dir}">
+			<fileset dir="${src.dir}">
+				<exclude name="**/*.launch" />
+				<exclude name="**/*.java" />
+			</fileset>
+		</copy>
+	</target>
+
+	<!-- Clean command -->
+	<target name="clean" description="Removes build and doc directories, and the jar file">
+		<delete dir="${build.dir}" />
+		<delete file="${jar.file}" />
+	</target>
+
+	<!-- Main build command -->
+	<target name="build" depends="init" description="Builds the entire project">
+		<echo message="${ant.project.name}: ${ant.file}" />
+		<javac includeantruntime="false" 
+		       debug="true" 
+		       debuglevel="${debuglevel}" 
+		       source="${source}"
+		       target="${target}"
+		       destdir="${build.dir}">
+			<src path="${src.dir}" />
+			<classpath refid="pigmix.classpath" />
+		</javac>
+	</target>
+
+	<!-- Create jar command -->
+	<target name="jar" depends="build" description="Creates the jar file">
+		<jar jarfile="${jar.file}">
+            <fileset dir="${build.dir}">
+                <include name="org/apache/pig/test/**"/>
+            </fileset>
+            <zipfileset src="${lib.dir}/sdsuLibJKD12.jar" />
+		</jar>
+	</target>
+
+	<!-- help command: Prints help information-->
+	<target name="help" description="Prints help information">
+		<exec executable="ant">
+			<arg value="-v" />
+			<arg value="-projecthelp" />
+		</exec>
+	</target>
+
+</project>
