@@ -1,3 +1,6 @@
+[ My personal playground while I work to make pigmix work with HCatalog. Original: https://cwiki.apache.org/PIG/pigmix.html
+Jira: https://issues.apache.org/jira/browse/PIG-200]
+
 PigMix
 ======
 PigMix is a set of queries used test pig performance from release to release. There are queries that test latency (how long does it take to run this query?), and queries that test scalability (how many fields or records can pig handle before it fails?). In addition it includes a set of map reduce java programs to run equivalent map reduce jobs directly.

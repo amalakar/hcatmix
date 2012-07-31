@@ -43,14 +43,14 @@ public class DataGenerator extends Configured implements Tool {
     int numMappers = -1;
     String outputFile;
     String inFile;
-    char separator = ',' ;
+    char separator = '\u0001' ;
     Random rand;
 
     private String[] mapkey = { "a", "b", "c", "d", "e", "f", "g", "h", "i",
         "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w",
         "x", "y", "z"};
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws Exception {    	
     	DataGenerator dg = new DataGenerator();    	 
     	try {
     		ToolRunner.run(new Configuration(), dg, args);    			
@@ -161,12 +161,11 @@ public class DataGenerator extends Configured implements Tool {
     	
     	PrintWriter out = null;
 		try {
-//            out = new PrintWriter(outputFile);
-            out = new PrintWriter(System.out);
-//        } catch (FileNotFoundException fnfe) {
-//            System.err.println("Could not find file " + outputFile +
-//                ", " + fnfe.getMessage());
-//            return;
+            out = new PrintWriter(outputFile);
+        } catch (FileNotFoundException fnfe) {
+            System.err.println("Could not find file " + outputFile +
+                ", " + fnfe.getMessage());
+            return;
         } catch (SecurityException se) {
             System.err.println("Could not write to file " + outputFile +
                 ", " + se.getMessage());
