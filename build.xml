@@ -5,15 +5,21 @@
 	<property name="target" value="1.6" />
 	<property name="source" value="1.6" />
 
-    <property name="src.dir" value="src"/>
+    <property name="src.dir" value="src/java"/>
     <property name="build.dir" value="build"/>
+    <property name="build.classes" value="${build.dir}/classes"/>
     <property name="lib.dir" value="lib"/>
     
     <property name="jar.file" value="pigperf.jar"/>
     
     <property name="proj.title" value="Pig Mix 2"/>
 
-	<!-- Classpath -->
+    <property name="test.src.dir" value="src/test"/>
+    <property name="test.build.dir" value="${build.dir}/test" />
+    <property name="test.log.dir" value="${test.build.dir}/logs" />
+    <property name="test.build.classes" value="${test.build.dir}/classes" />
+
+    <!-- Classpath -->
 	<path id="pigmix.classpath">
 		<pathelement location="${build.dir}" />
 		<fileset dir="${lib.dir}">
@@ -21,10 +27,19 @@
 		</fileset>
 	</path>
 
+    <!-- Classpath -->
+    <path id="test.classpath">
+        <pathelement location="${build.classes}" />
+        <fileset dir="${lib.dir}">
+            <include name="**/*.jar" />
+        </fileset>
+        <pathelement location="${test.build.classes}" />
+    </path>
 	<!-- init command -->
 	<target name="init" description="Creates necessary directory structure">
 		<mkdir dir="${build.dir}" />
-		<copy includeemptydirs="false" todir="${build.dir}">
+        <mkdir dir="${build.classes}" />
+        <copy includeemptydirs="false" todir="${build.dir}">
 			<fileset dir="${src.dir}">
 				<exclude name="**/*.launch" />
 				<exclude name="**/*.java" />
@@ -46,7 +61,7 @@
 		       debuglevel="${debuglevel}" 
 		       source="${source}"
 		       target="${target}"
-		       destdir="${build.dir}">
+		       destdir="${build.classes}">
 			<src path="${src.dir}" />
 			<classpath refid="pigmix.classpath" />
 		</javac>
@@ -61,6 +76,56 @@
             <zipfileset src="${lib.dir}/sdsuLibJKD12.jar" />
 		</jar>
 	</target>
+
+    <target name="compile-test" depends="build" description="Compile test classes">
+        <mkdir dir="${test.build.dir}" />
+        <mkdir dir="${test.build.classes}" />
+        <javac includeantruntime="false"
+               debug="true"
+               debuglevel="${debuglevel}"
+               source="${source}"
+               target="${target}"
+               destdir="${test.build.classes}">
+            <src path="${test.src.dir}" />
+            <classpath refid="test.classpath" />
+        </javac>
+    </target>
+
+    <target name="test" depends="compile-test" description="Run unittest">
+        <sequential>
+            <delete dir="${test.log.dir}"/>
+            <mkdir dir="${test.log.dir}"/>
+            <!-- If anyone knows how to set umask inside ant please do so -->
+            <junit showoutput="no" printsummary="yes" haltonfailure="no"
+                   fork="yes" maxmemory="512m" dir="${basedir}"
+                   errorProperty="tests.failed" failureProperty="tests.failed">
+                <classpath>
+                    <pathelement location="${test.build.classes}" />
+                    <pathelement location="." />
+                    <path refid="test.classpath"/>
+                </classpath>
+                <formatter type="plain" />
+                <!-- If the user has not defined a particular test to run, run them all -->
+                <batchtest fork="yes" todir="${test.log.dir}" unless="testcase">
+                    <fileset dir="src/test">
+                        <patternset>
+                            <include name="**/*Test*.java"/>
+                        </patternset>
+                    </fileset>
+                </batchtest>
+                <!-- Run one test case.  To use this define -Dtestcase=X on the command line -->
+                <batchtest fork="yes" todir="${test.log.dir}" if="testcase">
+                    <fileset dir="${test.src.dir}" includes="**/${testcase}.java"/>
+                </batchtest>
+
+                <assertions>
+                    <enable />
+                </assertions>
+
+            </junit>
+            <fail if="tests.failed">Tests failed!</fail>
+        </sequential>
+    </target>
 
 	<!-- help command: Prints help information-->
 	<target name="help" description="Prints help information">

@@ -30,6 +30,8 @@ import org.apache.pig.data.BagFactory;
 import org.apache.pig.data.DataBag;
 import org.apache.pig.data.TupleFactory;
 import org.apache.pig.data.Tuple;
+import org.apache.pig.test.utils.DataType;
+import org.apache.pig.test.utils.datagen.DataGenerator;
 
 /**
  * A load function for the performance tests.
@@ -80,14 +82,14 @@ public class PigPerformanceLoader extends PigStorage {
 
                 // The first byte will tell us what type the field is.
                 try {
-                    switch (b[start]) {
-                        case 105: t.set(0, bytesToInteger(copy)); break;
-                        case 108: t.set(0, bytesToLong(copy)); break;
-                        case 102: t.set(0, bytesToFloat(copy)); break;
-                        case 100: t.set(0, bytesToDouble(copy)); break;
-                        case 115: t.set(0, bytesToCharArray(copy)); break;
-                        case 109: t.set(0, bytesToMap(copy)); break;
-                        case 98: t.set(0, bytesToBag(copy, null)); break;
+                    switch (DataType.fromInt(b[start])) {
+                        case INT: t.set(0, bytesToInteger(copy)); break;
+                        case LONG: t.set(0, bytesToLong(copy)); break;
+                        case FLOAT: t.set(0, bytesToFloat(copy)); break;
+                        case DOUBLE: t.set(0, bytesToDouble(copy)); break;
+                        case STRING: t.set(0, bytesToCharArray(copy)); break;
+                        case MAP: t.set(0, bytesToMap(copy)); break;
+                        case BAG: t.set(0, bytesToBag(copy, null)); break;
                         default: throw new RuntimeException("unknown type " + b[start]);
                     }
                 } catch (ExecException ee) {
@@ -118,7 +120,7 @@ public class PigPerformanceLoader extends PigStorage {
                 String key = new String(k);
                 pos += 2;
                 int start = pos;
-                while (pos < b.length && b[pos] != 3) pos++; // 3 is ^C
+                while (pos < b.length && b[pos] != (int) DataGenerator.CTRL_C) pos++;
 
                 byte[] copy = new byte[pos - start];
                 int i, j;

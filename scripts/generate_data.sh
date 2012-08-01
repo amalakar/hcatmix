@@ -31,6 +31,12 @@ then
     exit
 fi
 
+if [ ! -e $HADOOP_HOME ]
+then
+    echo "Cannot find HADOOP_HOME, set PIG_HOME environment variable to directory above bin/hadoop."
+    exit
+fi
+
 pigjar=$PIG_HOME/pig.jar
 if [ ! -e $pigjar ]
 then

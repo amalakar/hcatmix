@@ -22,6 +22,7 @@ import java.lang.SecurityException;
 import java.text.ParseException;
 import java.util.*;
 
+import org.apache.pig.test.utils.DataType;
 import sdsu.algorithms.data.Zipf;
 
 import org.apache.pig.tools.cmdline.CmdLineParser;
@@ -43,7 +44,10 @@ public class DataGenerator extends Configured implements Tool {
     int numMappers = -1;
     String outputFile;
     String inFile;
-    char separator = '\u0001' ;
+    final public static char CTRL_C = '\u0003';
+    final public static char CTRL_A = '\u0001';
+
+    char separator = CTRL_A;
     Random rand;
 
     private String[] mapkey = { "a", "b", "c", "d", "e", "f", "g", "h", "i",
@@ -137,7 +141,7 @@ public class DataGenerator extends Configured implements Tool {
             colSpecs[i] = new ColSpec(remainders[i]);
         }
         System.err.println("Using seed " + seed);
-        rand = new Random(seed); 
+        rand = new Random(seed);
         
         return 0;
     }
@@ -171,7 +175,7 @@ public class DataGenerator extends Configured implements Tool {
                 ", " + se.getMessage());
             return;
         }
-        
+
         BufferedReader in = null;
         if (inFile != null) {
         	try {
@@ -210,7 +214,7 @@ public class DataGenerator extends Configured implements Tool {
     }
 
     private void writeCol(ColSpec colspec, PrintWriter out) {
-        switch (colspec.datatype) {
+        switch (colspec.dataType) {
         case INT:
             out.print(colspec.nextInt());
             break;
@@ -234,8 +238,8 @@ public class DataGenerator extends Configured implements Tool {
         case MAP:
             int len = rand.nextInt(20) + 6;
             for (int k = 0; k < len; k++) {
-                if (k != 0) out.print('');
-                out.print(mapkey[k] + '');
+                if (k != 0) out.print(CTRL_C);
+                out.print(mapkey[k] + CTRL_C);
                 out.print(colspec.gen.randomString());
             }
             break;
@@ -243,8 +247,8 @@ public class DataGenerator extends Configured implements Tool {
         case BAG:
             int numElements = rand.nextInt(5) + 5;
             for (int i = 0; i < numElements; i++) {
-                if (i != 0) out.print('');
-                switch(colspec.contained.datatype) {
+                if (i != 0) out.print(CTRL_C);
+                switch(colspec.contained.dataType) {
                     case INT: out.print("i"); break;
                     case LONG: out.print("l"); break;
                     case FLOAT: out.print("f"); break;
@@ -290,12 +294,10 @@ public class DataGenerator extends Configured implements Tool {
     }
 
 
- 
-    static enum Datatype { INT, LONG, FLOAT, DOUBLE, STRING, MAP, BAG };
-    static enum DistributionType { UNIFORM, ZIPF };
+    static enum DistributionType { UNIFORM, ZIPF }
     protected class ColSpec {
     	String arg;
-        Datatype datatype;
+        DataType dataType;
         DistributionType distype;
         int avgsz;
         int card;
@@ -314,23 +316,18 @@ public class DataGenerator extends Configured implements Tool {
                 usage();
             }
 
-            switch (parts[0].charAt(0)) {
-                case 'i': datatype = Datatype.INT; break;
-                case 'l': datatype = Datatype.LONG; break;
-                case 'f': datatype = Datatype.FLOAT; break;
-                case 'd': datatype = Datatype.DOUBLE; break;
-                case 's': datatype = Datatype.STRING; break;
-                case 'm': datatype = Datatype.MAP; break;
-                case 'b':
-                    datatype = Datatype.BAG;
-                    contained = new ColSpec(arg.substring(1));
-                    return;
-                default: 
-                    System.err.println("Don't know column type " +
+            dataType = DataType.fromChar(parts[0].charAt(0));
+            if(dataType == null) {
+                System.err.println("Don't know column type " +
                         parts[0].charAt(0));
-                    usage();
-                    break;
+                usage();
             }
+            if(dataType == DataType.BAG) {
+                dataType = DataType.BAG;
+                contained = new ColSpec(arg.substring(1));
+                return;
+            }
+
             avgsz = Integer.valueOf(parts[1]);
             card = Integer.valueOf(parts[2]);
             switch (parts[3].charAt(0)) {
@@ -352,7 +349,7 @@ public class DataGenerator extends Configured implements Tool {
             }
 
             pctNull = Integer.valueOf(parts[4]);
-            if (pctNull > 100) {
+            if (pctNull < 0 || pctNull > 100) {
                 System.err.println("Percentage null must be between 0-100, "
                     + "you gave" + pctNull);
                 usage();
@@ -643,11 +640,11 @@ public class DataGenerator extends Configured implements Tool {
     		 System.out.println("Generating column config file in " + tmp[0].toString());
     		 PrintWriter pw = new PrintWriter((OutputStream)tmp[1]);
     		 for(int i=0; i<colSpecs.length; i++) {
-    			 DataGenerator.Datatype datatype = colSpecs[i].datatype;
+    			 DataType dataType = colSpecs[i].dataType;
     			 pw.print(colSpecs[i].arg);
     			 
-    			 if ( datatype == DataGenerator.Datatype.FLOAT || datatype == DataGenerator.Datatype.DOUBLE ||
-    					 datatype == DataGenerator.Datatype.STRING) 	 {
+    			 if ( dataType == DataType.FLOAT || dataType == DataType.DOUBLE ||
+    					 dataType == DataType.STRING) 	 {
     				 Path p = genMapFile(colSpecs[i]);
     				 pw.print(':');    				
     				 pw.print(p.toUri().getRawPath());				 
@@ -675,11 +672,11 @@ public class DataGenerator extends Configured implements Tool {
     			 pw.print("\t");
     			 Object next = null;
     			 do {
-    				 if (col.datatype == DataGenerator.Datatype.DOUBLE) {
+    				 if (col.dataType == DataType.DOUBLE) {
         				 next = col.gen.randomDouble();
-        			 }else if (col.datatype == DataGenerator.Datatype.FLOAT) {
+        			 }else if (col.dataType == DataType.FLOAT) {
         				 next = col.gen.randomFloat();
-        			 }else if (col.datatype == DataGenerator.Datatype.STRING) {
+        			 }else if (col.dataType == DataType.STRING) {
         				 next = col.gen.randomString();
         			 }
     			 }while(hash.contains(next));
@@ -780,9 +777,9 @@ public class DataGenerator extends Configured implements Tool {
  			    		while((line = reader.readLine()) != null) {
  					    	String[] fields = line.split("\t");
  					    	int key = Integer.parseInt(fields[0]);
- 					    	if (col.datatype == DataGenerator.Datatype.DOUBLE) {
+ 					    	if (col.dataType == DataType.DOUBLE) {
  					    		map.put(key, Double.parseDouble(fields[1]));
- 					    	}else if (col.datatype == DataGenerator.Datatype.FLOAT) {
+ 					    	}else if (col.dataType == DataType.FLOAT) {
  					    		map.put(key, Float.parseFloat(fields[1]));
  					    	}else {
  					    		map.put(key, fields[1]);
