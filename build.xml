@@ -70,7 +70,7 @@
 	<!-- Create jar command -->
 	<target name="jar" depends="build" description="Creates the jar file">
 		<jar jarfile="${jar.file}">
-            <fileset dir="${build.dir}">
+            <fileset dir="${build.classes}">
                 <include name="org/apache/pig/test/**"/>
             </fileset>
             <zipfileset src="${lib.dir}/sdsuLibJKD12.jar" />

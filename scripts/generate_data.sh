@@ -16,6 +16,7 @@ NUM_MAPS=$1
 NUM_ROWS=$2
 OUTPUT_DIR=$3
 hadoop_opts="" #"-Dmapred.job.queue.name=unfunded"
+pig_opts="-x local"
 
 
 java=${JAVA_HOME:='/usr'}/bin/java;
@@ -37,7 +38,7 @@ then
     exit
 fi
 
-pigjar=$PIG_HOME/pig.jar
+pigjar=$PIG_HOME/pig-0.9.2.jar
 if [ ! -e $pigjar ]
 then
     echo "Cannot find $pigjar, not in $PIG_HOME"
@@ -61,7 +62,8 @@ export HADOOP_CLASSPATH=$pigjar:$pigperfjar
 START=$(date +%s)
 
 # Prepare the data generation
-mainclass=org.apache.pig.test.utils.datagen.DataGenerator 
+mainclass=org.apache.pig.test.utils.datagen.DataGenerator
+hadoop_common_args="--config $conf_dir jar $pigperfjar $mainclass $hadoop_opts -s ,"
 
 user_field=s:20:160000:z:7
 action_field=i:1:2:u:0
@@ -77,14 +79,14 @@ page_views="$OUTPUT_DIR/pigmix_page_views"
 echo "+++++++++++++++++++++++++"
 echo "Generating $page_views"
 
-$HADOOP_HOME/bin/hadoop --config $conf_dir jar $pigperfjar $mainclass $hadoop_opts \
+$HADOOP_HOME/bin/hadoop $hadoop_common_args \
     -m $NUM_MAPS -r $NUM_ROWS -f $page_views $user_field \
     $action_field $os_field $query_term_field $ip_addr_field \
     $timestamp_field $estimated_revenue_field $page_info_field \
     $page_links_field
 
 # Skim off 1 in 10 records for the user table
-# Be careful the file is in HDFS if you run previous job as hadoop job, 
+# Be careful the file is in HDFS if you run previous job as hadoop job,
 # you should either copy data into local disk to run following script
 # or run hadoop job to trim the data
 
@@ -92,7 +94,7 @@ protousers="$OUTPUT_DIR/pigmix_protousers"
 echo "+++++++++++++++++++++++++"
 echo "Skimming users"
 
-$PIG_HOME/bin/pig $hadoop_opts << EOF
+$PIG_HOME/bin/pig $hadoop_opts $pig_opts << EOF
 register $pigperfjar;
 fs -rmr $protousers;
 A = load '$page_views' using org.apache.pig.test.udf.storefunc.PigPerformanceLoader()
@@ -115,7 +117,7 @@ users="$OUTPUT_DIR/pigmix_users"
 echo "+++++++++++++++++++++++++"
 echo "Generating $users"
 
-$HADOOP_HOME/bin/hadoop --config $conf_dir jar $pigperfjar $mainclass $hadoop_opts \
+$HADOOP_HOME/bin/hadoop $hadoop_common_args \
     -m $NUM_MAPS -i $protousers -f $users $phone_field \
     $address_field $city_field $state_field $zip_field
 
@@ -126,7 +128,7 @@ protopowerusers="$OUTPUT_DIR/pigmix_protopower_users"
 echo "+++++++++++++++++++++++++"
 echo "Skimming power users"
 
-$PIG_HOME/bin/pig $hadoop_opts << EOF
+$PIG_HOME/bin/pig $hadoop_opts $pig_opts << EOF
 register $pigperfjar;
 fs -rmr $protopowerusers;
 A = load '$page_views' using org.apache.pig.test.udf.storefunc.PigPerformanceLoader()
@@ -143,7 +145,7 @@ powerusers="$OUTPUT_DIR/pigmix_power_users"
 echo "+++++++++++++++++++++++++"
 echo "Generating $powerusers"
 
-$HADOOP_HOME/bin/hadoop --config $conf_dir jar $pigperfjar $mainclass $hadoop_opts \
+$HADOOP_HOME/bin/hadoop $hadoop_common_args \
     -m $NUM_MAPS -i $protopowerusers -f $powerusers $phone_field \
     $address_field $city_field $state_field $zip_field
 
@@ -156,7 +158,7 @@ int_field=i:1:10000:u:0
 echo "+++++++++++++++++++++++++"
 echo "Generating widerow"
 
-$HADOOP_HOME/bin/hadoop --config $conf_dir jar $pigperfjar $mainclass $hadoop_opts \
+$HADOOP_HOME/bin/hadoop $hadoop_common_args \
     -m $NUM_MAPS -r $widerowcnt -f $widerows $user_field \
     $int_field $int_field $int_field $int_field $int_field $int_field $int_field $int_field $int_field $int_field \
     $int_field $int_field $int_field $int_field $int_field $int_field $int_field $int_field $int_field $int_field \
@@ -209,7 +211,7 @@ $HADOOP_HOME/bin/hadoop --config $conf_dir jar $pigperfjar $mainclass $hadoop_op
     $int_field $int_field $int_field $int_field $int_field $int_field $int_field $int_field $int_field $int_field \
     $int_field $int_field $int_field $int_field $int_field $int_field $int_field $int_field $int_field $int_field
 
-$PIG_HOME/bin/pig $hadoop_opts << EOF
+$PIG_HOME/bin/pig $hadoop_opts $pig_opts << EOF
 register $pigperfjar;
 fs -rmr ${page_views}_sorted;
 fs -rmr ${users}_sorted;
@@ -243,7 +245,7 @@ EOF
 cat pigmix_power_users/* > local_power_users
 
 # Cleanup
-$PIG_HOME/bin/pig $hadoop_opts << EOF
+$PIG_HOME/bin/pig $hadoop_opts $pig_opts<< EOF
 fs -rmr $protousers;
 fs -rmr $protopowerusers;
 fs -rmr $powerusers;
