@@ -15,23 +15,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.hcatalog.hcatmix.conf;
 
-import java.util.*;
+import org.apache.hadoop.hive.metastore.api.FieldSchema;
 
-public class HiveTableSchemas extends ArrayList<HiveTableSchema>{
+import java.util.List;
 
-    public static HiveTableSchemas fromMultiInstanceSchema(List<MultiInstanceHiveTableSchema> multiInstanceTables) {
-        HiveTableSchemas hiveTableSchemas = new HiveTableSchemas();
-        for (MultiInstanceHiveTableSchema multiInstanceTable : multiInstanceTables) {
-            for (MultiInstanceHiveTableSchema.TableInstance instance  : multiInstanceTable.getInstances()) {
-                for (int i = 0; i < instance.getCount(); i++) {
-                    String tableName = multiInstanceTable.getNamePrefix() + "_" + instance.getSize() +"_" + i;
-                    hiveTableSchemas.add(new HiveTableSchema(multiInstanceTable,  tableName));
-                }
-            }
-        }
-        return hiveTableSchemas;
+public class HiveTableSchema {
+    private final MultiInstanceHiveTableSchema multiInstanceHiveTableSchema;
+    private final String name;
+
+    public HiveTableSchema(MultiInstanceHiveTableSchema multiInstanceHiveTableSchema, final String name) {
+        this.multiInstanceHiveTableSchema = multiInstanceHiveTableSchema;
+        this.name = name;
+    }
+
+    public List<FieldSchema> getPartitions() {
+        return multiInstanceHiveTableSchema.getPartitions();
+    }
+
+    public List<FieldSchema> getColumns() {
+        return multiInstanceHiveTableSchema.getColumns();
+    }
+
+    public String getName() {
+        return name;
+    }
+    public String getDatabaseName() {
+        return multiInstanceHiveTableSchema.getDatabaseName();
     }
 }

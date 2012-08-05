@@ -18,20 +18,20 @@
 
 package org.apache.hcatalog.hcatmix.conf;
 
-import java.util.*;
+import junit.framework.TestCase;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.hadoop.hive.metastore.api.MetaException;
+import org.apache.hcatalog.hcatmix.HiveTableCreator;
+import org.xml.sax.SAXException;
 
-public class HiveTableSchemas extends ArrayList<HiveTableSchema>{
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.IOException;
 
-    public static HiveTableSchemas fromMultiInstanceSchema(List<MultiInstanceHiveTableSchema> multiInstanceTables) {
-        HiveTableSchemas hiveTableSchemas = new HiveTableSchemas();
-        for (MultiInstanceHiveTableSchema multiInstanceTable : multiInstanceTables) {
-            for (MultiInstanceHiveTableSchema.TableInstance instance  : multiInstanceTable.getInstances()) {
-                for (int i = 0; i < instance.getCount(); i++) {
-                    String tableName = multiInstanceTable.getNamePrefix() + "_" + instance.getSize() +"_" + i;
-                    hiveTableSchemas.add(new HiveTableSchema(multiInstanceTable,  tableName));
-                }
-            }
-        }
-        return hiveTableSchemas;
+public class TestHiveTableConf extends TestCase {
+    public void testHiveTableConf() throws IOException, SAXException, ConfigurationException, ParserConfigurationException, MetaException {
+        TableSchemaXMLParser configParser = new TableSchemaXMLParser("pigmix/scripts/hcat_table_specification.xml");
+        HiveTableSchemas schemas = configParser.getHiveTableSchemas();
+        HiveTableCreator tableCreator = new HiveTableCreator();
+        tableCreator.createTables(schemas);
     }
 }
