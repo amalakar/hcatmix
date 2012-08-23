@@ -18,14 +18,12 @@
 
 package org.apache.hcatalog.hcatmix;
 
-import org.apache.commons.configuration.ConfigurationException;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.*;
 import org.apache.hcatalog.hcatmix.conf.HiveTableSchema;
 import org.apache.hcatalog.hcatmix.conf.HiveTableSchemas;
 import org.apache.hcatalog.hcatmix.conf.TableSchemaXMLParser;
-import org.apache.thrift.TException;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -86,10 +84,6 @@ public class HiveTableCreator {
             hiveClient.createTable(table);
         } catch (Exception e) {
             System.out.println("Error is because:" + e);
-            e.printStackTrace();
-        } catch (NoSuchObjectException e) {
-            e.printStackTrace();
-        } catch (TException e) {
             e.printStackTrace();
         } finally {
             System.out.println("finally");
