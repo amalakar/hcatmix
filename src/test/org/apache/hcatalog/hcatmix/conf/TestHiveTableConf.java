@@ -19,7 +19,6 @@
 package org.apache.hcatalog.hcatmix.conf;
 
 import junit.framework.TestCase;
-import org.apache.commons.configuration.ConfigurationException;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hcatalog.hcatmix.HiveTableCreator;
 import org.xml.sax.SAXException;
@@ -28,7 +27,14 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 
 public class TestHiveTableConf extends TestCase {
-    public void testHiveTableConf() throws IOException, SAXException, ConfigurationException, ParserConfigurationException, MetaException {
+    public static void main(String[] args) {
+        try {
+            testHiveTableConf();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    public static void testHiveTableConf() throws IOException, SAXException, ParserConfigurationException, MetaException {
         TableSchemaXMLParser configParser = new TableSchemaXMLParser("pigmix/scripts/hcat_table_specification.xml");
         HiveTableSchemas schemas = configParser.getHiveTableSchemas();
         HiveTableCreator tableCreator = new HiveTableCreator();

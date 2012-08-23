@@ -18,17 +18,36 @@
 
 package org.apache.hcatalog.hcatmix;
 
+import org.apache.commons.configuration.ConfigurationException;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.*;
 import org.apache.hcatalog.hcatmix.conf.HiveTableSchema;
 import org.apache.hcatalog.hcatmix.conf.HiveTableSchemas;
+import org.apache.hcatalog.hcatmix.conf.TableSchemaXMLParser;
 import org.apache.thrift.TException;
+import org.xml.sax.SAXException;
 
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.IOException;
 import java.util.HashMap;
 
 public class HiveTableCreator {
     HiveMetaStoreClient hiveClient;
+
+    public static void main(String[] args) {
+        try {
+            testHiveTableConf();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    public static void testHiveTableConf() throws IOException, SAXException, ConfigurationException, ParserConfigurationException, MetaException {
+        TableSchemaXMLParser configParser = new TableSchemaXMLParser("pigmix/scripts/hcat_table_specification.xml");
+        HiveTableSchemas schemas = configParser.getHiveTableSchemas();
+        HiveTableCreator tableCreator = new HiveTableCreator();
+        tableCreator.createTables(schemas);
+    }
 
     public HiveTableCreator() throws MetaException {
         HiveConf hiveConf = new HiveConf(HiveTableCreator.class);
@@ -75,7 +94,7 @@ public class HiveTableCreator {
         } catch (TException e) {
             e.printStackTrace();
         } finally {
-
+            System.out.println("finally");
         }
     }
 

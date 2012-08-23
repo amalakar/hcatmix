@@ -26,7 +26,7 @@ public class HiveTableSchemas extends ArrayList<HiveTableSchema>{
         HiveTableSchemas hiveTableSchemas = new HiveTableSchemas();
         for (MultiInstanceHiveTableSchema multiInstanceTable : multiInstanceTables) {
             for (MultiInstanceHiveTableSchema.TableInstance instance  : multiInstanceTable.getInstances()) {
-                for (int i = 0; i < instance.getCount(); i++) {
+                for (int i = 0; i < instance.getInstanceCount(); i++) {
                     String tableName = multiInstanceTable.getNamePrefix() + "_" + instance.getSize() +"_" + i;
                     hiveTableSchemas.add(new HiveTableSchema(multiInstanceTable,  tableName));
                 }

@@ -35,22 +35,21 @@ import java.util.List;
 import java.util.Map;
 
 public class TableSchemaXMLParser {
-    private Document xmlDoc;
-    private HiveTableSchemas hiveTableSchemas;
+    private final HiveTableSchemas hiveTableSchemas;
 
     public TableSchemaXMLParser(String fileName) throws ParserConfigurationException, IOException, SAXException {
         File file = new File(fileName);
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         DocumentBuilder db = dbf.newDocumentBuilder();
-        xmlDoc = db.parse(file);
+        Document xmlDoc = db.parse(file);
         xmlDoc.getDocumentElement().normalize();
-        parse();
+        hiveTableSchemas = parse(xmlDoc);
     }
 
-    private void parse() {
+    private HiveTableSchemas parse(Document doc) {
         final List<MultiInstanceHiveTableSchema> multiInstanceTables = new ArrayList<MultiInstanceHiveTableSchema>();
 
-        NodeList tableList = xmlDoc.getElementsByTagName("tables");
+        NodeList tableList = doc.getElementsByTagName("tables");
         for (int i = 0; i < tableList.getLength(); i++) {
             Element table = (Element) tableList.item(i);
 
@@ -74,7 +73,7 @@ public class TableSchemaXMLParser {
             multiInstanceTables.add(multiInstanceSchema);
             multiInstanceSchema.setDatabaseName(getElementValue(table, "dbName"));
         }
-        hiveTableSchemas =  HiveTableSchemas.fromMultiInstanceSchema(multiInstanceTables);
+        return  HiveTableSchemas.fromMultiInstanceSchema(multiInstanceTables);
     }
 
     private static List<Map<String, String>> getAllChildrensMap(Element element, final String superChildName) {

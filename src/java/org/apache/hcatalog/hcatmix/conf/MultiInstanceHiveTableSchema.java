@@ -73,11 +73,11 @@ public class MultiInstanceHiveTableSchema {
 
     static class TableInstance {
         private int size;
-        private int count;
+        private int instanceCount;
 
-        public TableInstance(String size, String count) {
+        public TableInstance(String size, String instanceCount) {
             setSize(size);
-            setCount(count);
+            setInstanceCount(instanceCount);
         }
 
         public int getSize() {
@@ -88,12 +88,12 @@ public class MultiInstanceHiveTableSchema {
             this.size = Integer.parseInt(size);
         }
 
-        public int getCount() {
-            return count;
+        public int getInstanceCount() {
+            return instanceCount;
         }
 
-        public void setCount(String count) {
-            this.count = Integer.parseInt(count);
+        public void setInstanceCount(String instanceCount) {
+            this.instanceCount = Integer.parseInt(instanceCount);
         }
     }
 }
