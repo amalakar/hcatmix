@@ -19,7 +19,6 @@
 package org.apache.hcatalog.hcatmix.conf;
 
 import junit.framework.TestCase;
-import org.apache.commons.configuration.ConfigurationException;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hcatalog.hcatmix.HiveTableCreator;
 import org.xml.sax.SAXException;

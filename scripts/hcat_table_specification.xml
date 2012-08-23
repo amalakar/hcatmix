@@ -2,7 +2,7 @@
     <tables>
         <table>
             <namePrefix>page_views</namePrefix>
-            <dbName>hcatmix</dbName>
+            <dbName>default</dbName>
             <columns>
                 <column>
                     <name>user</name>
@@ -88,7 +88,7 @@
         </table>
         <table>
             <namePrefix>page_views1</namePrefix>
-            <dbName>hcatmix</dbName>
+            <dbName>default</dbName>
             <columns>
                 <column>
                     <name>user</name>

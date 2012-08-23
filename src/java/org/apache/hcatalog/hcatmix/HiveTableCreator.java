@@ -18,17 +18,37 @@
 
 package org.apache.hcatalog.hcatmix;
 
+
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.*;
 import org.apache.hcatalog.hcatmix.conf.HiveTableSchema;
 import org.apache.hcatalog.hcatmix.conf.HiveTableSchemas;
+import org.apache.hcatalog.hcatmix.conf.TableSchemaXMLParser;
 import org.apache.thrift.TException;
+import org.xml.sax.SAXException;
 
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.IOException;
 import java.util.HashMap;
 
 public class HiveTableCreator {
     HiveMetaStoreClient hiveClient;
+
+    public static void main(String[] args) {
+        try {
+            testHiveTableConf(args[0]);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void testHiveTableConf(final String fileName) throws IOException, SAXException, ParserConfigurationException, MetaException {
+        TableSchemaXMLParser configParser = new TableSchemaXMLParser(fileName);
+        HiveTableSchemas schemas = configParser.getHiveTableSchemas();
+        HiveTableCreator tableCreator = new HiveTableCreator();
+        tableCreator.createTables(schemas);
+    }
 
     public HiveTableCreator() throws MetaException {
         HiveConf hiveConf = new HiveConf(HiveTableCreator.class);
@@ -64,18 +84,9 @@ public class HiveTableCreator {
         try {
             System.out.println(table.getTableName());
             hiveClient.createTable(table);
-        } catch (AlreadyExistsException e) {
+        } catch (Exception e) {
+            System.out.println("Error is because:" + e);
             e.printStackTrace();
-        } catch (InvalidObjectException e) {
-            e.printStackTrace();
-        } catch (MetaException e) {
-            e.printStackTrace();
-        } catch (NoSuchObjectException e) {
-            e.printStackTrace();
-        } catch (TException e) {
-            e.printStackTrace();
-        } finally {
-
         }
     }
 
