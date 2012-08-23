@@ -18,7 +18,7 @@
 
 package org.apache.hcatalog.hcatmix;
 
-
+import org.apache.commons.configuration.ConfigurationException;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.*;
@@ -87,8 +87,12 @@ public class HiveTableCreator {
         } catch (Exception e) {
             System.out.println("Error is because:" + e);
             e.printStackTrace();
+        } catch (NoSuchObjectException e) {
+            e.printStackTrace();
+        } catch (TException e) {
+            e.printStackTrace();
+        } finally {
+            System.out.println("finally");
         }
     }
-
-
 }
