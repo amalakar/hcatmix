@@ -40,10 +40,6 @@
                     <name>action</name>
                     <type>int</type>
                 </column>
-                <column>
-                    <name>action</name>
-                    <type>int</type>
-                </column>
             </columns>
             <partitions>
                 <partition>

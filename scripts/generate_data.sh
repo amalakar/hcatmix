@@ -57,7 +57,7 @@ fi
 
 # configure the cluster
 conf_dir="${HADOOP_CONF_DIR:-$HADOOP_HOME/conf}"
-export HADOOP_CLASSPATH=$pigjar:$pigperfjar
+export HADOOP_CLASSPATH=$pigjar:$pigperfjar:$scripts/../lib/sdsuLibJKD12.jar
 
 START=$(date +%s)
 

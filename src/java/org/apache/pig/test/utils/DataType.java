@@ -25,7 +25,11 @@ public enum DataType {
     }
 
     public static DataType fromChar(char c) {
-        return charToEnum.get(c);
+        DataType dataType = charToEnum.get(c);
+        if(dataType == null) {
+            throw new IllegalArgumentException("Don't know column type: " + c);
+        }
+        return dataType;
     }
 
     public static DataType fromInt(int c) {
