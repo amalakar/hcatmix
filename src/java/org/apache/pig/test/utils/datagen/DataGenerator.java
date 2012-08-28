@@ -106,11 +106,11 @@ public class DataGenerator extends Configured implements Tool {
             System.err.println(e.getMessage());
             usage();
         }
-        runJob(dgConf);
+        runJob(dgConf, getConf());
         return 0;
     }
 
-    public void runJob(DataGeneratorConf dgConf) throws IOException {
+    public void runJob(DataGeneratorConf dgConf, Configuration conf) throws IOException {
     	long t1 = System.currentTimeMillis();
     	if (dgConf.getNumMappers() <= 0) {
     		System.out.println("Generate data in local mode.");
@@ -119,8 +119,8 @@ public class DataGenerator extends Configured implements Tool {
             runner.generate();
         }else{
         	System.out.println("Generate data in hadoop mode.");        
-        	HadoopRunner runner = new HadoopRunner(dgConf);
-        	runner.generate(getConf());
+        	HadoopRunner runner = new HadoopRunner(dgConf, conf);
+        	runner.generate();
         }
     	   	
     	long t2 = System.currentTimeMillis();

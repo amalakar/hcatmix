@@ -35,13 +35,15 @@ public class HadoopRunner {
     FileSystem fs;
     Path tmpHome;
     private DataGeneratorConf dgConf;
+    private Configuration conf;
 
-    public HadoopRunner(DataGeneratorConf dgConf) {
+    public HadoopRunner(DataGeneratorConf dgConf, Configuration conf) {
         this.dgConf = dgConf;
+        this.conf = conf;
         r = new Random();
     }
 
-    public void generate(Configuration conf) throws IOException {
+    public void generate() throws IOException {
         // Configuration processed by ToolRunner
 
         // Create a JobConf using the processed conf

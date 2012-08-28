@@ -18,9 +18,13 @@
 
 package org.apache.hcatalog.hcatmix;
 
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.*;
+import org.apache.hadoop.util.Tool;
+import org.apache.hadoop.util.ToolRunner;
 import org.apache.hcatalog.hcatmix.conf.HiveTableSchema;
 import org.apache.hcatalog.hcatmix.conf.HiveTableSchemas;
 import org.apache.hcatalog.hcatmix.conf.TableSchemaXMLParser;
@@ -37,16 +41,90 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class HiveTableCreator {
+public class HiveTableCreator extends Configured implements Tool {
     HiveMetaStoreClient hiveClient;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws MetaException {
+        HiveTableCreator hiveTableCreator = new HiveTableCreator();
+        try {
+            ToolRunner.run(new Configuration(), hiveTableCreator, args);
+        }catch(Exception e) {
+            System.err.print("Error encountered " + e.getMessage());
+        }
+    }
+
+    public static void usage() {
+        System.out.println("Error");
+        throw new RuntimeException();
+    }
+
+    public HiveTableCreator() throws MetaException {
+        HiveConf hiveConf = new HiveConf(HiveTableCreator.class);
+        hiveClient = new HiveMetaStoreClient(hiveConf);
+    }
+
+    public void createTablesFromConf(final String fileName, final int numMappers, final String outputDir) throws IOException, SAXException, ParserConfigurationException, MetaException {
+        TableSchemaXMLParser configParser = new TableSchemaXMLParser(fileName);
+        HiveTableSchemas schemas = configParser.getHiveTableSchemas();
+        HiveTableCreator tableCreator = new HiveTableCreator();
+
+        for (HiveTableSchema hiveTableSchema : schemas) {
+            //tableCreator.createTable(hiveTableSchema);
+            tableCreator.generateDataForTable(hiveTableSchema, numMappers, outputDir);
+        }
+    }
+
+    private void generateDataForTable(HiveTableSchema hiveTableSchema, final int numMappers, String outputDir) throws IOException {
+        List<ColSpec> colSpecs = new ArrayList<ColSpec>(hiveTableSchema.getColSpecs());
+        colSpecs.addAll(hiveTableSchema.getParitionColSpecs());
+        DataGeneratorConf dgConf = new DataGeneratorConf.Builder()
+                                        .colSpecs(colSpecs.toArray(new ColSpec[colSpecs.size()]))
+                                        .numMappers(numMappers)
+                                        .numRows(100) // TODO
+                                        .outputFile(outputDir + "_" + hiveTableSchema.getName())
+                                        .build();
+        DataGenerator dataGenerator = new DataGenerator();
+        dataGenerator.runJob(dgConf, getConf());
+    }
+
+    public void createTable(HiveTableSchema hiveTableSchema) {
+        Table table = new Table();
+        table.setDbName(hiveTableSchema.getDatabaseName());
+        table.setTableName(hiveTableSchema.getName());
+        StorageDescriptor sd = new StorageDescriptor();
+        sd.setCols(hiveTableSchema.getFieldSchemas());
+        table.setSd(sd);
+        sd.setParameters(new HashMap<String, String>());
+        sd.setSerdeInfo(new SerDeInfo());
+        sd.getSerdeInfo().setName(table.getTableName());
+        sd.getSerdeInfo().setParameters(new HashMap<String, String>());
+
+        sd.setInputFormat(org.apache.hadoop.hive.ql.io.RCFileInputFormat.class.getName());
+        sd.setOutputFormat(org.apache.hadoop.hive.ql.io.RCFileOutputFormat.class.getName());
+        sd.getSerdeInfo().getParameters().put(
+                org.apache.hadoop.hive.serde.Constants.SERIALIZATION_FORMAT, "1");
+        sd.getSerdeInfo().setSerializationLib(
+                org.apache.hadoop.hive.serde2.columnar.ColumnarSerDe.class.getName());
+        table.setPartitionKeys(hiveTableSchema.getPartitionFieldSchemas());
+
+        try {
+            System.out.println("Creating table: " + table.getTableName());
+            hiveClient.createTable(table);
+        } catch (Exception e) {
+            System.out.println("Error is because:" + e);
+            e.printStackTrace();
+        }
+
+
+    }
+
+    @Override
+    public int run(String[] args) throws Exception {
         CmdLineParser opts = new CmdLineParser(args);
         opts.registerOpt('f', "file", CmdLineParser.ValueExpected.REQUIRED);
         opts.registerOpt('m', "mappers", CmdLineParser.ValueExpected.OPTIONAL);
         opts.registerOpt('o', "output", CmdLineParser.ValueExpected.REQUIRED);
 
-        DataGeneratorConf.Builder builder = new DataGeneratorConf.Builder();
         String fileName = null;
         int numMappers = 0;
         String outputDir = null;
@@ -82,70 +160,6 @@ public class HiveTableCreator {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    public static void usage() {
-        System.out.println("Error");
-        throw new RuntimeException();
-    }
-
-    public HiveTableCreator() throws MetaException {
-        HiveConf hiveConf = new HiveConf(HiveTableCreator.class);
-        hiveClient = new HiveMetaStoreClient(hiveConf);
-    }
-
-    public static void createTablesFromConf(final String fileName, final int numMappers, final String outputDir) throws IOException, SAXException, ParserConfigurationException, MetaException {
-        TableSchemaXMLParser configParser = new TableSchemaXMLParser(fileName);
-        HiveTableSchemas schemas = configParser.getHiveTableSchemas();
-        HiveTableCreator tableCreator = new HiveTableCreator();
-
-        for (HiveTableSchema hiveTableSchema : schemas) {
-            //tableCreator.createTable(hiveTableSchema);
-            tableCreator.generateDataForTable(hiveTableSchema, numMappers, outputDir);
-        }
-    }
-
-    private void generateDataForTable(HiveTableSchema hiveTableSchema, final int numMappers, String outputDir) throws IOException {
-        List<ColSpec> colSpecs = new ArrayList<ColSpec>(hiveTableSchema.getColSpecs());
-        colSpecs.addAll(hiveTableSchema.getParitionColSpecs());
-        DataGeneratorConf dgConf = new DataGeneratorConf.Builder()
-                                        .colSpecs((ColSpec[]) colSpecs.toArray(new ColSpec[]{}))
-                                        .numMappers(numMappers)
-                                        .numRows(100) // TODO
-                                        .outputFile(outputDir + "_" + hiveTableSchema.getName())
-                                        .build();
-        DataGenerator dataGenerator = new DataGenerator();
-        dataGenerator.runJob(dgConf);
-    }
-
-    public void createTable(HiveTableSchema hiveTableSchema) {
-        Table table = new Table();
-        table.setDbName(hiveTableSchema.getDatabaseName());
-        table.setTableName(hiveTableSchema.getName());
-        StorageDescriptor sd = new StorageDescriptor();
-        sd.setCols(hiveTableSchema.getFieldSchemas());
-        table.setSd(sd);
-        sd.setParameters(new HashMap<String, String>());
-        sd.setSerdeInfo(new SerDeInfo());
-        sd.getSerdeInfo().setName(table.getTableName());
-        sd.getSerdeInfo().setParameters(new HashMap<String, String>());
-
-        sd.setInputFormat(org.apache.hadoop.hive.ql.io.RCFileInputFormat.class.getName());
-        sd.setOutputFormat(org.apache.hadoop.hive.ql.io.RCFileOutputFormat.class.getName());
-        sd.getSerdeInfo().getParameters().put(
-                org.apache.hadoop.hive.serde.Constants.SERIALIZATION_FORMAT, "1");
-        sd.getSerdeInfo().setSerializationLib(
-                org.apache.hadoop.hive.serde2.columnar.ColumnarSerDe.class.getName());
-        table.setPartitionKeys(hiveTableSchema.getPartitionFieldSchemas());
-
-        try {
-            System.out.println("Creating table: " + table.getTableName());
-            hiveClient.createTable(table);
-        } catch (Exception e) {
-            System.out.println("Error is because:" + e);
-            e.printStackTrace();
-        }
-
-
+        return 0;
     }
 }
