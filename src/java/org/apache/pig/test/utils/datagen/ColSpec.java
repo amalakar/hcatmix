@@ -27,7 +27,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
-class ColSpec {
+public class ColSpec {
 
     private DataType dataType;
     private int averageSize; // Only applicable in case of strings
@@ -41,13 +41,10 @@ class ColSpec {
     private Map<Integer, Object> map;
     private String args; // TODO
 
-    static enum DistributionType {
-        UNIFORM('u'),
-        ZIPF('z');
-        private final char character;
-        DistributionType(char character) {
-            this.character = character;
-        }
+    public static enum DistributionType {
+        UNIFORM,
+        ZIPF;
+
         public static DistributionType fromChar(char c) {
             if(c == 'u') {
                 return UNIFORM;
@@ -55,6 +52,16 @@ class ColSpec {
                 return ZIPF;
             } else {
                 throw new IllegalArgumentException("Unknown char [" + c + "] for distribution type");
+            }
+        }
+
+        public static DistributionType fromString(String str) {
+            if("uniform".equals(str)) {
+                return UNIFORM;
+            } else if("zipf".equals(str)) {
+                return ZIPF;
+            } else {
+                throw new IllegalArgumentException("Unknown char [" + str + "] for distribution type");
             }
         }
     }

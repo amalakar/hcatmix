@@ -47,7 +47,7 @@
                 </column>
                 <column>
                     <name>page_info</name>
-                    <type>MAP&lt;STRING, STRING&gt;</type>
+                    <type>MAP</type>
                     <avgSize>1</avgSize>
                     <distribution>zipf</distribution>
                     <cardinality>1000</cardinality>

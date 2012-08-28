@@ -110,7 +110,7 @@ public class DataGenerator extends Configured implements Tool {
         return 0;
     }
 
-    private void runJob(DataGeneratorConf dgConf) throws IOException {
+    public void runJob(DataGeneratorConf dgConf) throws IOException {
     	long t1 = System.currentTimeMillis();
     	if (dgConf.getNumMappers() <= 0) {
     		System.out.println("Generate data in local mode.");

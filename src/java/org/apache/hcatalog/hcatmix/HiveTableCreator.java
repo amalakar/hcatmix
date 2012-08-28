@@ -24,28 +24,68 @@ import org.apache.hadoop.hive.metastore.api.*;
 import org.apache.hcatalog.hcatmix.conf.HiveTableSchema;
 import org.apache.hcatalog.hcatmix.conf.HiveTableSchemas;
 import org.apache.hcatalog.hcatmix.conf.TableSchemaXMLParser;
+import org.apache.pig.test.utils.datagen.ColSpec;
+import org.apache.pig.test.utils.datagen.DataGenerator;
+import org.apache.pig.test.utils.datagen.DataGeneratorConf;
+import org.apache.pig.tools.cmdline.CmdLineParser;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.HashMap;
+import java.util.List;
 
 public class HiveTableCreator {
     HiveMetaStoreClient hiveClient;
 
     public static void main(String[] args) {
+        CmdLineParser opts = new CmdLineParser(args);
+        opts.registerOpt('f', "file", CmdLineParser.ValueExpected.REQUIRED);
+        opts.registerOpt('m', "mappers", CmdLineParser.ValueExpected.OPTIONAL);
+        opts.registerOpt('o', "output", CmdLineParser.ValueExpected.REQUIRED);
+
+        DataGeneratorConf.Builder builder = new DataGeneratorConf.Builder();
+        String fileName = null;
+        int numMappers = 0;
+        String outputDir = null;
+        char opt;
         try {
-            testHiveTableConf(args[0]);
+            while ((opt = opts.getNextOpt()) != CmdLineParser.EndOfOpts) {
+                switch (opt) {
+                    case 'f':
+                        fileName = opts.getValStr();
+                        break;
+
+                    case 'o':
+                        outputDir = opts.getValStr();
+                        break;
+
+                    case 'm':
+                        numMappers = Integer.valueOf(opts.getValStr());
+                        break;
+
+                    default:
+                        usage();
+                        break;
+                }
+            }
+        } catch (ParseException pe) {
+            System.err.println("Couldn't parse the command line arguments, " +
+                    pe.getMessage());
+            usage();
+        }
+
+        try {
+            createTablesFromConf(fileName, numMappers, outputDir);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public static void testHiveTableConf(final String fileName) throws IOException, SAXException, ParserConfigurationException, MetaException {
-        TableSchemaXMLParser configParser = new TableSchemaXMLParser(fileName);
-        HiveTableSchemas schemas = configParser.getHiveTableSchemas();
-        HiveTableCreator tableCreator = new HiveTableCreator();
-        tableCreator.createTables(schemas);
+    public static void usage() {
+        System.out.println("Error");
+        throw new RuntimeException();
     }
 
     public HiveTableCreator() throws MetaException {
@@ -53,10 +93,26 @@ public class HiveTableCreator {
         hiveClient = new HiveMetaStoreClient(hiveConf);
     }
 
-    public void createTables(HiveTableSchemas tableSchemas) {
-        for (HiveTableSchema hiveTableSchema : tableSchemas) {
-            createTable(hiveTableSchema);
+    public static void createTablesFromConf(final String fileName, final int numMappers, final String outputDir) throws IOException, SAXException, ParserConfigurationException, MetaException {
+        TableSchemaXMLParser configParser = new TableSchemaXMLParser(fileName);
+        HiveTableSchemas schemas = configParser.getHiveTableSchemas();
+        HiveTableCreator tableCreator = new HiveTableCreator();
+
+        for (HiveTableSchema hiveTableSchema : schemas) {
+            tableCreator.createTable(hiveTableSchema);
+            tableCreator.generateDataForTable(hiveTableSchema, numMappers, outputDir);
         }
+    }
+
+    private void generateDataForTable(HiveTableSchema hiveTableSchema, final int numMappers, String outputDir) throws IOException {
+        DataGeneratorConf dgConf = new DataGeneratorConf.Builder()
+                                        .colSpecs((ColSpec[]) hiveTableSchema.getColumns().toArray())
+                                        .numMappers(numMappers)
+                                        .numRows(100) // TODO
+                                        .outputFile(outputDir + "_" + hiveTableSchema.getName())
+                                        .build();
+        DataGenerator dataGenerator = new DataGenerator();
+        dataGenerator.runJob(dgConf);
     }
 
     public void createTable(HiveTableSchema hiveTableSchema) {
@@ -64,7 +120,7 @@ public class HiveTableCreator {
         table.setDbName(hiveTableSchema.getDatabaseName());
         table.setTableName(hiveTableSchema.getName());
         StorageDescriptor sd = new StorageDescriptor();
-        sd.setCols(hiveTableSchema.getColumns());
+        sd.setCols((List<FieldSchema>) hiveTableSchema.getColumns());
         table.setSd(sd);
         sd.setParameters(new HashMap<String, String>());
         sd.setSerdeInfo(new SerDeInfo());
@@ -77,16 +133,16 @@ public class HiveTableCreator {
                 org.apache.hadoop.hive.serde.Constants.SERIALIZATION_FORMAT, "1");
         sd.getSerdeInfo().setSerializationLib(
                 org.apache.hadoop.hive.serde2.columnar.ColumnarSerDe.class.getName());
-        table.setPartitionKeys(hiveTableSchema.getPartitions());
+        table.setPartitionKeys((List<FieldSchema>) hiveTableSchema.getPartitions());
 
         try {
-            System.out.println(table.getTableName());
+            System.out.println("Creating table: " + table.getTableName());
             hiveClient.createTable(table);
         } catch (Exception e) {
             System.out.println("Error is because:" + e);
             e.printStackTrace();
-        } finally {
-            System.out.println("finally");
         }
+
+
     }
 }

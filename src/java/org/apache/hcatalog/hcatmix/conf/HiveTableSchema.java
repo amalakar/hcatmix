@@ -30,11 +30,11 @@ public class HiveTableSchema {
         this.name = name;
     }
 
-    public List<FieldSchema> getPartitions() {
+    public List<MultiInstanceHiveTableSchema.Column> getPartitions() {
         return multiInstanceHiveTableSchema.getPartitions();
     }
 
-    public List<FieldSchema> getColumns() {
+    public List<MultiInstanceHiveTableSchema.Column> getColumns() {
         return multiInstanceHiveTableSchema.getColumns();
     }
 

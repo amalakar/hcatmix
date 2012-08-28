@@ -18,6 +18,8 @@
 
 package org.apache.hcatalog.hcatmix.conf;
 
+import org.apache.pig.test.utils.DataType;
+import org.apache.pig.test.utils.datagen.ColSpec;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -58,12 +60,12 @@ public class TableSchemaXMLParser {
 
             List<Map<String, String>> columns = getAllChildrensMap(table, "column");
             for (Map<String, String> column : columns) {
-                multiInstanceSchema.addColumn(column.get("name"), column.get("type"));
+                multiInstanceSchema.addColumn(column.get("name"), getColSpecFromMap(column));
             }
 
             List<Map<String, String>> partitions = getAllChildrensMap(table, "partition");
             for (Map<String, String> partition : partitions) {
-                multiInstanceSchema.addPartition(partition.get("name"), partition.get("type"));
+                multiInstanceSchema.addPartition(partition.get("name"), getColSpecFromMap(partition));
             }
 
             List<Map<String, String>> instances = getAllChildrensMap(table, "instance");
@@ -74,6 +76,16 @@ public class TableSchemaXMLParser {
             multiInstanceSchema.setDatabaseName(getElementValue(table, "dbName"));
         }
         return  HiveTableSchemas.fromMultiInstanceSchema(multiInstanceTables);
+    }
+
+    private static ColSpec getColSpecFromMap(Map<String, String> column) {
+        return new ColSpec.Builder()
+                .dataType(DataType.fromString(column.get("type")))
+                .averageSize(Integer.parseInt(column.get("averageSize")))
+                .cardinality(Integer.parseInt(column.get("cardinality")))
+                .distributionType(ColSpec.DistributionType.fromString(column.get("distribution")))
+                .percentageNull(Integer.parseInt(column.get("percentageNull")))
+                .build();
     }
 
     private static List<Map<String, String>> getAllChildrensMap(Element element, final String superChildName) {

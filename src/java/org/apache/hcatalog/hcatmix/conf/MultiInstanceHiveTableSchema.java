@@ -19,6 +19,7 @@
 package org.apache.hcatalog.hcatmix.conf;
 
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
+import org.apache.pig.test.utils.datagen.ColSpec;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,8 +27,8 @@ import java.util.List;
 public class MultiInstanceHiveTableSchema {
     private String namePrefix;
     private String databaseName;
-    final List<FieldSchema> partitions = new ArrayList<FieldSchema>();
-    final List<FieldSchema> columns = new ArrayList<FieldSchema>();
+    final List<Column> partitions = new ArrayList<Column>();
+    final List<Column> columns = new ArrayList<Column>();
     final List<TableInstance> instances = new ArrayList<TableInstance>();
 
     public void setNamePrefix(String namePrefix) {
@@ -39,19 +40,21 @@ public class MultiInstanceHiveTableSchema {
     }
 
 
-    public void addColumn(String name, String type) {
-        columns.add(new FieldSchema(name, type, ""));
+    public void addColumn(String name, ColSpec colSpec) {
+        Column column = new Column(name, colSpec);
+        columns.add(column);
     }
 
-    public List<FieldSchema> getColumns() {
+    public List<Column> getColumns() {
         return columns;
     }
 
-    public void addPartition(String name, String type) {
-        partitions.add(new FieldSchema(name, type, ""));
+    public void addPartition(String name, ColSpec colSpec) {
+        Column column = new Column(name, colSpec);
+        partitions.add(column);
     }
 
-    public List<FieldSchema> getPartitions() {
+    public List<Column> getPartitions() {
         return partitions;
     }
 
@@ -94,6 +97,19 @@ public class MultiInstanceHiveTableSchema {
 
         public void setInstanceCount(String instanceCount) {
             this.instanceCount = Integer.parseInt(instanceCount);
+        }
+    }
+
+    public static class Column extends FieldSchema {
+        private final ColSpec colSpec;
+
+        public Column(String name, ColSpec colSpec) {
+            super(name, colSpec.getDataType().toString(), "");
+            this.colSpec = colSpec;
+        }
+
+        public ColSpec getColSpec() {
+            return colSpec;
         }
     }
 }
