@@ -75,7 +75,6 @@ public class ColSpec {
         private String mapFile;
         private ColSpec bagColSpec;
         private Map<Integer, Object> map = new HashMap<Integer, Object>();
-        private RandomGenerator gen;
 
         public Builder dataType(DataType dataType) {
             this.dataType = dataType;
@@ -118,11 +117,6 @@ public class ColSpec {
 
         public Builder map(Map<Integer, Object> map) {
             this.map = map;
-            return this;
-        }
-
-        public Builder generator(RandomGenerator generator) {
-            this.gen = generator;
             return this;
         }
 
@@ -180,7 +174,12 @@ public class ColSpec {
         this.bagColSpec = builder.bagColSpec;
         this.mapFile = builder.mapFile;
         this.map = builder.map;
-        this.gen = builder.gen;
+        if(builder.distributionType == DistributionType.ZIPF) {
+            // TODO
+            gen = new ZipfRandomGenerator(builder.averageSize, builder.cardinality, new Random());
+        } else {
+            gen = new UniformRandomGenerator(builder.averageSize, builder.cardinality, new Random());
+        }
     }
 
     public static ColSpec fromStringRepresentation(String arg) {
@@ -204,12 +203,6 @@ public class ColSpec {
         builder.averageSize(Integer.valueOf(parts[1]));
         builder.cardinality(Integer.valueOf(parts[2]));
         builder.distributionType(DistributionType.fromChar(parts[3].charAt(0)));
-        if(builder.distributionType == DistributionType.ZIPF) {
-            // TODO
-            builder.generator(new ZipfRandomGenerator(builder.averageSize, builder.cardinality, new Random()));
-        } else {
-            builder.generator(new UniformRandomGenerator(builder.averageSize, builder.cardinality, new Random()));
-        }
         builder.percentageNull(Integer.valueOf(parts[4]));
 
         // if config has 6 columns, the last col is the file name
@@ -243,5 +236,5 @@ public class ColSpec {
     public String nextString() {
         return gen.nextString(map);
     }
-
 }
+

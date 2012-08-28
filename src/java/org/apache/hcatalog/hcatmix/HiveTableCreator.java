@@ -100,7 +100,7 @@ public class HiveTableCreator {
         HiveTableCreator tableCreator = new HiveTableCreator();
 
         for (HiveTableSchema hiveTableSchema : schemas) {
-            tableCreator.createTable(hiveTableSchema);
+            //tableCreator.createTable(hiveTableSchema);
             tableCreator.generateDataForTable(hiveTableSchema, numMappers, outputDir);
         }
     }
@@ -109,7 +109,7 @@ public class HiveTableCreator {
         List<ColSpec> colSpecs = new ArrayList<ColSpec>(hiveTableSchema.getColSpecs());
         colSpecs.addAll(hiveTableSchema.getParitionColSpecs());
         DataGeneratorConf dgConf = new DataGeneratorConf.Builder()
-                                        .colSpecs((ColSpec[]) colSpecs.toArray())
+                                        .colSpecs((ColSpec[]) colSpecs.toArray(new ColSpec[]{}))
                                         .numMappers(numMappers)
                                         .numRows(100) // TODO
                                         .outputFile(outputDir + "_" + hiveTableSchema.getName())
