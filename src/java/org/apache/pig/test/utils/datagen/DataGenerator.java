@@ -34,12 +34,7 @@ public class DataGenerator extends Configured implements Tool {
     }
 
     public static void main(String[] args) throws Exception {
-    	DataGenerator dg = new DataGenerator();    	 
-    	try {
-    		ToolRunner.run(new Configuration(), dg, args);    			
-   		}catch(Exception e) {
-    		throw new IOException (e);
-    	}    	
+        ToolRunner.run(new Configuration(), new DataGenerator(), args);
     }
 
     @Override

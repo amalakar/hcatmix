@@ -44,13 +44,8 @@ import java.util.List;
 public class HiveTableCreator extends Configured implements Tool {
     HiveMetaStoreClient hiveClient;
 
-    public static void main(String[] args) throws MetaException {
-        HiveTableCreator hiveTableCreator = new HiveTableCreator();
-        try {
-            ToolRunner.run(new Configuration(), hiveTableCreator, args);
-        }catch(Exception e) {
-            System.err.print("Error encountered " + e.getMessage());
-        }
+    public static void main(String[] args) throws Exception {
+        ToolRunner.run(new Configuration(), new HiveTableCreator(), args);
     }
 
     public static void usage() {
@@ -66,11 +61,10 @@ public class HiveTableCreator extends Configured implements Tool {
     public void createTablesFromConf(final String fileName, final int numMappers, final String outputDir) throws IOException, SAXException, ParserConfigurationException, MetaException {
         TableSchemaXMLParser configParser = new TableSchemaXMLParser(fileName);
         HiveTableSchemas schemas = configParser.getHiveTableSchemas();
-        HiveTableCreator tableCreator = new HiveTableCreator();
 
         for (HiveTableSchema hiveTableSchema : schemas) {
             //tableCreator.createTable(hiveTableSchema);
-            tableCreator.generateDataForTable(hiveTableSchema, numMappers, outputDir);
+            generateDataForTable(hiveTableSchema, numMappers, outputDir);
         }
     }
 

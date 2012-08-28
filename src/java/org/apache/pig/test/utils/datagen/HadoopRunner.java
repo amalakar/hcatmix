@@ -126,7 +126,7 @@ public class HadoopRunner {
         PrintWriter pw = new PrintWriter((OutputStream) tmp[1]);
         for (int i = 0; i < dgConf.getColSpecs().length; i++) {
             DataType dataType = dgConf.getColSpecs()[i].getDataType();
-            pw.print(dgConf.getColSpecs()[i].getArgs());
+            pw.print(dgConf.getColSpecs()[i].getStringRepresentation());
 
             if (dataType == DataType.FLOAT || dataType == DataType.DOUBLE ||
                     dataType == DataType.STRING) {
@@ -149,7 +149,7 @@ public class HadoopRunner {
         int cardinality = col.getCardinality();
         Object[] tmp = createTempFile(tmpHome, false);
 
-        System.out.println("Generating mapping file for column " + col.getArgs() + " into " + tmp[0].toString());
+        System.out.println("Generating mapping file for column " + col.getStringRepresentation() + " into " + tmp[0].toString());
         PrintWriter pw = new PrintWriter((OutputStream) tmp[1]);
         HashSet<Object> hash = new HashSet<Object>(cardinality);
         for (int i = 0; i < cardinality; i++) {

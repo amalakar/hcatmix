@@ -36,14 +36,22 @@ public class ColSpec {
     private int percentageNull;
     private String mapFile;
     private ColSpec bagColSpec = null;
+    public final static String SEPARATOR = ":";
 
     private RandomGenerator gen;
     private Map<Integer, Object> map;
-    private String args; // TODO
 
     public static enum DistributionType {
-        UNIFORM,
-        ZIPF;
+        UNIFORM('u'),
+        ZIPF('z');
+        private final char character;
+        DistributionType(char character) {
+            this.character = character;
+        }
+
+        public char toChar() {
+            return character;
+        }
 
         public static DistributionType fromChar(char c) {
             if(c == 'u') {
@@ -157,8 +165,20 @@ public class ColSpec {
         return percentageNull;
     }
 
-    public String getArgs() {
-        return args;
+    public String getStringRepresentation() {
+        StringBuilder args = new StringBuilder(dataType.character()+"");
+        if(getDataType() == DataType.BAG) {
+            return args.append(bagColSpec.getStringRepresentation()).toString();
+        }
+        args.append(SEPARATOR);
+        args.append(getAverageSize()).append(SEPARATOR).append(cardinality)
+                    .append(SEPARATOR).append(distype.toChar()).append(SEPARATOR)
+                   .append(percentageNull);
+        if(mapFile != null) {
+            args.append(SEPARATOR).append(mapFile);
+        }
+
+        return args.toString();
     }
 
     public RandomGenerator getGen() {
@@ -185,7 +205,7 @@ public class ColSpec {
     public static ColSpec fromStringRepresentation(String arg) {
         // colspec: columntype:average_size:cardinality:distribution_type:percent_null
         // s:20:160000:z:7
-        String[] parts = arg.split(":");
+        String[] parts = arg.split(SEPARATOR);
         if (parts.length != 5 && parts.length != 6) {
             throw new IllegalArgumentException("Colspec [" + arg + "] format incorrect");
         }
@@ -211,10 +231,7 @@ public class ColSpec {
             builder.mapFile(parts[5]);
         }
 
-        // TODO
-        ColSpec colspec = builder.build();
-        colspec.args = arg;
-        return colspec;
+        return builder.build();
     }
 
     public int nextInt() {
@@ -235,6 +252,11 @@ public class ColSpec {
 
     public String nextString() {
         return gen.nextString(map);
+    }
+
+    @Override
+    public String toString() {
+        return getStringRepresentation();
     }
 }
 

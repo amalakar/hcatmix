@@ -38,6 +38,6 @@ public class TestHiveTableConf extends TestCase {
         TableSchemaXMLParser configParser = new TableSchemaXMLParser("pigmix/scripts/hcat_table_specification.xml");
         HiveTableSchemas schemas = configParser.getHiveTableSchemas();
         HiveTableCreator tableCreator = new HiveTableCreator();
-        tableCreator.createTables(schemas);
+        //tableCreator.createTables(schemas);
     }
 }
