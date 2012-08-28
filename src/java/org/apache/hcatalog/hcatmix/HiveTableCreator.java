@@ -33,6 +33,7 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -105,8 +106,10 @@ public class HiveTableCreator {
     }
 
     private void generateDataForTable(HiveTableSchema hiveTableSchema, final int numMappers, String outputDir) throws IOException {
+        List<ColSpec> colSpecs = new ArrayList<ColSpec>(hiveTableSchema.getColSpecs());
+        colSpecs.addAll(hiveTableSchema.getParitionColSpecs());
         DataGeneratorConf dgConf = new DataGeneratorConf.Builder()
-                                        .colSpecs((ColSpec[]) hiveTableSchema.getColumns().toArray())
+                                        .colSpecs((ColSpec[]) colSpecs.toArray())
                                         .numMappers(numMappers)
                                         .numRows(100) // TODO
                                         .outputFile(outputDir + "_" + hiveTableSchema.getName())
@@ -120,7 +123,7 @@ public class HiveTableCreator {
         table.setDbName(hiveTableSchema.getDatabaseName());
         table.setTableName(hiveTableSchema.getName());
         StorageDescriptor sd = new StorageDescriptor();
-        sd.setCols((List<FieldSchema>) hiveTableSchema.getColumns());
+        sd.setCols(hiveTableSchema.getFieldSchemas());
         table.setSd(sd);
         sd.setParameters(new HashMap<String, String>());
         sd.setSerdeInfo(new SerDeInfo());
@@ -133,7 +136,7 @@ public class HiveTableCreator {
                 org.apache.hadoop.hive.serde.Constants.SERIALIZATION_FORMAT, "1");
         sd.getSerdeInfo().setSerializationLib(
                 org.apache.hadoop.hive.serde2.columnar.ColumnarSerDe.class.getName());
-        table.setPartitionKeys((List<FieldSchema>) hiveTableSchema.getPartitions());
+        table.setPartitionKeys(hiveTableSchema.getPartitionFieldSchemas());
 
         try {
             System.out.println("Creating table: " + table.getTableName());

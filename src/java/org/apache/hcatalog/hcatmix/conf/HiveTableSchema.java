@@ -18,7 +18,10 @@
 package org.apache.hcatalog.hcatmix.conf;
 
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
+import org.apache.pig.test.utils.datagen.ColSpec;
 
+import java.awt.image.AreaAveragingScaleFilter;
+import java.util.ArrayList;
 import java.util.List;
 
 public class HiveTableSchema {
@@ -34,8 +37,44 @@ public class HiveTableSchema {
         return multiInstanceHiveTableSchema.getPartitions();
     }
 
+    public List<ColSpec> getParitionColSpecs() {
+        List<ColSpec> colSpecs = new ArrayList<ColSpec>();
+        List<MultiInstanceHiveTableSchema.Column> paritions = getPartitions();
+        for (MultiInstanceHiveTableSchema.Column partition : paritions) {
+            colSpecs.add(partition.getColSpec());
+        }
+        return  colSpecs;
+    }
+
+    public List<FieldSchema> getPartitionFieldSchemas() {
+        List<FieldSchema> fieldSchemas = new ArrayList<FieldSchema>();
+        List<MultiInstanceHiveTableSchema.Column> partitions = getPartitions();
+        for (MultiInstanceHiveTableSchema.Column partition : partitions) {
+            fieldSchemas.add(partition);
+        }
+        return fieldSchemas;
+    }
+
     public List<MultiInstanceHiveTableSchema.Column> getColumns() {
         return multiInstanceHiveTableSchema.getColumns();
+    }
+
+    public List<ColSpec> getColSpecs() {
+        List<ColSpec> colSpecs = new ArrayList<ColSpec>();
+        List<MultiInstanceHiveTableSchema.Column> columns = getColumns();
+        for (MultiInstanceHiveTableSchema.Column column : columns) {
+            colSpecs.add(column.getColSpec());
+        }
+        return  colSpecs;
+    }
+
+    public List<FieldSchema> getFieldSchemas() {
+        List<FieldSchema> fieldSchemas = new ArrayList<FieldSchema>();
+        List<MultiInstanceHiveTableSchema.Column> columns = getColumns();
+        for (MultiInstanceHiveTableSchema.Column column : columns) {
+            fieldSchemas.add(column);
+        }
+        return fieldSchemas;
     }
 
     public String getName() {
