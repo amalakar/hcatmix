@@ -19,7 +19,6 @@ package org.apache.pig.test.utils.datagen;
 
 import java.io.*;
 import java.text.ParseException;
-import java.util.*;
 
 import org.apache.pig.tools.cmdline.CmdLineParser;
 
@@ -30,14 +29,9 @@ import org.apache.hadoop.util.*;
  * A tool to generate data for performance testing.
  */
 public class DataGenerator extends Configured implements Tool {
-    DataGeneratorConf dgConf;
-    final public static char CTRL_C = '\u0003';
-    final public static char CTRL_A = '\u0001';
 
-
-
-    char separator = CTRL_A;
-    Random rand;
+    public DataGenerator() {
+    }
 
     public static void main(String[] args) throws Exception {
     	DataGenerator dg = new DataGenerator();    	 
@@ -46,20 +40,6 @@ public class DataGenerator extends Configured implements Tool {
    		}catch(Exception e) {
     		throw new IOException (e);
     	}    	
-        dg.go();
-    }
-
-    protected DataGenerator(long seed) {    
-    	System.out.println("Using seed " + seed);
-        rand = new Random(seed);
-    }
-
-    protected DataGenerator() {
-    	
-    }
-    
-    protected DataGenerator(String[] args) {
-    	
     }
 
     @Override
@@ -119,17 +99,18 @@ public class DataGenerator extends Configured implements Tool {
             colSpecs[i] = ColSpec.fromStringRepresentation(remainders[i]);
         }
         builder.colSpecs(colSpecs);
-
+        DataGeneratorConf dgConf = null;
         try {
             dgConf = builder.build();
         } catch (Exception e) {
             System.err.println(e.getMessage());
             usage();
         }
+        runJob(dgConf);
         return 0;
     }
 
-    private void go() throws IOException {    	    
+    private void runJob(DataGeneratorConf dgConf) throws IOException {
     	long t1 = System.currentTimeMillis();
     	if (dgConf.getNumMappers() <= 0) {
     		System.out.println("Generate data in local mode.");

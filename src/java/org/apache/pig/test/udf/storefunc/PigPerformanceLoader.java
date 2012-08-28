@@ -31,7 +31,7 @@ import org.apache.pig.data.DataBag;
 import org.apache.pig.data.TupleFactory;
 import org.apache.pig.data.Tuple;
 import org.apache.pig.test.utils.DataType;
-import org.apache.pig.test.utils.datagen.DataGenerator;
+import org.apache.pig.test.utils.datagen.Writer;
 
 /**
  * A load function for the performance tests.
@@ -120,7 +120,7 @@ public class PigPerformanceLoader extends PigStorage {
                 String key = new String(k);
                 pos += 2;
                 int start = pos;
-                while (pos < b.length && b[pos] != (int) DataGenerator.CTRL_C) pos++;
+                while (pos < b.length && b[pos] != (int) Writer.CTRL_C) pos++;
 
                 byte[] copy = new byte[pos - start];
                 int i, j;

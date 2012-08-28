@@ -30,8 +30,9 @@ public class Writer {
     private String[] mapkey = { "a", "b", "c", "d", "e", "f", "g", "h", "i",
             "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w",
             "x", "y", "z"};
-    final public static char CTRL_C = '\u0003';
     final public static char CTRL_A = '\u0001';
+    final public static char CTRL_C = '\u0003';
+
     public Writer(DataGeneratorConf dgConf) {
         this.rand = new Random(dgConf.getSeed());
         this.dgConf = dgConf;

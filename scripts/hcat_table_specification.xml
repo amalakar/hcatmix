@@ -7,56 +7,69 @@
                 <column>
                     <name>user</name>
                     <type>STRING</type>
-                </column>
-                <column>
-                    <name>action</name>
-                    <type>INT</type>
+                    <avgSize>5</avgSize>
+                    <distribution>zipf</distribution>
+                    <cardinality>1000</cardinality>
+                    <percentageNull>10</percentageNull>
                 </column>
                 <column>
                     <name>timespent</name>
                     <type>INT</type>
+                    <avgSize>1</avgSize>
+                    <distribution>zipf</distribution>
+                    <cardinality>1000</cardinality>
+                    <percentageNull>10</percentageNull>
                 </column>
                 <column>
                     <name>query_term</name>
                     <type>STRING</type>
+                    <avgSize>5</avgSize>
+                    <distribution>zipf</distribution>
+                    <cardinality>1000</cardinality>
+                    <percentageNull>10</percentageNull>
                 </column>
                 <column>
                     <name>ip_addr</name>
-                    <type>int</type>
+                    <type>INT</type>
+                    <avgSize>1</avgSize>
+                    <distribution>zipf</distribution>
+                    <cardinality>1000</cardinality>
+                    <percentageNull>10</percentageNull>
                 </column>
-                <column>
-                    <name>timestamp</name>
-                    <type>int</type>
-                </column>
+
                 <column>
                     <name>estimated_revenue</name>
-                    <type>int</type>
+                    <type>INT</type>
+                    <avgSize>1</avgSize>
+                    <distribution>zipf</distribution>
+                    <cardinality>1000</cardinality>
+                    <percentageNull>10</percentageNull>
                 </column>
                 <column>
                     <name>page_info</name>
                     <type>MAP&lt;STRING, STRING&gt;</type>
-                </column>
-                <column>
-                    <name>action</name>
-                    <type>int</type>
+                    <avgSize>1</avgSize>
+                    <distribution>zipf</distribution>
+                    <cardinality>1000</cardinality>
+                    <percentageNull>10</percentageNull>
                 </column>
             </columns>
             <partitions>
-                <partition>
-                    <name>estimated_revenue</name>
-                    <type>int</type>
-                </partition>
-                <partition>
-                    <name>page_info</name>
-                    <type>string</type>
-                </partition>
-                <partition>
-                    <name>action</name>
-                    <type>int</type>
-                </partition>
+                <column>
+                    <name>timestamp</name>
+                    <type>INT</type>
+                    <avgSize>1</avgSize>
+                    <distribution>zipf</distribution>
+                    <cardinality>1000</cardinality>
+                    <percentageNull>10</percentageNull>
+                </column>
                 <partition>
                     <name>action</name>
-                    <type>int</type>
+                    <type>INT</type>
+                    <avgSize>5</avgSize>
+                    <distribution>zipf</distribution>
+                    <cardinality>1000</cardinality>
+                    <percentageNull>10</percentageNull>
                 </partition>
             </partitions>
             <instances>
@@ -82,7 +95,7 @@
                 </instance>
             </instances>
         </table>
-        <table>
+        <!--table>
             <namePrefix>page_views1</namePrefix>
             <dbName>default</dbName>
             <columns>
@@ -103,7 +116,7 @@
                     <count>1</count>
                 </instance>
             </instances>
-        </table>
+        </table-->
     </tables>
 </database>
 

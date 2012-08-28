@@ -30,7 +30,7 @@ import java.util.Random;
 class ColSpec {
 
     private DataType dataType;
-    private int averageSize;
+    private int averageSize; // Only applicable in case of strings
     private int cardinality;
     private DistributionType distype;
     private int percentageNull;

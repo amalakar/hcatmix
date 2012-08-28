@@ -124,6 +124,4 @@ public class DataGenMapper extends MapReduceBase implements Mapper<LongWritable,
             output.collect(null, str.toString());
         }
     }
-
-
 }

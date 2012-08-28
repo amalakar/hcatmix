@@ -33,7 +33,7 @@ public class DataGeneratorConf {
         private int numMappers = -1;
         private String outputFile;
         private String inFile;
-        private char separator;
+        private char separator = Writer.CTRL_A;
         ColSpec[] colSpecs;
 
         public Builder seed(final long seed) {

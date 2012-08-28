@@ -23,9 +23,6 @@ import sdsu.algorithms.data.Zipf;
 import java.util.Map;
 import java.util.Random;
 
-/**
-* Author: malakar
-*/
 public class ZipfRandomGenerator extends RandomGenerator {
     Zipf z;
 
@@ -39,25 +36,25 @@ public class ZipfRandomGenerator extends RandomGenerator {
     // to get [0..cardinality)
     // the randome number returned by zipf library is an integer, but converted into double
     private double next() {
-        return z.nextElement()-1;
+        return z.nextElement() - 1;
     }
 
     public int nextInt(Map<Integer, Object> map) {
-        return (int)next();
+        return (int) next();
     }
 
     public long nextLong(Map<Integer, Object> map) {
-        return (long)next();
+        return (long) next();
     }
 
     public float nextFloat(Map<Integer, Object> map) {
-        int seed = (int)next();
-        Float d = (Float)map.get(seed);
+        int seed = (int) next();
+        Float d = (Float) map.get(seed);
         if (d == null) {
             if (!hasMapFile) {
                 d = randomFloat();
                 map.put(seed, d);
-            }else{
+            } else {
                 throw new IllegalStateException("Number " + seed + " is not found in map file");
             }
         }
@@ -65,27 +62,27 @@ public class ZipfRandomGenerator extends RandomGenerator {
     }
 
     public double nextDouble(Map<Integer, Object> map) {
-         int seed = (int)next();
-         Double d = (Double)map.get(seed);
-         if (d == null) {
-             if (!hasMapFile) {
-                 d = randomDouble();
-                 map.put(seed, d);
-             }else{
-                 throw new IllegalStateException("Number " + seed + " is not found in map file");
-             }
-         }
-         return d;
+        int seed = (int) next();
+        Double d = (Double) map.get(seed);
+        if (d == null) {
+            if (!hasMapFile) {
+                d = randomDouble();
+                map.put(seed, d);
+            } else {
+                throw new IllegalStateException("Number " + seed + " is not found in map file");
+            }
+        }
+        return d;
     }
 
     public String nextString(Map<Integer, Object> map) {
-        int seed = (int)next();
-        String s = (String)map.get(seed);
+        int seed = (int) next();
+        String s = (String) map.get(seed);
         if (s == null) {
             if (!hasMapFile) {
                 s = randomString();
                 map.put(seed, s);
-            }else{
+            } else {
                 throw new IllegalStateException("Number " + seed + " is not found in map file");
             }
         }
