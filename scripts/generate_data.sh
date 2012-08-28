@@ -38,7 +38,7 @@ then
     exit
 fi
 
-pigjar=$PIG_HOME/pig-0.9.2.jar
+pigjar=$PIG_HOME/lib/pig.jar
 if [ ! -e $pigjar ]
 then
     echo "Cannot find $pigjar, not in $PIG_HOME"
