@@ -1,7 +1,7 @@
 <database>
     <tables>
         <table>
-            <namePrefix>page_views_1brandnew</namePrefix>
+            <namePrefix>page_views</namePrefix>
             <dbName>default</dbName>
             <columns>
                 <column>
@@ -44,7 +44,8 @@
                 </column>
                 <column>
                     <name>page_info</name>
-                    <type>map</type>
+                    <type>string</type>
+                    <avgLength>10</avgLength>
                     <distribution>zipf</distribution>
                     <cardinality>1000</cardinality>
                     <percentageNull>10</percentageNull>
@@ -56,14 +57,12 @@
                     <type>int</type>
                     <distribution>zipf</distribution>
                     <cardinality>1000</cardinality>
-                    <percentageNull>10</percentageNull>
                 </column>
                 <partition>
                     <name>action</name>
                     <type>int</type>
                     <distribution>zipf</distribution>
                     <cardinality>1000</cardinality>
-                    <percentageNull>10</percentageNull>
                 </partition>
             </partitions>
             <instances>

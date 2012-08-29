@@ -43,6 +43,7 @@ import java.util.List;
 
 public class HiveTableCreator extends Configured implements Tool {
     HiveMetaStoreClient hiveClient;
+    public final char SEPARATOR = ',';
 
     public static void main(String[] args) throws Exception {
         ToolRunner.run(new Configuration(), new HiveTableCreator(), args);
@@ -63,7 +64,7 @@ public class HiveTableCreator extends Configured implements Tool {
         HiveTableSchemas schemas = configParser.getHiveTableSchemas();
 
         for (HiveTableSchema hiveTableSchema : schemas) {
-            //tableCreator.createTable(hiveTableSchema);
+            createTable(hiveTableSchema);
             generateDataForTable(hiveTableSchema, numMappers, outputDir);
         }
     }
@@ -73,9 +74,10 @@ public class HiveTableCreator extends Configured implements Tool {
         colSpecs.addAll(hiveTableSchema.getParitionColSpecs());
         DataGeneratorConf dgConf = new DataGeneratorConf.Builder()
                                         .colSpecs(colSpecs.toArray(new ColSpec[colSpecs.size()]))
+                                        .separator(SEPARATOR)
                                         .numMappers(numMappers)
-                                        .numRows(100) // TODO
-                                        .outputFile(outputDir + "_" + hiveTableSchema.getName())
+                                        .numRows(hiveTableSchema.getRowCount()) // TODO
+                                        .outputFile(outputDir + hiveTableSchema.getName())
                                         .build();
         DataGenerator dataGenerator = new DataGenerator();
         dataGenerator.runJob(dgConf, getConf());
@@ -132,6 +134,9 @@ public class HiveTableCreator extends Configured implements Tool {
 
                     case 'o':
                         outputDir = opts.getValStr();
+                        if(!outputDir.endsWith("/")) {
+                            outputDir = outputDir + "/";
+                        }
                         break;
 
                     case 'm':

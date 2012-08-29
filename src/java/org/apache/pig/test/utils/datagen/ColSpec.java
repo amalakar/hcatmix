@@ -30,7 +30,7 @@ import java.util.Random;
 public class ColSpec {
 
     private DataType dataType;
-    private int avgStrLength; // TODO: Only applicable in case of strings, should be avgLength
+    private int avgStrLength;
     private int cardinality;
     private DistributionType distype;
     private int percentageNull;
@@ -79,7 +79,7 @@ public class ColSpec {
         private int avgStrLenth; // if avgStrLenth is very less compared to cardinality the code may loop forever to genereate the sample space ??
         private int cardinality;
         private DistributionType distributionType;
-        private int percentageNull;
+        private int percentageNull = 0;
         private String mapFile;
         private ColSpec bagColSpec;
         private Map<Integer, Object> map = new HashMap<Integer, Object>();

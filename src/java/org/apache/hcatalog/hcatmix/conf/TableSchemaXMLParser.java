@@ -38,6 +38,11 @@ import java.util.Map;
 
 public class TableSchemaXMLParser {
     private final HiveTableSchemas hiveTableSchemas;
+    public static final String PERCENTAGE_NULL = "percentageNull";
+    public static final String CARDINALITY = "cardinality";
+    public static final String AVG_LENGTH = "avgLength";
+    public static final String DISTRIBUTION = "distribution";
+    public static final String TYPE = "type";
 
     public TableSchemaXMLParser(String fileName) throws ParserConfigurationException, IOException, SAXException {
         File file = new File(fileName);
@@ -60,12 +65,12 @@ public class TableSchemaXMLParser {
 
             List<Map<String, String>> columns = getAllChildrensMap(table, "column");
             for (Map<String, String> column : columns) {
-                multiInstanceSchema.addColumn(column.get("name"), getColSpecFromMap(column));
+                multiInstanceSchema.addColumn(column.get("name"), getColSpecFromMap(column, false));
             }
 
             List<Map<String, String>> partitions = getAllChildrensMap(table, "partition");
             for (Map<String, String> partition : partitions) {
-                multiInstanceSchema.addPartition(partition.get("name"), getColSpecFromMap(partition));
+                multiInstanceSchema.addPartition(partition.get("name"), getColSpecFromMap(partition, true));
             }
 
             List<Map<String, String>> instances = getAllChildrensMap(table, "instance");
@@ -78,17 +83,23 @@ public class TableSchemaXMLParser {
         return  HiveTableSchemas.fromMultiInstanceSchema(multiInstanceTables);
     }
 
-    private static ColSpec getColSpecFromMap(Map<String, String> column) {
+    private static ColSpec getColSpecFromMap(Map<String, String> column, boolean isPartition) {
         ColSpec.Builder builder = new ColSpec.Builder();
-        builder.dataType(DataType.fromString(column.get("type")));
-        if(DataType.fromString(column.get("type")) == DataType.STRING) {
-            builder.avgStrLength(Integer.parseInt(column.get("avgLength")));
+        builder.dataType(DataType.fromString(column.get(TYPE)));
+        if(DataType.fromString(column.get(TYPE)) == DataType.STRING) {
+            builder.avgStrLength(Integer.parseInt(column.get(AVG_LENGTH)));
         }
-        return  builder
-                .cardinality(Integer.parseInt(column.get("cardinality")))
-                .distributionType(ColSpec.DistributionType.fromString(column.get("distribution")))
-                .percentageNull(Integer.parseInt(column.get("percentageNull")))
-                .build();
+        builder
+                .cardinality(Integer.parseInt(column.get(CARDINALITY)))
+                .distributionType(ColSpec.DistributionType.fromString(column.get(DISTRIBUTION)));
+        if(isPartition) {
+            if(column.containsKey(PERCENTAGE_NULL)) {
+                throw new IllegalArgumentException(PERCENTAGE_NULL + " cannot be defined for a partition. Partition cannot have null values");
+            }
+        } else {
+            builder.percentageNull(Integer.parseInt(column.get("percentageNull")));
+        }
+        return builder.build();
     }
 
     private static List<Map<String, String>> getAllChildrensMap(Element element, final String superChildName) {

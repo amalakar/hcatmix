@@ -27,10 +27,12 @@ import java.util.List;
 public class HiveTableSchema {
     private final MultiInstanceHiveTableSchema multiInstanceHiveTableSchema;
     private final String name;
+    private int rowCount;
 
-    public HiveTableSchema(MultiInstanceHiveTableSchema multiInstanceHiveTableSchema, final String name) {
+    public HiveTableSchema(MultiInstanceHiveTableSchema multiInstanceHiveTableSchema, final String name, int rowCount) {
         this.multiInstanceHiveTableSchema = multiInstanceHiveTableSchema;
         this.name = name;
+        this.rowCount = rowCount;
     }
 
     public List<MultiInstanceHiveTableSchema.Column> getPartitions() {
@@ -81,7 +83,12 @@ public class HiveTableSchema {
     public String getName() {
         return name;
     }
+
     public String getDatabaseName() {
         return multiInstanceHiveTableSchema.getDatabaseName();
+    }
+
+    public int getRowCount() {
+        return  rowCount;
     }
 }
