@@ -6,7 +6,7 @@
             <columns>
                 <column>
                     <name>user</name>
-                    <type>STRING</type>
+                    <type>string</type>
                     <avgSize>5</avgSize>
                     <distribution>zipf</distribution>
                     <cardinality>1000</cardinality>
@@ -14,7 +14,7 @@
                 </column>
                 <column>
                     <name>timespent</name>
-                    <type>INT</type>
+                    <type>int</type>
                     <avgSize>1</avgSize>
                     <distribution>zipf</distribution>
                     <cardinality>1000</cardinality>
@@ -22,7 +22,7 @@
                 </column>
                 <column>
                     <name>query_term</name>
-                    <type>STRING</type>
+                    <type>string</type>
                     <avgSize>5</avgSize>
                     <distribution>zipf</distribution>
                     <cardinality>1000</cardinality>
@@ -30,7 +30,7 @@
                 </column>
                 <column>
                     <name>ip_addr</name>
-                    <type>INT</type>
+                    <type>int</type>
                     <avgSize>1</avgSize>
                     <distribution>zipf</distribution>
                     <cardinality>1000</cardinality>
@@ -39,7 +39,7 @@
 
                 <column>
                     <name>estimated_revenue</name>
-                    <type>INT</type>
+                    <type>int</type>
                     <avgSize>1</avgSize>
                     <distribution>zipf</distribution>
                     <cardinality>1000</cardinality>
@@ -47,7 +47,7 @@
                 </column>
                 <column>
                     <name>page_info</name>
-                    <type>MAP</type>
+                    <type>map</type>
                     <avgSize>1</avgSize>
                     <distribution>zipf</distribution>
                     <cardinality>1000</cardinality>
@@ -57,7 +57,7 @@
             <partitions>
                 <column>
                     <name>timestamp</name>
-                    <type>INT</type>
+                    <type>int</type>
                     <avgSize>1</avgSize>
                     <distribution>zipf</distribution>
                     <cardinality>1000</cardinality>
@@ -65,7 +65,7 @@
                 </column>
                 <partition>
                     <name>action</name>
-                    <type>INT</type>
+                    <type>int</type>
                     <avgSize>5</avgSize>
                     <distribution>zipf</distribution>
                     <cardinality>1000</cardinality>

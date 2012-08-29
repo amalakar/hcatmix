@@ -37,6 +37,7 @@ public class HiveTableSchema {
         return multiInstanceHiveTableSchema.getPartitions();
     }
 
+    // TODO: ColSpec and FieldSchema are stored together, if array of one is required then we need to go through the whole array
     public List<ColSpec> getParitionColSpecs() {
         List<ColSpec> colSpecs = new ArrayList<ColSpec>();
         List<MultiInstanceHiveTableSchema.Column> paritions = getPartitions();

@@ -104,7 +104,7 @@ public class MultiInstanceHiveTableSchema {
         private final ColSpec colSpec;
 
         public Column(String name, ColSpec colSpec) {
-            super(name, colSpec.getDataType().toString(), "");
+            super(name, colSpec.getDataType().toString().toLowerCase(), "");
             this.colSpec = colSpec;
         }
 
