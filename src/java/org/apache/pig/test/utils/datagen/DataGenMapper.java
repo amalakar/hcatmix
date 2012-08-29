@@ -32,11 +32,9 @@ import java.util.Map;
 
 public class DataGenMapper extends MapReduceBase implements Mapper<LongWritable, Text, String, String> {
     private JobConf jobConf;
-   // private DataGenerator dg;
-    private DataGeneratorConf dgConf;
     private boolean hasInput;
-    Writer writer;
-
+    private Writer writer;
+    private List<ColSpec> colSpecs = new ArrayList<ColSpec>();
 
     @Override
     public void configure(JobConf jobconf) {
@@ -45,34 +43,29 @@ public class DataGenMapper extends MapReduceBase implements Mapper<LongWritable,
         int id = Integer.parseInt(jobconf.get("mapred.task.partition"));
         long time = System.currentTimeMillis() - id * 3600 * 24 * 1000;
 
-        DataGeneratorConf.Builder dgConfBuilder = new DataGeneratorConf.Builder();
+       // DataGeneratorConf.Builder dgConfBuilder = new DataGeneratorConf.Builder();
 
-        //dg = new DataGenerator(((time - id * 3600 * 24 * 1000) | (id << 48)));
-        dgConfBuilder.seed(((time - id * 3600 * 24 * 1000) | (id << 48)));
+        long seed = ((time - id * 3600 * 24 * 1000) | (id << 48));
+        char separator = (char) Integer.parseInt(jobConf.get(HadoopRunner.COLUMN_OUTPUT_SEPARATOR));
 
-//        dg.separator = (char) Integer.parseInt(jobConf.get("separator"));
-        dgConfBuilder.separator((char) Integer.parseInt(jobConf.get("separator")));
-        if (jobConf.get("hasinput").equals("true")) {
+        if (jobConf.get(HadoopRunner.HAS_USER_INPUT).equals("true")) {
             hasInput = true;
         }
 
-        String config = jobConf.get("fieldconfig");
+        String confFilePath = jobConf.get(HadoopRunner.COLUMN_CONF_FILE_PATH);
 
         try {
             FileSystem fs = FileSystem.get(jobconf);
 
             // load in config file for each column
-            BufferedReader reader = new BufferedReader(new InputStreamReader(fs.open(new Path(config))));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(fs.open(new Path(confFilePath))));
             String line;
-            List<ColSpec> cols = new ArrayList<ColSpec>();
             while ((line = reader.readLine()) != null) {
-                cols.add(ColSpec.fromStringRepresentation(line));
+                colSpecs.add(ColSpec.fromString(line));
             }
             reader.close();
-//            dg.setColSpecs(cols.toArray(new ColSpec[0]));
-            dgConfBuilder.colSpecs((ColSpec[]) cols.toArray());
             // load in mapping files
-            for (ColSpec col : cols) {
+            for (ColSpec col : colSpecs) {
                 if (col.getMapFile() != null) {
                     reader = new BufferedReader(new InputStreamReader(fs.open(new Path(col.getMapFile()))));
                     Map<Integer, Object> map = col.getMap();
@@ -94,19 +87,18 @@ public class DataGenMapper extends MapReduceBase implements Mapper<LongWritable,
         } catch (IOException e) {
             throw new RuntimeException("Failed to load config file. " + e);
         }
-        dgConf = dgConfBuilder.build();
-        writer = new Writer(dgConf);
+        writer = new Writer(colSpecs, separator, seed);
     }
 
     public void map(LongWritable key, Text value, OutputCollector<String, String> output, Reporter reporter) throws IOException {
-        int intialsz = dgConf.getColSpecs().length * 50;
+        int initialSize = colSpecs.size() * 50;
 
         if (!hasInput) {
             long numRows = Long.parseLong(value.toString().trim());
             // dg.numRows = numRows; //TODO??
 
             for (int i = 0; i < numRows; i++) {
-                StringWriter str = new StringWriter(intialsz);
+                StringWriter str = new StringWriter(initialSize);
                 PrintWriter pw = new PrintWriter(str);
                 writer.writeLine(pw);
                 output.collect(null, str.toString());
@@ -117,7 +109,7 @@ public class DataGenMapper extends MapReduceBase implements Mapper<LongWritable,
                 }
             }
         } else {
-            StringWriter str = new StringWriter(intialsz);
+            StringWriter str = new StringWriter(initialSize);
             PrintWriter pw = new PrintWriter(str);
             pw.write(value.toString());
             writer.writeLine(pw);

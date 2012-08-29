@@ -91,7 +91,7 @@ public class DataGenerator extends Configured implements Tool {
         String remainders[] = opts.getRemainingArgs();
         ColSpec[] colSpecs = new ColSpec[remainders.length];
         for (int i = 0; i < remainders.length; i++) {
-            colSpecs[i] = ColSpec.fromStringRepresentation(remainders[i]);
+            colSpecs[i] = ColSpec.fromString(remainders[i]);
         }
         builder.colSpecs(colSpecs);
         DataGeneratorConf dgConf = null;

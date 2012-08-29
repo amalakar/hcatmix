@@ -30,7 +30,7 @@ import java.util.Random;
 public class ColSpec {
 
     private DataType dataType;
-    private int averageSize; // Only applicable in case of strings
+    private int averageSize; // TODO: Only applicable in case of strings, should be avgLength
     private int cardinality;
     private DistributionType distype;
     private int percentageNull;
@@ -69,7 +69,7 @@ public class ColSpec {
             } else if("zipf".equals(str)) {
                 return ZIPF;
             } else {
-                throw new IllegalArgumentException("Unknown char [" + str + "] for distribution type");
+                throw new IllegalArgumentException("Unknown string [" + str + "] for distribution type");
             }
         }
     }
@@ -202,7 +202,7 @@ public class ColSpec {
         }
     }
 
-    public static ColSpec fromStringRepresentation(String arg) {
+    public static ColSpec fromString(String arg) {
         // colspec: columntype:average_size:cardinality:distribution_type:percent_null
         // s:20:160000:z:7
         String[] parts = arg.split(SEPARATOR);
@@ -216,7 +216,7 @@ public class ColSpec {
         builder.dataType(dataType);
         if(dataType == DataType.BAG) {
             // bm:10:1:z:20
-            builder.bagColSpec(ColSpec.fromStringRepresentation(arg.substring(1)));
+            builder.bagColSpec(ColSpec.fromString(arg.substring(1)));
             return builder.build();
         }
 

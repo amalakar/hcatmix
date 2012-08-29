@@ -19,33 +19,37 @@
 package org.apache.pig.test.utils.datagen;
 
 import java.io.PrintWriter;
+import java.util.List;
 import java.util.Random;
 
-/**
- * Author: malakar
- */
 public class Writer {
     Random rand;
-    private DataGeneratorConf dgConf;
+    //private DataGeneratorConf dgConf;
     private String[] mapkey = { "a", "b", "c", "d", "e", "f", "g", "h", "i",
             "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w",
             "x", "y", "z"};
     final public static char CTRL_A = '\u0001';
     final public static char CTRL_C = '\u0003';
+    private final char separator;
+    private final List<ColSpec> colSpecs;
 
-    public Writer(DataGeneratorConf dgConf) {
-        this.rand = new Random(dgConf.getSeed());
-        this.dgConf = dgConf;
+    public Writer(List<ColSpec> colSpecs, char separator, long seed) {
+        this.rand = new Random(seed);
+        this.separator = separator;
+        this.colSpecs = colSpecs;
     }
 
     public void writeLine(PrintWriter out) {
-        for (int j = 0; j < dgConf.getColSpecs().length; j++) {
-            if (j != 0) out.print(dgConf.getSeparator());
+        for (int i = 0; i < colSpecs.size(); i++) {
+            ColSpec colSpec = colSpecs.get(i);
+            if (i != 0) {
+                out.print(separator);
+            }
             // First, decide if it's going to be null
-            if (rand.nextInt(100) < dgConf.getColSpecs()[j].getPercentageNull()) {
+            if (rand.nextInt(100) < colSpec.getPercentageNull()) {
                 continue;
             }
-            writeCol(dgConf.getColSpecs()[j], out);
+            writeCol(colSpec, out);
         }
     }
 

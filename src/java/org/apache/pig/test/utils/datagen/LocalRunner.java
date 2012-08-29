@@ -1,6 +1,7 @@
 package org.apache.pig.test.utils.datagen;
 
 import java.io.*;
+import java.util.Arrays;
 import java.util.Random;
 
 /**
@@ -14,7 +15,7 @@ public class LocalRunner {
     public LocalRunner(DataGeneratorConf dgConf) {
         this.dgConf = dgConf;
         rand = new Random(dgConf.getSeed());
-        writer = new Writer(dgConf);
+        writer = new Writer(Arrays.asList(dgConf.getColSpecs()), dgConf.getSeparator(), dgConf.getSeed());
     }
 
     public void generate() throws IOException {
