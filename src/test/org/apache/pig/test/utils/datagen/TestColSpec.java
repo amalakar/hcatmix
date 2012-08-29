@@ -48,7 +48,15 @@ public class TestColSpec extends TestCase {
                 .bagColSpec(bagColSpec)
                 .build();
         assertEquals("bm:10:1:z:20", colSpec.getStringRepresentation());
+    }
 
-
+    public void testStringParsing(){
+        ColSpec colSpec = ColSpec.fromString("s:20:160000:z:7");
+        assertEquals(DataType.STRING, colSpec.getDataType());
+        assertEquals(20, colSpec.getAverageSize());
+        assertEquals(160000, colSpec.getCardinality());
+        assertEquals(ColSpec.DistributionType.ZIPF, colSpec.getDistype());
+        assertEquals(7, colSpec.getPercentageNull());
+        assertEquals("s:20:160000:z:7", colSpec.getStringRepresentation());
     }
 }

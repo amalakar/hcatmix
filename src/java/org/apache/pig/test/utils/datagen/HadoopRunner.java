@@ -37,6 +37,10 @@ public class HadoopRunner {
     private DataGeneratorConf dgConf;
     private Configuration conf;
 
+    public final static String COLUMN_CONF_FILE_PATH = "column_conf_file_path";
+    public final static String COLUMN_OUTPUT_SEPARATOR = "column_output_separator";
+    public final static String HAS_USER_INPUT = "hasinput";
+
     public HadoopRunner(DataGeneratorConf dgConf, Configuration conf) {
         this.dgConf = dgConf;
         this.conf = conf;
@@ -54,9 +58,8 @@ public class HadoopRunner {
 
         String config = genMapFiles().toUri().getRawPath();
         // set config properties into job conf
-        job.set("fieldconfig", config);
-        job.set("separator", String.valueOf((int) dgConf.getSeparator()));
-
+        job.set(COLUMN_CONF_FILE_PATH, config);
+        job.set(COLUMN_OUTPUT_SEPARATOR, String.valueOf((int) dgConf.getSeparator()));
 
         job.setJobName("data-gen");
         job.setNumMapTasks(dgConf.getNumMappers());
@@ -67,9 +70,9 @@ public class HadoopRunner {
         // if inFile is specified, use it as input
         if (dgConf.getInFile() != null) {
             FileInputFormat.setInputPaths(job,dgConf.getInFile());
-            job.set("hasinput", "true");
+            job.set(HAS_USER_INPUT, "true");
         } else {
-            job.set("hasinput", "false");
+            job.set(HAS_USER_INPUT, "false");
             Path input = genInputFiles();
             FileInputFormat.setInputPaths(job, input);
         }
@@ -99,8 +102,8 @@ public class HadoopRunner {
         // create one input file per mapper, which contains
         // the number of rows
         for (int i = 0; i < dgConf.getNumMappers(); i++) {
-            Object[] tmp = createTempFile(input, false);
-            PrintWriter pw = new PrintWriter((OutputStream) tmp[1]);
+            TempFile tmpFile = createTempFile(input, false);
+            PrintWriter pw = new PrintWriter(tmpFile.outputStream);
 
             if (i < dgConf.getNumMappers() - 1) {
                 pw.println(avgRows);
@@ -116,41 +119,47 @@ public class HadoopRunner {
         return input;
     }
 
-    // generate map files for all the fields that need to pre-generate map files
-    // return a config file which contains config info for each field, including
-    // the path to their map file
+    /**
+     * Generate map files for all the fields that need to pre-generate map files
+     * return a config file which contains config info for each field, including
+     * the path to their map file
+     * @return
+     * @throws IOException
+     */
     private Path genMapFiles() throws IOException {
-        Object[] tmp = createTempFile(tmpHome, false);
+        TempFile tmpFile = createTempFile(tmpHome, false);
 
-        System.out.println("Generating column config file in " + tmp[0].toString());
-        PrintWriter pw = new PrintWriter((OutputStream) tmp[1]);
+        System.out.println("Generating column config file in " + tmpFile.path.toString());
+        PrintWriter pw = new PrintWriter(tmpFile.outputStream);
         for (int i = 0; i < dgConf.getColSpecs().length; i++) {
             DataType dataType = dgConf.getColSpecs()[i].getDataType();
             pw.print(dgConf.getColSpecs()[i].getStringRepresentation());
 
             if (dataType == DataType.FLOAT || dataType == DataType.DOUBLE ||
                     dataType == DataType.STRING) {
-                Path p = genMapFile(dgConf.getColSpecs()[i]);
-                pw.print(':');
+                Path p = genSampleSpaceAndMapping(dgConf.getColSpecs()[i]);
+                pw.print(ColSpec.SEPARATOR);
                 pw.print(p.toUri().getRawPath());
             }
-
             pw.println();
         }
 
         pw.close();
 
-        return (Path) tmp[0];
+        return tmpFile.path;
     }
 
-    // genereate a map file between random number to field value
-    // return the path of the map file
-    private Path genMapFile(ColSpec col) throws IOException {
+    /**
+     * Generates the sample space for DOUBLE, FLOAT and STRING
+     * and the mapping for the same from integers ranging from 0 to cardinality.
+     * Writes this onto a temp file and returns the Path to it
+     */
+    private Path genSampleSpaceAndMapping(ColSpec col) throws IOException {
         int cardinality = col.getCardinality();
-        Object[] tmp = createTempFile(tmpHome, false);
+        TempFile tmpFile = createTempFile(tmpHome, false);
 
-        System.out.println("Generating mapping file for column " + col.getStringRepresentation() + " into " + tmp[0].toString());
-        PrintWriter pw = new PrintWriter((OutputStream) tmp[1]);
+        System.out.println("Generating mapping file for column " + col + " into " + tmpFile.path.toString());
+        PrintWriter pw = new PrintWriter(tmpFile.outputStream);
         HashSet<Object> hash = new HashSet<Object>(cardinality);
         for (int i = 0; i < cardinality; i++) {
             pw.print(i);
@@ -178,43 +187,47 @@ public class HadoopRunner {
 
         pw.close();
 
-        return (Path) tmp[0];
+        return tmpFile.path;
 
     }
 
     private Path createTempDir(Path parentDir) throws IOException {
-        Object[] obj = createTempFile(parentDir, true);
-        return (Path) obj[0];
+        return createTempFile(parentDir, true).path;
     }
 
-    private Object[] createTempFile(Path parentDir, boolean isDir) throws IOException {
-        Path tmp_home = parentDir;
+    private static class TempFile {
+        public final Path path;
+        public final OutputStream outputStream;
 
-        if (tmp_home == null) {
-            tmp_home = new Path(fs.getHomeDirectory(), "tmp");
+        private TempFile(Path path, OutputStream outputStream) throws IOException {
+            this.path = path;
+            this.outputStream = outputStream;
+        }
+    }
+
+    private TempFile createTempFile(Path parentDir, boolean isDir) throws IOException {
+        Path tmpHome = parentDir;
+        if (tmpHome == null) {
+            tmpHome = new Path(fs.getHomeDirectory(), "tmp");
         }
 
-        if (!fs.exists(tmp_home)) {
-            fs.mkdirs(tmp_home);
+        if (!fs.exists(tmpHome)) {
+            fs.mkdirs(tmpHome);
         }
 
         int id = r.nextInt();
-        Path f = new Path(tmp_home, "tmp" + id);
-        while (fs.exists(f)) {
+        Path path = new Path(tmpHome, "tmp" + id);
+        while (fs.exists(path)) {
             id = r.nextInt();
-            f = new Path(tmp_home, "tmp" + id);
+            path = new Path(tmpHome, "tmp" + id);
         }
-
-        // return a 2-element array. first element is PATH,
-        // second element is OutputStream
-        Object[] r = new Object[2];
-        r[0] = f;
-        if (!isDir) {
-            r[1] = fs.create(f);
+        TempFile tmpFile;
+        if (isDir) {
+            fs.mkdirs(path);
+            tmpFile = new TempFile(path, null);
         } else {
-            fs.mkdirs(f);
+            tmpFile = new TempFile(path, fs.create(path));
         }
-
-        return r;
+        return tmpFile;
     }
 }

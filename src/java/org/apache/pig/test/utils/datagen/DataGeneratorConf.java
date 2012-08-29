@@ -34,7 +34,7 @@ public class DataGeneratorConf {
         private String outputFile;
         private String inFile;
         private char separator = Writer.CTRL_A;
-        ColSpec[] colSpecs;
+        private ColSpec[] colSpecs;
 
         public Builder seed(final long seed) {
             this.seed = seed;
@@ -83,6 +83,14 @@ public class DataGeneratorConf {
 
             if (numMappers > 0 && seed != -1) {
                 throw new IllegalArgumentException("");
+            }
+
+            if(colSpecs == null || colSpecs.length ==0) {
+                throw new IllegalArgumentException("Column Specification is either null or of size 0");
+            }
+
+            if(outputFile == null || outputFile.length() == 0) {
+                throw new IllegalArgumentException("output file should be non-null/non-empty");
             }
             seed = System.currentTimeMillis();
             return new DataGeneratorConf(this);
