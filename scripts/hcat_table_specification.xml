@@ -7,7 +7,7 @@
                 <column>
                     <name>user</name>
                     <type>string</type>
-                    <avgSize>5</avgSize>
+                    <avgLength>10</avgLength>
                     <distribution>zipf</distribution>
                     <cardinality>1000</cardinality>
                     <percentageNull>10</percentageNull>
@@ -15,7 +15,6 @@
                 <column>
                     <name>timespent</name>
                     <type>int</type>
-                    <avgSize>1</avgSize>
                     <distribution>zipf</distribution>
                     <cardinality>1000</cardinality>
                     <percentageNull>10</percentageNull>
@@ -23,7 +22,7 @@
                 <column>
                     <name>query_term</name>
                     <type>string</type>
-                    <avgSize>5</avgSize>
+                    <avgLength>10</avgLength>
                     <distribution>zipf</distribution>
                     <cardinality>1000</cardinality>
                     <percentageNull>10</percentageNull>
@@ -31,7 +30,6 @@
                 <column>
                     <name>ip_addr</name>
                     <type>int</type>
-                    <avgSize>1</avgSize>
                     <distribution>zipf</distribution>
                     <cardinality>1000</cardinality>
                     <percentageNull>10</percentageNull>
@@ -40,7 +38,6 @@
                 <column>
                     <name>estimated_revenue</name>
                     <type>int</type>
-                    <avgSize>1</avgSize>
                     <distribution>zipf</distribution>
                     <cardinality>1000</cardinality>
                     <percentageNull>10</percentageNull>
@@ -48,7 +45,6 @@
                 <column>
                     <name>page_info</name>
                     <type>map</type>
-                    <avgSize>1</avgSize>
                     <distribution>zipf</distribution>
                     <cardinality>1000</cardinality>
                     <percentageNull>10</percentageNull>
@@ -58,7 +54,6 @@
                 <column>
                     <name>timestamp</name>
                     <type>int</type>
-                    <avgSize>1</avgSize>
                     <distribution>zipf</distribution>
                     <cardinality>1000</cardinality>
                     <percentageNull>10</percentageNull>
@@ -66,7 +61,6 @@
                 <partition>
                     <name>action</name>
                     <type>int</type>
-                    <avgSize>5</avgSize>
                     <distribution>zipf</distribution>
                     <cardinality>1000</cardinality>
                     <percentageNull>10</percentageNull>

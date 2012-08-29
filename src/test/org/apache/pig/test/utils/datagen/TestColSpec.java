@@ -29,7 +29,7 @@ public class TestColSpec extends TestCase {
     public void testSpringRepresentation() {
         ColSpec colSpec = new ColSpec.Builder()
                 .dataType(DataType.fromString("string"))
-                .averageSize(20)
+                .avgStrLength(20)
                 .cardinality(160000)
                 .distributionType(ColSpec.DistributionType.fromString("zipf"))
                 .percentageNull(7)
@@ -38,7 +38,7 @@ public class TestColSpec extends TestCase {
 
         ColSpec bagColSpec = new ColSpec.Builder()
                 .dataType(DataType.fromString("map"))
-                .averageSize(10)
+                .avgStrLength(10)
                 .cardinality(1)
                 .distributionType(ColSpec.DistributionType.fromString("zipf"))
                 .percentageNull(20)
@@ -53,7 +53,7 @@ public class TestColSpec extends TestCase {
     public void testStringParsing(){
         ColSpec colSpec = ColSpec.fromString("s:20:160000:z:7");
         assertEquals(DataType.STRING, colSpec.getDataType());
-        assertEquals(20, colSpec.getAverageSize());
+        assertEquals(20, colSpec.getAvgStrLength());
         assertEquals(160000, colSpec.getCardinality());
         assertEquals(ColSpec.DistributionType.ZIPF, colSpec.getDistype());
         assertEquals(7, colSpec.getPercentageNull());

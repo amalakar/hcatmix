@@ -23,13 +23,13 @@ import java.util.Random;
 
 public abstract class RandomGenerator {
 
-    protected int avgSize;
+    protected int avgStrLength;
     protected boolean hasMapFile; // indicating whether a map file from
     protected Random rand;
 
-    RandomGenerator(int avgSize, Random rand) {
+    RandomGenerator(int avgStrLength, Random rand) {
         this.rand = rand;
-        this.avgSize = avgSize;
+        this.avgStrLength = avgStrLength;
     }
 
     // random number to the field value is pre-defined
@@ -40,10 +40,10 @@ public abstract class RandomGenerator {
     abstract public String nextString(Map<Integer, Object> map);
 
     public String randomString() {
-        int var = (int)((double) avgSize * 0.3);
-        StringBuffer sb = new StringBuffer(avgSize + var);
+        int var = (int)((double) avgStrLength * 0.3);
+        StringBuffer sb = new StringBuffer(avgStrLength + var);
         if (var < 1) var = 1;
-        int len = rand.nextInt(2 * var) + avgSize - var;
+        int len = rand.nextInt(2 * var) + avgStrLength - var;
         for (int i = 0; i < len; i++) {
             int n = rand.nextInt(122 - 65) + 65;
             sb.append(Character.toChars(n));

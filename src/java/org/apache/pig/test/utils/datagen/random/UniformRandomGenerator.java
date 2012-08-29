@@ -24,8 +24,8 @@ import java.util.Random;
 public class UniformRandomGenerator extends RandomGenerator {
     int cardinality;
 
-    public UniformRandomGenerator(int avgSize, int cardinality, Random rand) {
-        super(avgSize, rand);
+    public UniformRandomGenerator(int avgStrLength, int cardinality, Random rand) {
+        super(avgStrLength, rand);
         this.cardinality = cardinality;
     }
 

@@ -30,7 +30,7 @@ import java.util.Random;
 public class ColSpec {
 
     private DataType dataType;
-    private int averageSize; // TODO: Only applicable in case of strings, should be avgLength
+    private int avgStrLength; // TODO: Only applicable in case of strings, should be avgLength
     private int cardinality;
     private DistributionType distype;
     private int percentageNull;
@@ -76,7 +76,7 @@ public class ColSpec {
 
     public static class Builder {
         private DataType dataType;
-        private int averageSize;
+        private int avgStrLenth; // if avgStrLenth is very less compared to cardinality the code may loop forever to genereate the sample space ??
         private int cardinality;
         private DistributionType distributionType;
         private int percentageNull;
@@ -89,8 +89,8 @@ public class ColSpec {
             return this;
         }
 
-        public Builder averageSize(int averageSize) {
-            this.averageSize = averageSize;
+        public Builder avgStrLength(int avgStrLength) {
+            this.avgStrLenth = avgStrLength;
             return this;
         }
 
@@ -149,8 +149,8 @@ public class ColSpec {
         return mapFile;
     }
 
-    public int getAverageSize() {
-        return averageSize;
+    public int getAvgStrLength() {
+        return avgStrLength;
     }
 
     public int getCardinality() {
@@ -171,7 +171,7 @@ public class ColSpec {
             return args.append(bagColSpec.getStringRepresentation()).toString();
         }
         args.append(SEPARATOR);
-        args.append(getAverageSize()).append(SEPARATOR).append(cardinality)
+        args.append(getAvgStrLength()).append(SEPARATOR).append(cardinality)
                     .append(SEPARATOR).append(distype.toChar()).append(SEPARATOR)
                    .append(percentageNull);
         if(mapFile != null) {
@@ -187,7 +187,7 @@ public class ColSpec {
 
     private ColSpec(Builder builder) {
         this.dataType = builder.dataType;
-        this.averageSize = builder.averageSize;
+        this.avgStrLength = builder.avgStrLenth;
         this.cardinality = builder.cardinality;
         this.distype = builder.distributionType;
         this.percentageNull = builder.percentageNull;
@@ -196,9 +196,9 @@ public class ColSpec {
         this.map = builder.map;
         if(builder.distributionType == DistributionType.ZIPF) {
             // TODO
-            gen = new ZipfRandomGenerator(builder.averageSize, builder.cardinality, new Random());
+            gen = new ZipfRandomGenerator(builder.avgStrLenth, builder.cardinality, new Random());
         } else {
-            gen = new UniformRandomGenerator(builder.averageSize, builder.cardinality, new Random());
+            gen = new UniformRandomGenerator(builder.avgStrLenth, builder.cardinality, new Random());
         }
     }
 
@@ -220,7 +220,7 @@ public class ColSpec {
             return builder.build();
         }
 
-        builder.averageSize(Integer.valueOf(parts[1]));
+        builder.avgStrLength(Integer.valueOf(parts[1]));
         builder.cardinality(Integer.valueOf(parts[2]));
         builder.distributionType(DistributionType.fromChar(parts[3].charAt(0)));
         builder.percentageNull(Integer.valueOf(parts[4]));

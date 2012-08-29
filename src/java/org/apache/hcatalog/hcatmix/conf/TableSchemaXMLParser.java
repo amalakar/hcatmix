@@ -79,9 +79,12 @@ public class TableSchemaXMLParser {
     }
 
     private static ColSpec getColSpecFromMap(Map<String, String> column) {
-        return new ColSpec.Builder()
-                .dataType(DataType.fromString(column.get("type")))
-                .averageSize(Integer.parseInt(column.get("avgSize")))
+        ColSpec.Builder builder = new ColSpec.Builder();
+        builder.dataType(DataType.fromString(column.get("type")));
+        if(DataType.fromString(column.get("type")) == DataType.STRING) {
+            builder.avgStrLength(Integer.parseInt(column.get("avgLength")));
+        }
+        return  builder
                 .cardinality(Integer.parseInt(column.get("cardinality")))
                 .distributionType(ColSpec.DistributionType.fromString(column.get("distribution")))
                 .percentageNull(Integer.parseInt(column.get("percentageNull")))

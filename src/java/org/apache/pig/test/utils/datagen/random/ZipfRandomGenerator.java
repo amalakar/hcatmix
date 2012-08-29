@@ -26,8 +26,8 @@ import java.util.Random;
 public class ZipfRandomGenerator extends RandomGenerator {
     Zipf z;
 
-    public ZipfRandomGenerator(int avgSize, int cardinality, Random rand) {
-        super(avgSize, rand);
+    public ZipfRandomGenerator(int avgStrLength, int cardinality, Random rand) {
+        super(avgStrLength, rand);
         z = new Zipf(cardinality);
     }
 
