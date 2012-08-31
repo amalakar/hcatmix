@@ -8,69 +8,69 @@
                     <name>user</name>
                     <type>string</type>
                     <avgLength>10</avgLength>
-                    <distribution>zipf</distribution>
-                    <cardinality>1000</cardinality>
+                    <distribution>uniform</distribution>
+                    <cardinality>10000</cardinality>
                     <percentageNull>10</percentageNull>
                 </column>
                 <column>
                     <name>timespent</name>
                     <type>int</type>
-                    <distribution>zipf</distribution>
-                    <cardinality>1000</cardinality>
+                    <distribution>uniform</distribution>
+                    <cardinality>100000</cardinality>
                     <percentageNull>10</percentageNull>
                 </column>
                 <column>
                     <name>query_term</name>
                     <type>string</type>
                     <avgLength>10</avgLength>
-                    <distribution>zipf</distribution>
-                    <cardinality>1000</cardinality>
+                    <distribution>uniform</distribution>
+                    <cardinality>10000</cardinality>
                     <percentageNull>10</percentageNull>
                 </column>
                 <column>
                     <name>ip_addr</name>
                     <type>int</type>
-                    <distribution>zipf</distribution>
-                    <cardinality>1000</cardinality>
+                    <distribution>uniform</distribution>
+                    <cardinality>100000</cardinality>
                     <percentageNull>10</percentageNull>
                 </column>
 
                 <column>
                     <name>estimated_revenue</name>
                     <type>int</type>
-                    <distribution>zipf</distribution>
-                    <cardinality>1000</cardinality>
+                    <distribution>uniform</distribution>
+                    <cardinality>10000000</cardinality>
                     <percentageNull>10</percentageNull>
                 </column>
                 <column>
                     <name>page_info</name>
                     <type>string</type>
                     <avgLength>10</avgLength>
-                    <distribution>zipf</distribution>
-                    <cardinality>1000</cardinality>
+                    <distribution>uniform</distribution>
+                    <cardinality>10000</cardinality>
                     <percentageNull>10</percentageNull>
                 </column>
             </columns>
             <partitions>
-                <column>
+                <!--column>
                     <name>timestamp</name>
                     <type>int</type>
-                    <distribution>zipf</distribution>
-                    <cardinality>1000</cardinality>
-                </column>
+                    <distribution>uniform</distribution>
+                    <cardinality>10000000</cardinality>
+                </column-->
                 <partition>
                     <name>action</name>
                     <type>int</type>
-                    <distribution>zipf</distribution>
-                    <cardinality>1000</cardinality>
+                    <distribution>uniform</distribution>
+                    <cardinality>2</cardinality>
                 </partition>
             </partitions>
             <instances>
                 <instance>
-                    <size>1000000</size>
+                    <size>20000000</size>
                     <count>1</count>
                 </instance>
-                <instance>
+                <!--instance>
                     <size>100000</size>
                     <count>0</count>
                 </instance>
@@ -85,7 +85,7 @@
                 <instance>
                     <size>10</size>
                     <count>1</count>
-                </instance>
+                </instance-->
             </instances>
         </table>
         <!--table>
