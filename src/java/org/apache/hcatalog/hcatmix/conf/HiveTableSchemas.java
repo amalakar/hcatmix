@@ -22,10 +22,10 @@ import java.util.*;
 
 public class HiveTableSchemas extends ArrayList<HiveTableSchema>{
 
-    public static HiveTableSchemas fromMultiInstanceSchema(List<MultiInstanceHiveTableSchema> multiInstanceTables) {
+    public static HiveTableSchemas fromMultiInstanceSchema(List<MultiInstanceHiveTablesSchema> multiInstanceTablesList) {
         HiveTableSchemas hiveTableSchemas = new HiveTableSchemas();
-        for (MultiInstanceHiveTableSchema multiInstanceTable : multiInstanceTables) {
-            for (MultiInstanceHiveTableSchema.TableInstance instance  : multiInstanceTable.getInstances()) {
+        for (MultiInstanceHiveTablesSchema multiInstanceTable : multiInstanceTablesList) {
+            for (MultiInstanceHiveTablesSchema.TableInstance instance  : multiInstanceTable.getInstances()) {
                 for (int i = 0; i < instance.getInstanceCount(); i++) {
                     String tableName = multiInstanceTable.getNamePrefix() + "_" + instance.getSize() +"_" + i;
                     hiveTableSchemas.add(new HiveTableSchema(multiInstanceTable,  tableName, instance.getSize()));

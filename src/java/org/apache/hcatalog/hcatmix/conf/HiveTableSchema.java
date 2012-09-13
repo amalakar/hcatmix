@@ -20,30 +20,29 @@ package org.apache.hcatalog.hcatmix.conf;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.pig.test.utils.datagen.ColSpec;
 
-import java.awt.image.AreaAveragingScaleFilter;
 import java.util.ArrayList;
 import java.util.List;
 
 public class HiveTableSchema {
-    private final MultiInstanceHiveTableSchema multiInstanceHiveTableSchema;
+    private final MultiInstanceHiveTablesSchema multiInstanceHiveTablesSchema;
     private final String name;
     private int rowCount;
 
-    public HiveTableSchema(MultiInstanceHiveTableSchema multiInstanceHiveTableSchema, final String name, int rowCount) {
-        this.multiInstanceHiveTableSchema = multiInstanceHiveTableSchema;
+    public HiveTableSchema(MultiInstanceHiveTablesSchema multiInstanceHiveTablesSchema, final String name, int rowCount) {
+        this.multiInstanceHiveTablesSchema = multiInstanceHiveTablesSchema;
         this.name = name;
         this.rowCount = rowCount;
     }
 
-    public List<MultiInstanceHiveTableSchema.Column> getPartitions() {
-        return multiInstanceHiveTableSchema.getPartitions();
+    public List<MultiInstanceHiveTablesSchema.Column> getPartitions() {
+        return multiInstanceHiveTablesSchema.getPartitions();
     }
 
     // TODO: ColSpec and FieldSchema are stored together, if array of one is required then we need to go through the whole array
     public List<ColSpec> getParitionColSpecs() {
         List<ColSpec> colSpecs = new ArrayList<ColSpec>();
-        List<MultiInstanceHiveTableSchema.Column> paritions = getPartitions();
-        for (MultiInstanceHiveTableSchema.Column partition : paritions) {
+        List<MultiInstanceHiveTablesSchema.Column> paritions = getPartitions();
+        for (MultiInstanceHiveTablesSchema.Column partition : paritions) {
             colSpecs.add(partition.getColSpec());
         }
         return  colSpecs;
@@ -51,21 +50,21 @@ public class HiveTableSchema {
 
     public List<FieldSchema> getPartitionFieldSchemas() {
         List<FieldSchema> fieldSchemas = new ArrayList<FieldSchema>();
-        List<MultiInstanceHiveTableSchema.Column> partitions = getPartitions();
-        for (MultiInstanceHiveTableSchema.Column partition : partitions) {
+        List<MultiInstanceHiveTablesSchema.Column> partitions = getPartitions();
+        for (MultiInstanceHiveTablesSchema.Column partition : partitions) {
             fieldSchemas.add(partition);
         }
         return fieldSchemas;
     }
 
-    public List<MultiInstanceHiveTableSchema.Column> getColumns() {
-        return multiInstanceHiveTableSchema.getColumns();
+    public List<MultiInstanceHiveTablesSchema.Column> getColumns() {
+        return multiInstanceHiveTablesSchema.getColumns();
     }
 
     public List<ColSpec> getColSpecs() {
         List<ColSpec> colSpecs = new ArrayList<ColSpec>();
-        List<MultiInstanceHiveTableSchema.Column> columns = getColumns();
-        for (MultiInstanceHiveTableSchema.Column column : columns) {
+        List<MultiInstanceHiveTablesSchema.Column> columns = getColumns();
+        for (MultiInstanceHiveTablesSchema.Column column : columns) {
             colSpecs.add(column.getColSpec());
         }
         return  colSpecs;
@@ -73,8 +72,8 @@ public class HiveTableSchema {
 
     public List<FieldSchema> getFieldSchemas() {
         List<FieldSchema> fieldSchemas = new ArrayList<FieldSchema>();
-        List<MultiInstanceHiveTableSchema.Column> columns = getColumns();
-        for (MultiInstanceHiveTableSchema.Column column : columns) {
+        List<MultiInstanceHiveTablesSchema.Column> columns = getColumns();
+        for (MultiInstanceHiveTablesSchema.Column column : columns) {
             fieldSchemas.add(column);
         }
         return fieldSchemas;
@@ -85,7 +84,7 @@ public class HiveTableSchema {
     }
 
     public String getDatabaseName() {
-        return multiInstanceHiveTableSchema.getDatabaseName();
+        return multiInstanceHiveTablesSchema.getDatabaseName();
     }
 
     public int getRowCount() {

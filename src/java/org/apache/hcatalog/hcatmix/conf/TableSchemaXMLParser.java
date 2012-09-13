@@ -54,13 +54,13 @@ public class TableSchemaXMLParser {
     }
 
     private HiveTableSchemas parse(Document doc) {
-        final List<MultiInstanceHiveTableSchema> multiInstanceTables = new ArrayList<MultiInstanceHiveTableSchema>();
+        final List<MultiInstanceHiveTablesSchema> multiInstanceTablesList = new ArrayList<MultiInstanceHiveTablesSchema>();
 
         NodeList tableList = doc.getElementsByTagName("tables");
         for (int i = 0; i < tableList.getLength(); i++) {
             Element table = (Element) tableList.item(i);
 
-            MultiInstanceHiveTableSchema multiInstanceSchema = new MultiInstanceHiveTableSchema();
+            MultiInstanceHiveTablesSchema multiInstanceSchema = new MultiInstanceHiveTablesSchema();
             multiInstanceSchema.setNamePrefix(getElementValue(table, "namePrefix"));
 
             List<Map<String, String>> columns = getAllChildrensMap(table, "column");
@@ -77,10 +77,10 @@ public class TableSchemaXMLParser {
             for (Map<String, String> instance : instances) {
                 multiInstanceSchema.addInstance(instance.get("size"), instance.get("count"));
             }
-            multiInstanceTables.add(multiInstanceSchema);
+            multiInstanceTablesList.add(multiInstanceSchema);
             multiInstanceSchema.setDatabaseName(getElementValue(table, "dbName"));
         }
-        return  HiveTableSchemas.fromMultiInstanceSchema(multiInstanceTables);
+        return  HiveTableSchemas.fromMultiInstanceSchema(multiInstanceTablesList);
     }
 
     private static ColSpec getColSpecFromMap(Map<String, String> column, boolean isPartition) {

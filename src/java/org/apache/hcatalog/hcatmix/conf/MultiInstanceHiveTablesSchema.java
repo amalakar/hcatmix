@@ -24,7 +24,7 @@ import org.apache.pig.test.utils.datagen.ColSpec;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MultiInstanceHiveTableSchema {
+public class MultiInstanceHiveTablesSchema {
     private String namePrefix;
     private String databaseName;
     final List<Column> partitions = new ArrayList<Column>();

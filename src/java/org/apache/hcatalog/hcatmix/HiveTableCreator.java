@@ -62,10 +62,12 @@ public class HiveTableCreator extends Configured implements Tool {
     public void createTablesFromConf(final String fileName, final int numMappers, final String outputDir) throws IOException, SAXException, ParserConfigurationException, MetaException {
         TableSchemaXMLParser configParser = new TableSchemaXMLParser(fileName);
         HiveTableSchemas schemas = configParser.getHiveTableSchemas();
-
+        String scriptDir = "/tmp/scripts";
         for (HiveTableSchema hiveTableSchema : schemas) {
             createTable(hiveTableSchema);
             generateDataForTable(hiveTableSchema, numMappers, outputDir);
+            PigScriptGenerator.getPigLoadScript(hiveTableSchema);
+            PigScriptGenerator.generatePigStoreScript(hiveTableSchema);
         }
     }
 
