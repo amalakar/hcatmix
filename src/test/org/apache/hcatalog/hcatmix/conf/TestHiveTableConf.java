@@ -25,6 +25,7 @@ import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
+import java.util.List;
 
 public class TestHiveTableConf extends TestCase {
     public static void main(String[] args) {
@@ -36,8 +37,8 @@ public class TestHiveTableConf extends TestCase {
     }
     public static void testHiveTableConf() throws IOException, SAXException, ParserConfigurationException, MetaException {
         TableSchemaXMLParser configParser = new TableSchemaXMLParser("pigmix/scripts/hcat_table_specification.xml");
-        HiveTableSchemas schemas = configParser.getHiveTableSchemas();
+        List<HiveTableSchema> listMultiInstance = configParser.getHiveTableList();
         HiveTableCreator tableCreator = new HiveTableCreator();
-        //tableCreator.createTables(schemas);
+        //tableCreator.createTables(listMultiInstance);
     }
 }

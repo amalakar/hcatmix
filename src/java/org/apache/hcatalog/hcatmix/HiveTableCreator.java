@@ -26,7 +26,6 @@ import org.apache.hadoop.hive.metastore.api.*;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.hcatalog.hcatmix.conf.HiveTableSchema;
-import org.apache.hcatalog.hcatmix.conf.HiveTableSchemas;
 import org.apache.hcatalog.hcatmix.conf.TableSchemaXMLParser;
 import org.apache.pig.test.utils.datagen.ColSpec;
 import org.apache.pig.test.utils.datagen.DataGenerator;
@@ -43,7 +42,7 @@ import java.util.List;
 
 public class HiveTableCreator extends Configured implements Tool {
     HiveMetaStoreClient hiveClient;
-    public final char SEPARATOR = ',';
+    public final static char SEPARATOR = ',';
 
     public static void main(String[] args) throws Exception {
         ToolRunner.run(new Configuration(), new HiveTableCreator(), args);
@@ -61,25 +60,25 @@ public class HiveTableCreator extends Configured implements Tool {
 
     public void createTablesFromConf(final String fileName, final int numMappers, final String outputDir) throws IOException, SAXException, ParserConfigurationException, MetaException {
         TableSchemaXMLParser configParser = new TableSchemaXMLParser(fileName);
-        HiveTableSchemas schemas = configParser.getHiveTableSchemas();
-        String scriptDir = "/tmp/scripts";
-        for (HiveTableSchema hiveTableSchema : schemas) {
+        List<HiveTableSchema> multiInstanceList = configParser.getHiveTableList();
+        for (HiveTableSchema hiveTableSchema : multiInstanceList) {
             createTable(hiveTableSchema);
             generateDataForTable(hiveTableSchema, numMappers, outputDir);
-            PigScriptGenerator.getPigLoadScript(hiveTableSchema);
-            PigScriptGenerator.generatePigStoreScript(hiveTableSchema);
+            PigScriptGenerator.getPigLoadScript(HCatMixUtils.getDataLocation(outputDir, hiveTableSchema), hiveTableSchema);
+
+            //PigScriptGenerator.getPigLoadScript(HCatMixUtils.getDataLocation(outputDir, hiveTableSchema), hiveTableSchema);
         }
     }
 
     private void generateDataForTable(HiveTableSchema hiveTableSchema, final int numMappers, String outputDir) throws IOException {
-        List<ColSpec> colSpecs = new ArrayList<ColSpec>(hiveTableSchema.getColSpecs());
-        colSpecs.addAll(hiveTableSchema.getParitionColSpecs());
+        List<ColSpec> colSpecs = new ArrayList<ColSpec>(hiveTableSchema.getColumnColSpecs());
+        colSpecs.addAll(hiveTableSchema.getPartitionColSpecs());
         DataGeneratorConf dgConf = new DataGeneratorConf.Builder()
                                         .colSpecs(colSpecs.toArray(new ColSpec[colSpecs.size()]))
                                         .separator(SEPARATOR)
                                         .numMappers(numMappers)
                                         .numRows(hiveTableSchema.getRowCount()) // TODO
-                                        .outputFile(outputDir + hiveTableSchema.getName())
+                                        .outputFile(HCatMixUtils.getDataLocation(outputDir, hiveTableSchema))
                                         .build();
         DataGenerator dataGenerator = new DataGenerator();
         dataGenerator.runJob(dgConf, getConf());
@@ -90,7 +89,7 @@ public class HiveTableCreator extends Configured implements Tool {
         table.setDbName(hiveTableSchema.getDatabaseName());
         table.setTableName(hiveTableSchema.getName());
         StorageDescriptor sd = new StorageDescriptor();
-        sd.setCols(hiveTableSchema.getFieldSchemas());
+        sd.setCols(hiveTableSchema.getColumnFieldSchemas());
         table.setSd(sd);
         sd.setParameters(new HashMap<String, String>());
         sd.setSerdeInfo(new SerDeInfo());
@@ -122,6 +121,7 @@ public class HiveTableCreator extends Configured implements Tool {
         opts.registerOpt('f', "file", CmdLineParser.ValueExpected.REQUIRED);
         opts.registerOpt('m', "mappers", CmdLineParser.ValueExpected.OPTIONAL);
         opts.registerOpt('o', "output", CmdLineParser.ValueExpected.REQUIRED);
+        opts.registerOpt('p', "pig-script-output-dir", CmdLineParser.ValueExpected.REQUIRED);
 
         String fileName = null;
         int numMappers = 0;
@@ -144,6 +144,8 @@ public class HiveTableCreator extends Configured implements Tool {
                     case 'm':
                         numMappers = Integer.valueOf(opts.getValStr());
                         break;
+
+                    case 'p':
 
                     default:
                         usage();

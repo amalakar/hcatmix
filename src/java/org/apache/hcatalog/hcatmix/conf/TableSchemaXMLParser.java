@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.Map;
 
 public class TableSchemaXMLParser {
-    private final HiveTableSchemas hiveTableSchemas;
+    private final List<HiveTableSchema> hiveTableList;
     public static final String PERCENTAGE_NULL = "percentageNull";
     public static final String CARDINALITY = "cardinality";
     public static final String AVG_LENGTH = "avgLength";
@@ -50,10 +50,10 @@ public class TableSchemaXMLParser {
         DocumentBuilder db = dbf.newDocumentBuilder();
         Document xmlDoc = db.parse(file);
         xmlDoc.getDocumentElement().normalize();
-        hiveTableSchemas = parse(xmlDoc);
+        hiveTableList = parse(xmlDoc);
     }
 
-    private HiveTableSchemas parse(Document doc) {
+    private MultiInstanceHiveTableList parse(Document doc) {
         final List<MultiInstanceHiveTablesSchema> multiInstanceTablesList = new ArrayList<MultiInstanceHiveTablesSchema>();
 
         NodeList tableList = doc.getElementsByTagName("tables");
@@ -80,7 +80,7 @@ public class TableSchemaXMLParser {
             multiInstanceTablesList.add(multiInstanceSchema);
             multiInstanceSchema.setDatabaseName(getElementValue(table, "dbName"));
         }
-        return  HiveTableSchemas.fromMultiInstanceSchema(multiInstanceTablesList);
+        return  MultiInstanceHiveTableList.fromMultiInstanceSchema(multiInstanceTablesList);
     }
 
     private static ColSpec getColSpecFromMap(Map<String, String> column, boolean isPartition) {
@@ -139,7 +139,7 @@ public class TableSchemaXMLParser {
         return value;
     }
 
-    public HiveTableSchemas getHiveTableSchemas() {
-        return hiveTableSchemas;
+    public List<HiveTableSchema> getHiveTableList() {
+        return hiveTableList;
     }
 }

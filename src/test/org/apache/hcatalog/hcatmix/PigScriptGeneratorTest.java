@@ -19,6 +19,13 @@
 package org.apache.hcatalog.hcatmix;
 
 import junit.framework.TestCase;
+import org.apache.hcatalog.hcatmix.conf.DefaultHiveTableSchema;
+import org.apache.hadoop.hive.metastore.api.FieldSchema;
+import org.apache.pig.test.utils.DataType;
+import org.apache.pig.test.utils.datagen.ColSpec;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Author: malakar
@@ -26,6 +33,39 @@ import junit.framework.TestCase;
 public class PigScriptGeneratorTest extends TestCase {
 
     public void testLoadScriptGenerator() {
+        DefaultHiveTableSchema tableSchema = new DefaultHiveTableSchema();
+        tableSchema.setName("my_table");
+        tableSchema.setDatabaseName("default_db");
 
+        List<ColSpec> columnColSpecList = new ArrayList<ColSpec>();
+        columnColSpecList.add(new ColSpec.Builder().dataType(DataType.STRING).avgStrLength(20).cardinality(160000)
+            .distributionType(ColSpec.DistributionType.ZIPF).percentageNull(10).build());
+
+        columnColSpecList.add(new ColSpec.Builder().dataType(DataType.INT).cardinality(200)
+            .distributionType(ColSpec.DistributionType.UNIFORM).build());
+
+        tableSchema.setColumnColSpecs(columnColSpecList);
+
+        List<FieldSchema> columnFieldSchemaList = new ArrayList<FieldSchema>();
+        columnFieldSchemaList.add(new FieldSchema("uri", DataType.STRING.toString().toLowerCase(), ""));
+        columnFieldSchemaList.add(new FieldSchema("ip", DataType.INT.toString().toLowerCase(), ""));
+        tableSchema.setColumnFieldSchemas(columnFieldSchemaList);
+
+        List<ColSpec> partitionColSpecList = new ArrayList<ColSpec>();
+        partitionColSpecList.add(new ColSpec.Builder().dataType(DataType.STRING).avgStrLength(20).cardinality(100)
+            .distributionType(ColSpec.DistributionType.ZIPF).percentageNull(10).build());
+
+        partitionColSpecList.add(new ColSpec.Builder().dataType(DataType.DOUBLE).cardinality(200)
+            .distributionType(ColSpec.DistributionType.UNIFORM).build());
+
+        tableSchema.setPartitionColSpecs(partitionColSpecList);
+        List<FieldSchema> partitionFieldSchemaList = new ArrayList<FieldSchema>();
+        partitionFieldSchemaList.add(new FieldSchema("uri", DataType.STRING.toString().toLowerCase(), ""));
+        partitionFieldSchemaList.add(new FieldSchema("ip", DataType.INT.toString().toLowerCase(), ""));
+        tableSchema.setPartitionFieldSchemas(partitionFieldSchemaList);
+
+        final String EXPECTED = "input = load '/tmp/table' USING PigStorage(',') AS (uri:chararray, ip:int, uri:chararray, ip:int);\n" +
+            "STORE input into 'my_table' USING  org.apache.hcatalog.pig.HCatStorer();";
+        assertEquals(EXPECTED, PigScriptGenerator.getPigLoadScript("/tmp/table", tableSchema));
     }
 }

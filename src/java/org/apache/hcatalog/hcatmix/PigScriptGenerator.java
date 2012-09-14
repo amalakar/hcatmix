@@ -20,29 +20,47 @@ package org.apache.hcatalog.hcatmix;
 
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hcatalog.hcatmix.conf.HiveTableSchema;
+import org.apache.pig.test.utils.DataType;
+
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Author: malakar
  */
 public class PigScriptGenerator {
+    public final static String LOAD_FORMAT = "input = load ''{0}'' USING PigStorage(''{1}'') AS ({2});\n"
+                                            + "STORE input into ''{3}'' USING  org.apache.hcatalog.pig.HCatStorer();";
 
-    public static String getPigLoadScript(HiveTableSchema hiveTableSchema) {
+    public static String getPigLoadScript(String location, HiveTableSchema hiveTableSchema) {
         /*
         in = load '/user/malakar/hcatmix_uniform_bug/page_views_20000000_0/part-00000' USING PigStorage(',') AS (user:chararray, timespent:int, query_term:chararray, ip_addr:int, estimated_revenue:int, page_info:chararray, action:int);
 
         STORE in into 'page_views_20000000_0' USING org.apache.hcatalog.pig.HCatStorer();
         */
 
+        List<FieldSchema> allFields = new ArrayList<FieldSchema>();
+        allFields.addAll(hiveTableSchema.getColumnFieldSchemas());
+        allFields.addAll(hiveTableSchema.getPartitionFieldSchemas());
+
         StringBuilder fields = new StringBuilder();
         String delim = "";
-        for (FieldSchema field : hiveTableSchema.getFieldSchemas()) {
-            fields.append(delim).append(field.getName()).append(':').append(field.getType());
-            delim = ",";
+        for (FieldSchema field : allFields) {
+            fields.append(delim).append(field.getName()).append(':').append(toPigType(field.getType()));
+            delim = ", ";
         }
-        return null;
+        return MessageFormat.format(LOAD_FORMAT, location, HiveTableCreator.SEPARATOR, fields, hiveTableSchema.getName());
     }
 
-    public static void generatePigStoreScript(HiveTableSchema hiveTableSchema) {
+    public static void generatePigStoreScript(HiveTableSchema hiveTableSchema) {}
 
+    public static String toPigType(String type) {
+        DataType dataType = DataType.fromString(type);
+        if(dataType == DataType.STRING) {
+            return "chararray";
+        } else {
+            return type;
+        }
     }
 }
