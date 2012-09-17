@@ -4,6 +4,7 @@ import org.junit.Test;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNull;
+import static junit.framework.Assert.fail;
 
 public class TestDataType {
 
@@ -12,7 +13,11 @@ public class TestDataType {
         assertEquals('i', DataType.INT.character());
         assertEquals(DataType.INT, DataType.fromChar('i'));
         assertEquals(DataType.INT, DataType.fromInt(105));
-        assertNull(DataType.fromChar('x'));
+        try {
+            DataType.fromChar('x');
+            fail("Exception expected");
+        } catch (IllegalArgumentException e) {
+        }
         assertNull(DataType.fromInt(25));
     }
 

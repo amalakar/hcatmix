@@ -58,13 +58,15 @@ public class HiveTableCreator extends Configured implements Tool {
         hiveClient = new HiveMetaStoreClient(hiveConf);
     }
 
-    public void createTablesFromConf(final String fileName, final int numMappers, final String outputDir) throws IOException, SAXException, ParserConfigurationException, MetaException {
+    public void createTablesFromConf(final String fileName, final int numMappers, final String outputDir, final String pigScriptDir) throws IOException, SAXException, ParserConfigurationException, MetaException {
         TableSchemaXMLParser configParser = new TableSchemaXMLParser(fileName);
         List<HiveTableSchema> multiInstanceList = configParser.getHiveTableList();
         for (HiveTableSchema hiveTableSchema : multiInstanceList) {
             createTable(hiveTableSchema);
             generateDataForTable(hiveTableSchema, numMappers, outputDir);
             PigScriptGenerator.getPigLoadScript(HCatMixUtils.getDataLocation(outputDir, hiveTableSchema), hiveTableSchema);
+//            File pigLoadScript = new FileOutputStream(HCatMixUtils.getPigLoadScriptName(pigScriptDir, hiveTableSchema.getName()));
+
 
             //PigScriptGenerator.getPigLoadScript(HCatMixUtils.getDataLocation(outputDir, hiveTableSchema), hiveTableSchema);
         }
@@ -126,6 +128,7 @@ public class HiveTableCreator extends Configured implements Tool {
         String fileName = null;
         int numMappers = 0;
         String outputDir = null;
+        String pigScriptDir = null;
         char opt;
         try {
             while ((opt = opts.getNextOpt()) != CmdLineParser.EndOfOpts) {
@@ -146,7 +149,10 @@ public class HiveTableCreator extends Configured implements Tool {
                         break;
 
                     case 'p':
-
+                        pigScriptDir = opts.getValStr();
+                        if(!pigScriptDir.endsWith("/")) {
+                            pigScriptDir += "/";
+                        }
                     default:
                         usage();
                         break;
@@ -159,7 +165,7 @@ public class HiveTableCreator extends Configured implements Tool {
         }
 
         try {
-            createTablesFromConf(fileName, numMappers, outputDir);
+            createTablesFromConf(fileName, numMappers, outputDir, pigScriptDir);
         } catch (Exception e) {
             e.printStackTrace();
         }

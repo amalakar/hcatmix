@@ -18,14 +18,14 @@
 
 package org.apache.pig.test.utils.datagen;
 
-import junit.framework.TestCase;
 import org.apache.pig.test.utils.DataType;
+import org.junit.Test;
 
-/**
- * Author: malakar
- */
-public class TestColSpec extends TestCase {
+import static org.junit.Assert.assertEquals;
 
+public class TestColSpec {
+
+    @Test
     public void testSpringRepresentation() {
         ColSpec colSpec = new ColSpec.Builder()
                 .dataType(DataType.fromString("string"))

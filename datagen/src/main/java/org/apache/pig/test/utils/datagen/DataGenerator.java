@@ -17,13 +17,14 @@
  */
 package org.apache.pig.test.utils.datagen;
 
-import java.io.*;
+import java.io.IOException;
 import java.text.ParseException;
 
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.conf.Configured;
+import org.apache.hadoop.util.Tool;
+import org.apache.hadoop.util.ToolRunner;
 import org.apache.pig.tools.cmdline.CmdLineParser;
-
-import org.apache.hadoop.conf.*;
-import org.apache.hadoop.util.*;
 
 /**
  * A tool to generate data for performance testing.

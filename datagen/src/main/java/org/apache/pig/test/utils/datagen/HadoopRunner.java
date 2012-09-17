@@ -69,7 +69,7 @@ public class HadoopRunner {
 
         // if inFile is specified, use it as input
         if (dgConf.getInFile() != null) {
-            FileInputFormat.setInputPaths(job,dgConf.getInFile());
+            FileInputFormat.setInputPaths(job, dgConf.getInFile());
             job.set(HAS_USER_INPUT, "true");
         } else {
             job.set(HAS_USER_INPUT, "false");

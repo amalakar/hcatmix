@@ -22,10 +22,10 @@ import org.apache.hcatalog.hcatmix.conf.HiveTableSchema;
 
 public class HCatMixUtils {
     public static String getDataLocation(final String outputDir, final HiveTableSchema hiveTableSchema) {
-        if (outputDir.endsWith("/")) {
-            return outputDir + hiveTableSchema.getName();
-        } else {
-            return outputDir + "/" + hiveTableSchema.getName();
-        }
+        return outputDir + hiveTableSchema.getName();
+    }
+
+    public static String getPigLoadScriptName(final String pigScriptDir, final String tableName) {
+        return pigScriptDir + tableName + ".load.pig";
     }
 }
