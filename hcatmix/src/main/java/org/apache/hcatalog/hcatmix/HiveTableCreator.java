@@ -18,6 +18,7 @@
 
 package org.apache.hcatalog.hcatmix;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.hive.conf.HiveConf;
@@ -34,6 +35,7 @@ import org.apache.pig.tools.cmdline.CmdLineParser;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
+import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -64,8 +66,10 @@ public class HiveTableCreator extends Configured implements Tool {
         for (HiveTableSchema hiveTableSchema : multiInstanceList) {
             createTable(hiveTableSchema);
             generateDataForTable(hiveTableSchema, numMappers, outputDir);
-            PigScriptGenerator.getPigLoadScript(HCatMixUtils.getDataLocation(outputDir, hiveTableSchema), hiveTableSchema);
-//            File pigLoadScript = new FileOutputStream(HCatMixUtils.getPigLoadScriptName(pigScriptDir, hiveTableSchema.getName()));
+            String loadScript = PigScriptGenerator.getPigLoadScript(HCatMixUtils.getDataLocation(outputDir, hiveTableSchema), hiveTableSchema);
+            FileUtils.writeStringToFile(new File(HCatMixUtils.getPigLoadScriptName(pigScriptDir, hiveTableSchema.getName())),
+                loadScript);
+//            File pigLoadScript = new FileOutputStream());
 
 
             //PigScriptGenerator.getPigLoadScript(HCatMixUtils.getDataLocation(outputDir, hiveTableSchema), hiveTableSchema);
