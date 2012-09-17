@@ -69,10 +69,6 @@ public class HiveTableCreator extends Configured implements Tool {
             String loadScript = PigScriptGenerator.getPigLoadScript(HCatMixUtils.getDataLocation(outputDir, hiveTableSchema), hiveTableSchema);
             FileUtils.writeStringToFile(new File(HCatMixUtils.getPigLoadScriptName(pigScriptDir, hiveTableSchema.getName())),
                 loadScript);
-//            File pigLoadScript = new FileOutputStream());
-
-
-            //PigScriptGenerator.getPigLoadScript(HCatMixUtils.getDataLocation(outputDir, hiveTableSchema), hiveTableSchema);
         }
     }
 
