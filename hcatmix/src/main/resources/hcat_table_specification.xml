@@ -67,7 +67,7 @@
             </partitions>
             <instances>
                 <instance>
-                    <size>20000000</size>
+                    <size>199</size>
                     <count>1</count>
                 </instance>
                 <!--instance>
