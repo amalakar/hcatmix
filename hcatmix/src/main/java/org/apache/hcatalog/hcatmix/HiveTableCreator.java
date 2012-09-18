@@ -19,7 +19,6 @@
 package org.apache.hcatalog.hcatmix;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.hive.conf.HiveConf;
@@ -33,17 +32,22 @@ import org.apache.pig.test.utils.datagen.ColSpec;
 import org.apache.pig.test.utils.datagen.DataGenerator;
 import org.apache.pig.test.utils.datagen.DataGeneratorConf;
 import org.apache.pig.tools.cmdline.CmdLineParser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 public class HiveTableCreator extends Configured implements Tool {
+    private static final Logger LOG = LoggerFactory.getLogger(HiveTableCreator.class);
+
     HiveMetaStoreClient hiveClient;
     public final static char SEPARATOR = ',';
 
@@ -52,7 +56,7 @@ public class HiveTableCreator extends Configured implements Tool {
     }
 
     public static void usage() {
-        System.out.println("Error");
+        System.err.println("Error");
         throw new RuntimeException();
     }
 
@@ -76,14 +80,24 @@ public class HiveTableCreator extends Configured implements Tool {
             }
 
             if(conf.isGeneratePigScripts()) {
-                String loadScript = PigScriptGenerator.getPigLoadScript(HCatMixUtils.getDataLocation(conf.getOutputDir(), hiveTableSchema), hiveTableSchema);
-                FileUtils.writeStringToFile(new File(HCatMixUtils.getPigLoadScriptName(conf.getPigScriptDir(), hiveTableSchema.getName())),
-                    loadScript);
+                generatePigScripts(conf.getOutputDir(), hiveTableSchema, conf.getPigScriptDir());
             }
         }
     }
 
+    private void generatePigScripts(final String outputDir, final HiveTableSchema hiveTableSchema, final String pigScriptDir ) throws IOException {
+        final String pigScriptFileName = HCatMixUtils.getPigLoadScriptName(pigScriptDir, hiveTableSchema.getName());
+        LOG.info(MessageFormat.format("About to generate pig load script:{0}, for table: {1} for input data in location: {2}",
+                        pigScriptFileName, hiveTableSchema.getName(), outputDir));
+        String loadScript = PigScriptGenerator.getPigLoadScript(HCatMixUtils.getDataLocation(outputDir, hiveTableSchema), hiveTableSchema);
+        FileUtils.writeStringToFile(new File(pigScriptFileName), loadScript);
+        LOG.info(MessageFormat.format("Successfully create the pig script: {0}", pigScriptFileName));
+    }
+
     private void generateDataForTable(HiveTableSchema hiveTableSchema, final int numMappers, String outputDir) throws IOException {
+        String outputFile = HCatMixUtils.getDataLocation(outputDir, hiveTableSchema);
+        LOG.info(MessageFormat.format("About to generate data for table: {0}, with number of mappers: {1}, output location: {2}",
+            hiveTableSchema.getName(), numMappers, outputFile));
         List<ColSpec> colSpecs = new ArrayList<ColSpec>(hiveTableSchema.getColumnColSpecs());
         colSpecs.addAll(hiveTableSchema.getPartitionColSpecs());
         DataGeneratorConf dgConf = new DataGeneratorConf.Builder()
@@ -91,13 +105,15 @@ public class HiveTableCreator extends Configured implements Tool {
                                         .separator(SEPARATOR)
                                         .numMappers(numMappers)
                                         .numRows(hiveTableSchema.getRowCount()) // TODO
-                                        .outputFile(HCatMixUtils.getDataLocation(outputDir, hiveTableSchema))
+                                        .outputFile(outputFile)
                                         .build();
         DataGenerator dataGenerator = new DataGenerator();
         dataGenerator.runJob(dgConf, getConf());
+        LOG.info(MessageFormat.format("Successfully create input data in: {0}", outputFile));
     }
 
     public void createTable(HiveTableSchema hiveTableSchema) {
+        LOG.info("About to create table: " + hiveTableSchema.getName());
         Table table = new Table();
         table.setDbName(hiveTableSchema.getDatabaseName());
         table.setTableName(hiveTableSchema.getName());
@@ -118,14 +134,11 @@ public class HiveTableCreator extends Configured implements Tool {
         table.setPartitionKeys(hiveTableSchema.getPartitionFieldSchemas());
 
         try {
-            System.out.println("Creating table: " + table.getTableName());
             hiveClient.createTable(table);
+            LOG.info("Successfullt create table: " + table.getTableName());
         } catch (Exception e) {
-            System.out.println("Error is because:" + e);
-            e.printStackTrace();
+            LOG.error("Couldn't create table: " + table.getTableName() + ". Ignored and proceeding", e);
         }
-
-
     }
 
     @Override

@@ -31,9 +31,9 @@ import java.util.List;
  */
 public class PigScriptGenerator {
     public final static String LOAD_FORMAT = "input = load ''{0}'' USING PigStorage(''{1}'') AS ({2});\n"
-                                            + "STORE input into ''{3}'' USING  org.apache.hcatalog.pig.HCatStorer();";
+                                            + "STORE input into ''{3}'' USING  org.apache.hcatalog.pig.HCatStorer();\n";
 
-    public static String getPigLoadScript(String location, HiveTableSchema hiveTableSchema) {
+    public static String getPigLoadScript(String inputLocation, HiveTableSchema hiveTableSchema) {
         /*
         in = load '/user/malakar/hcatmix_uniform_bug/page_views_20000000_0/part-00000' USING PigStorage(',') AS (user:chararray, timespent:int, query_term:chararray, ip_addr:int, estimated_revenue:int, page_info:chararray, action:int);
 
@@ -50,7 +50,7 @@ public class PigScriptGenerator {
             fields.append(delim).append(field.getName()).append(':').append(toPigType(field.getType()));
             delim = ", ";
         }
-        return MessageFormat.format(LOAD_FORMAT, location, HiveTableCreator.SEPARATOR, fields, hiveTableSchema.getName());
+        return MessageFormat.format(LOAD_FORMAT, inputLocation, HiveTableCreator.SEPARATOR, fields, hiveTableSchema.getName());
     }
 
     public static void generatePigStoreScript(HiveTableSchema hiveTableSchema) {}
