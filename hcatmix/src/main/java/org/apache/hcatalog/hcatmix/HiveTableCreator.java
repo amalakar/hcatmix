@@ -19,6 +19,7 @@
 package org.apache.hcatalog.hcatmix;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.hive.conf.HiveConf;
@@ -60,15 +61,25 @@ public class HiveTableCreator extends Configured implements Tool {
         hiveClient = new HiveMetaStoreClient(hiveConf);
     }
 
-    public void createTablesFromConf(final String fileName, final int numMappers, final String outputDir, final String pigScriptDir) throws IOException, SAXException, ParserConfigurationException, MetaException {
-        TableSchemaXMLParser configParser = new TableSchemaXMLParser(fileName);
+    public void createTablesFromConf(HiveTableCreatorConf conf)
+        throws IOException, SAXException, ParserConfigurationException, MetaException {
+
+        TableSchemaXMLParser configParser = new TableSchemaXMLParser(conf.getFileName());
         List<HiveTableSchema> multiInstanceList = configParser.getHiveTableList();
         for (HiveTableSchema hiveTableSchema : multiInstanceList) {
-            createTable(hiveTableSchema);
-            generateDataForTable(hiveTableSchema, numMappers, outputDir);
-            String loadScript = PigScriptGenerator.getPigLoadScript(HCatMixUtils.getDataLocation(outputDir, hiveTableSchema), hiveTableSchema);
-            FileUtils.writeStringToFile(new File(HCatMixUtils.getPigLoadScriptName(pigScriptDir, hiveTableSchema.getName())),
-                loadScript);
+            if(conf.isCreateTable()) {
+                createTable(hiveTableSchema);
+            }
+
+            if(conf.isGenerateData()) {
+                generateDataForTable(hiveTableSchema, conf.getNumMappers(), conf.getOutputDir());
+            }
+
+            if(conf.isGeneratePigScripts()) {
+                String loadScript = PigScriptGenerator.getPigLoadScript(HCatMixUtils.getDataLocation(conf.getOutputDir(), hiveTableSchema), hiveTableSchema);
+                FileUtils.writeStringToFile(new File(HCatMixUtils.getPigLoadScriptName(conf.getPigScriptDir(), hiveTableSchema.getName())),
+                    loadScript);
+            }
         }
     }
 
@@ -122,40 +133,55 @@ public class HiveTableCreator extends Configured implements Tool {
         CmdLineParser opts = new CmdLineParser(args);
         opts.registerOpt('f', "file", CmdLineParser.ValueExpected.REQUIRED);
         opts.registerOpt('m', "mappers", CmdLineParser.ValueExpected.OPTIONAL);
-        opts.registerOpt('o', "output", CmdLineParser.ValueExpected.REQUIRED);
+        opts.registerOpt('o', "output-dir", CmdLineParser.ValueExpected.REQUIRED);
         opts.registerOpt('p', "pig-script-output-dir", CmdLineParser.ValueExpected.REQUIRED);
 
-        String fileName = null;
-        int numMappers = 0;
-        String outputDir = null;
-        String pigScriptDir = null;
+        opts.registerOpt('t', "create-table", CmdLineParser.ValueExpected.NOT_ACCEPTED);
+        opts.registerOpt('d', "generate-data", CmdLineParser.ValueExpected.NOT_ACCEPTED);
+        opts.registerOpt('s', "generate-pig-scripts", CmdLineParser.ValueExpected.NOT_ACCEPTED);
+        opts.registerOpt('e', "do-everything", CmdLineParser.ValueExpected.NOT_ACCEPTED);
+
+        HiveTableCreatorConf.Builder builder = new HiveTableCreatorConf.Builder();
+
         char opt;
         try {
             while ((opt = opts.getNextOpt()) != CmdLineParser.EndOfOpts) {
                 switch (opt) {
-                    case 'f':
-                        fileName = opts.getValStr();
-                        break;
+                case 'f':
+                    builder.fileName(opts.getValStr());
+                    break;
 
-                    case 'o':
-                        outputDir = opts.getValStr();
-                        if(!outputDir.endsWith("/")) {
-                            outputDir = outputDir + "/";
-                        }
-                        break;
+                case 'o':
+                    builder.outputDir(opts.getValStr());
+                    break;
 
-                    case 'm':
-                        numMappers = Integer.valueOf(opts.getValStr());
-                        break;
+                case 'm':
+                    builder.numMappers(Integer.valueOf(opts.getValStr()));
+                    break;
 
-                    case 'p':
-                        pigScriptDir = opts.getValStr();
-                        if(!pigScriptDir.endsWith("/")) {
-                            pigScriptDir += "/";
-                        }
-                    default:
-                        usage();
-                        break;
+                case 'p':
+                    builder.pigScriptDir(opts.getValStr());
+                    break;
+
+                case 'e':
+                    builder.doEverything(true);
+                    break;
+
+                case 't':
+                    builder.createTable(true);
+                    break;
+
+                case 's':
+                    builder.generatePigScripts(true);
+                    break;
+
+                case 'd':
+                    builder.generateData(true);
+                    break;
+
+                default:
+                    usage();
+                    break;
                 }
             }
         } catch (ParseException pe) {
@@ -165,7 +191,7 @@ public class HiveTableCreator extends Configured implements Tool {
         }
 
         try {
-            createTablesFromConf(fileName, numMappers, outputDir, pigScriptDir);
+            createTablesFromConf(builder.build());
         } catch (Exception e) {
             e.printStackTrace();
         }
