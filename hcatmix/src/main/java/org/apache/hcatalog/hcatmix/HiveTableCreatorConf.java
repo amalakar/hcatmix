@@ -20,9 +20,6 @@ package org.apache.hcatalog.hcatmix;
 
 import org.apache.commons.lang.StringUtils;
 
-/**
-* Author: malakar
-*/
 public class HiveTableCreatorConf {
     private final String fileName;
     private final int numMappers;
@@ -31,7 +28,6 @@ public class HiveTableCreatorConf {
     private final boolean createTable;
     private final boolean generateData;
     private final boolean generatePigScripts;
-    private final boolean doEverything;
 
     public static class Builder {
         private String fileName = null;
@@ -55,9 +51,9 @@ public class HiveTableCreatorConf {
 
         public Builder outputDir(final String outputDir) {
             if(StringUtils.isEmpty(outputDir)) {
-                throw new IllegalArgumentException("output-dir cannot be null");
+                throw new IllegalArgumentException("Output directory cannot be null/empty");
             }
-            if (outputDir.endsWith("/")) {
+            if (!outputDir.endsWith("/")) {
                 this.outputDir = outputDir + "/";
             } else {
                 this.outputDir = outputDir;
@@ -66,48 +62,62 @@ public class HiveTableCreatorConf {
         }
 
         public Builder pigScriptDir(final String pigScriptDir) {
-            this.pigScriptDir = pigScriptDir;
+            if(StringUtils.isEmpty(pigScriptDir)) {
+                throw new IllegalArgumentException("Pig script directory cannot be null/empty");
+            }
+            if (!pigScriptDir.endsWith("/")) {
+                this.pigScriptDir = pigScriptDir + "/";
+            } else {
+                this.pigScriptDir = pigScriptDir;
+            }
             return this;
         }
 
-        public Builder createTable(final boolean createTable) {
-            this.createTable = createTable;
+        public Builder createTable() {
+            this.createTable = true;
             return this;
         }
 
-        public Builder generateData(final boolean generateData) {
-            this.generateData = generateData;
+        public Builder generateData() {
+            this.generateData = true;
             return this;
         }
 
-        public Builder generatePigScripts(final boolean generatePigScripts) {
-            this.generatePigScripts = generatePigScripts;
+        public Builder generatePigScripts() {
+            this.generatePigScripts = true;
             return this;
         }
 
-        public Builder doEverything(final boolean doEverything) {
-            this.doEverything = doEverything;
+        public Builder doEverything() {
+            this.doEverything = true;
             return this;
         }
 
         public HiveTableCreatorConf build() {
             if(((generateData || createTable || generatePigScripts) && doEverything != null)) {
-                throw new IllegalArgumentException("create-table or generate-data or generate-pig-scripts cannot be set " +
-                    " when do-everything is set");
+                throw new IllegalArgumentException("Special switch for creating table, generating data and for generating "
+                    + "pig scripts cannot be set when do-everything is set");
             }
 
             if(generateData || createTable || generateData ) {
                 doEverything = false;
             } else {
+                // If none of the special switch is set, default behaviour is to do everything
                 doEverything = true;
             }
 
+            if(doEverything) {
+                generateData = true;
+                generatePigScripts = true;
+                createTable = true;
+            }
+
             if((generatePigScripts || doEverything) && StringUtils.isEmpty(pigScriptDir)) {
-                throw new IllegalArgumentException("pig-script-output-dir cannot be null, when generate-pig-scripts is set");
+                throw new IllegalArgumentException("Pig script output directory cannot be null/empty, when pig script is to be generated");
             }
 
             if((generateData || doEverything) && StringUtils.isEmpty(outputDir)) {
-                throw new IllegalArgumentException("output-dir cannot be null, when generate-data is set");
+                throw new IllegalArgumentException("Output directory cannot be null/empty, when data is to be generated");
             }
 
             return new HiveTableCreatorConf(this);
@@ -122,7 +132,6 @@ public class HiveTableCreatorConf {
         this.createTable = builder.createTable;
         this.generateData = builder.generateData;
         this.generatePigScripts = builder.generatePigScripts;
-        this.doEverything = builder.doEverything;
     }
 
     public String getFileName() {
@@ -151,9 +160,5 @@ public class HiveTableCreatorConf {
 
     public boolean isGeneratePigScripts() {
         return generatePigScripts;
-    }
-
-    public boolean isDoEverything() {
-        return doEverything;
     }
 }

@@ -177,19 +177,19 @@ public class HiveTableCreator extends Configured implements Tool {
                     break;
 
                 case 'e':
-                    builder.doEverything(true);
+                    builder.doEverything();
                     break;
 
                 case 't':
-                    builder.createTable(true);
+                    builder.createTable();
                     break;
 
                 case 's':
-                    builder.generatePigScripts(true);
+                    builder.generatePigScripts();
                     break;
 
                 case 'd':
-                    builder.generateData(true);
+                    builder.generateData();
                     break;
 
                 default:
