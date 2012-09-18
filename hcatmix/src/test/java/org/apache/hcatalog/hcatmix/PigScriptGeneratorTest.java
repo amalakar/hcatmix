@@ -63,8 +63,8 @@ public class PigScriptGeneratorTest {
         partitionFieldSchemaList.add(new FieldSchema("ip", DataType.INT.toString().toLowerCase(), ""));
         tableSchema.setPartitionFieldSchemas(partitionFieldSchemaList);
 
-        final String EXPECTED = "input = load '/tmp/table' USING PigStorage(',') AS (uri:chararray, ip:int, uri:chararray, ip:int);\n" +
-            "STORE input into 'my_table' USING  org.apache.hcatalog.pig.HCatStorer();\n";
+        final String EXPECTED = "input_data = load '/tmp/table' USING PigStorage(',') AS (uri:chararray, ip:int, uri:chararray, ip:int);\n" +
+            "STORE input_data into 'my_table' USING  org.apache.hcatalog.pig.HCatStorer();\n";
         Assert.assertEquals(EXPECTED, PigScriptGenerator.getPigLoadScript("/tmp/table", tableSchema));
     }
 }

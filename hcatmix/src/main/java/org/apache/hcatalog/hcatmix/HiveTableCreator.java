@@ -91,7 +91,7 @@ public class HiveTableCreator extends Configured implements Tool {
                         pigScriptFileName, hiveTableSchema.getName(), outputDir));
         String loadScript = PigScriptGenerator.getPigLoadScript(HCatMixUtils.getDataLocation(outputDir, hiveTableSchema), hiveTableSchema);
         FileUtils.writeStringToFile(new File(pigScriptFileName), loadScript);
-        LOG.info(MessageFormat.format("Successfully create the pig script: {0}", pigScriptFileName));
+        LOG.info(MessageFormat.format("Successfully created the pig script: {0}", pigScriptFileName));
     }
 
     private void generateDataForTable(HiveTableSchema hiveTableSchema, final int numMappers, String outputDir) throws IOException {
@@ -109,7 +109,7 @@ public class HiveTableCreator extends Configured implements Tool {
                                         .build();
         DataGenerator dataGenerator = new DataGenerator();
         dataGenerator.runJob(dgConf, getConf());
-        LOG.info(MessageFormat.format("Successfully create input data in: {0}", outputFile));
+        LOG.info(MessageFormat.format("Successfully created input data in: {0}", outputFile));
     }
 
     public void createTable(HiveTableSchema hiveTableSchema) {

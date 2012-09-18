@@ -20,7 +20,4 @@ public class TestDataType {
         }
         assertNull(DataType.fromInt(25));
     }
-
-
-
 }

@@ -30,8 +30,8 @@ import java.util.List;
  * Author: malakar
  */
 public class PigScriptGenerator {
-    public final static String LOAD_FORMAT = "input = load ''{0}'' USING PigStorage(''{1}'') AS ({2});\n"
-                                            + "STORE input into ''{3}'' USING  org.apache.hcatalog.pig.HCatStorer();\n";
+    public final static String LOAD_FORMAT = "input_data = load ''{0}'' USING PigStorage(''{1}'') AS ({2});\n"
+                                            + "STORE input_data into ''{3}'' USING  org.apache.hcatalog.pig.HCatStorer();\n";
 
     public static String getPigLoadScript(String inputLocation, HiveTableSchema hiveTableSchema) {
         /*

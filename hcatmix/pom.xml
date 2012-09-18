@@ -113,8 +113,7 @@
                     <force>false</force>
                     <artifactItems>
 
-                        <!-- THIS JAR IS HOSTED ON GOOGLE CODE, BUT IS NOT AVAILABLE IN A MAVEN
-                       REPO -->
+                        <!-- the following jar is not available in a maven repo -->
                         <artifactItem>
                             <groupId>sdsu</groupId>
                             <artifactId>sdsu</artifactId>
