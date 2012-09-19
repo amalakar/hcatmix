@@ -46,6 +46,21 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- antlr dependencies should have been brought by pig -->
+        <dependency>
+            <groupId>org.antlr</groupId>
+            <artifactId>antlr</artifactId>
+            <version>3.2</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.antlr</groupId>
+            <artifactId>antlr-runtime</artifactId>
+            <version>3.2</version>
+            <scope>provided</scope>
+        </dependency>
+
         <dependency>
             <groupId>org.apache.pig</groupId>
             <artifactId>datagen</artifactId>
@@ -58,6 +73,17 @@
             <artifactId>hive-metastore</artifactId>
             <version>0.9.0</version>
             <scope>provided</scope>
+            <exclusions>
+                <!-- antlr dependencies clash with antlr required by pig -->
+                <exclusion>
+                    <groupId>org.antlr</groupId>
+                    <artifactId>antlr</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.antlr</groupId>
+                    <artifactId>antlr-runtime</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -72,6 +98,17 @@
             <artifactId>hive-exec</artifactId>
             <version>0.9.0</version>
             <scope>provided</scope>
+            <exclusions>
+                <!-- antlr dependencies clash with antlr required by pig -->
+                <exclusion>
+                    <groupId>org.antlr</groupId>
+                    <artifactId>antlr</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.antlr</groupId>
+                    <artifactId>antlr-runtime</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -86,6 +123,14 @@
             <artifactId>slf4j-api</artifactId>
             <version>1.7.1</version>
             <scope>compile</scope>
+        </dependency>
+
+        <!-- hcatalog dependencies that can go away as soon as hcat is available in maven -->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>11.0.2</version>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
@@ -177,6 +222,17 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <additionalClasspathElements>
+                        <additionalClasspathElement>${env.HADOOP_CONF_DIR}</additionalClasspathElement>
+                        <additionalClasspathElement>${env.HCAT_HOME}/lib/hcatalog.jar</additionalClasspathElement>
+                        <additionalClasspathElement>${env.HCAT_HOME}/conf/hive-site.xml</additionalClasspathElement>
+                    </additionalClasspathElements>
+                </configuration>
             </plugin>
 
         </plugins>
