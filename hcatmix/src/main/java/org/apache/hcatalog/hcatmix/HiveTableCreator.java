@@ -117,6 +117,8 @@ public class HiveTableCreator extends Configured implements Tool {
         Table table = new Table();
         table.setDbName(hiveTableSchema.getDatabaseName());
         table.setTableName(hiveTableSchema.getName());
+        table.setOwner(System.getProperty("user.name"));
+        table.setOwnerIsSet(true);
         StorageDescriptor sd = new StorageDescriptor();
         sd.setCols(hiveTableSchema.getColumnFieldSchemas());
         table.setSd(sd);

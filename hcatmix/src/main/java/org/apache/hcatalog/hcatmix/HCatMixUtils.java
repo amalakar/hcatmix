@@ -21,6 +21,13 @@ package org.apache.hcatalog.hcatmix;
 import org.apache.hcatalog.hcatmix.conf.HiveTableSchema;
 
 public class HCatMixUtils {
+    /**
+     * The returned location would be a directory in case of map reduce mode, otherwise a file in case of
+     * local mode
+     * @param outputDir
+     * @param hiveTableSchema
+     * @return
+     */
     public static String getDataLocation(final String outputDir, final HiveTableSchema hiveTableSchema) {
         return outputDir + hiveTableSchema.getName();
     }

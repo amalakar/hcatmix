@@ -20,6 +20,8 @@ package org.apache.hcatalog.hcatmix.conf;
 
 import org.apache.pig.test.utils.DataType;
 import org.apache.pig.test.utils.datagen.ColSpec;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -37,6 +39,8 @@ import java.util.List;
 import java.util.Map;
 
 public class TableSchemaXMLParser {
+    private static final Logger LOG = LoggerFactory.getLogger(TableSchemaXMLParser.class);
+
     private final List<HiveTableSchema> hiveTableList;
     public static final String PERCENTAGE_NULL = "percentageNull";
     public static final String CARDINALITY = "cardinality";
@@ -56,7 +60,9 @@ public class TableSchemaXMLParser {
     private MultiInstanceHiveTableList parse(Document doc) {
         final List<MultiInstanceHiveTablesSchema> multiInstanceTablesList = new ArrayList<MultiInstanceHiveTablesSchema>();
 
-        NodeList tableList = doc.getElementsByTagName("tables");
+        Element tables = (Element) doc.getElementsByTagName("tables").item(0);
+        NodeList tableList = tables.getElementsByTagName("table");
+
         for (int i = 0; i < tableList.getLength(); i++) {
             Element table = (Element) tableList.item(i);
 
@@ -68,11 +74,13 @@ public class TableSchemaXMLParser {
                 multiInstanceSchema.addColumn(column.get("name"), getColSpecFromMap(column, false));
             }
 
-            List<Map<String, String>> partitions = getAllChildrensMap(table, "partition");
-            for (Map<String, String> partition : partitions) {
-                multiInstanceSchema.addPartition(partition.get("name"), getColSpecFromMap(partition, true));
+            if(table.getElementsByTagName("partitions").getLength() > 0) {
+                // Partition is optional
+                List<Map<String, String>> partitions = getAllChildrensMap(table, "partition");
+                for (Map<String, String> partition : partitions) {
+                    multiInstanceSchema.addPartition(partition.get("name"), getColSpecFromMap(partition, true));
+                }
             }
-
             List<Map<String, String>> instances = getAllChildrensMap(table, "instance");
             for (Map<String, String> instance : instances) {
                 multiInstanceSchema.addInstance(instance.get("size"), instance.get("count"));
@@ -108,9 +116,7 @@ public class TableSchemaXMLParser {
         NodeList nodeList = parent.getElementsByTagName(superChildName);
 
         ArrayList<Map<String, String>> list = new ArrayList<Map<String, String>>();
-        if (nodeList != null && nodeList.getLength() > 0)
-
-        {
+        if (nodeList != null && nodeList.getLength() > 0) {
             for (int i = 0; i < nodeList.getLength(); i++) {
                 list.add(getChildrenAsMap(nodeList.item(i)));
             }
@@ -135,7 +141,7 @@ public class TableSchemaXMLParser {
     private static String getElementValue(Element element, String name) {
         NodeList nlList = element.getElementsByTagName(name).item(0).getChildNodes();
         String value = nlList.item(0).getNodeValue();
-        System.out.println(name + " : " + value);
+        LOG.debug(name + " : " + value);
         return value;
     }
 
