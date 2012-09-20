@@ -24,6 +24,7 @@ import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.*;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.hcatalog.hcatmix.conf.HiveTableSchema;
@@ -32,6 +33,7 @@ import org.apache.pig.test.utils.datagen.ColSpec;
 import org.apache.pig.test.utils.datagen.DataGenerator;
 import org.apache.pig.test.utils.datagen.DataGeneratorConf;
 import org.apache.pig.tools.cmdline.CmdLineParser;
+import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
@@ -72,7 +74,11 @@ public class HiveTableCreator extends Configured implements Tool {
         List<HiveTableSchema> multiInstanceList = configParser.getHiveTableList();
         for (HiveTableSchema hiveTableSchema : multiInstanceList) {
             if(conf.isCreateTable()) {
-                createTable(hiveTableSchema);
+                try {
+                    createTable(hiveTableSchema);
+                } catch (Exception e) {
+                    LOG.info("Couldn't create table, " + hiveTableSchema.getName() + " ignored and proceeding", e);
+                }
             }
 
             if(conf.isGenerateData()) {
@@ -112,12 +118,16 @@ public class HiveTableCreator extends Configured implements Tool {
         LOG.info(MessageFormat.format("Successfully created input data in: {0}", outputFile));
     }
 
-    public void createTable(HiveTableSchema hiveTableSchema) {
+    public void createTable(HiveTableSchema hiveTableSchema) throws IOException, TException, NoSuchObjectException, MetaException, AlreadyExistsException, InvalidObjectException {
         LOG.info("About to create table: " + hiveTableSchema.getName());
         Table table = new Table();
         table.setDbName(hiveTableSchema.getDatabaseName());
         table.setTableName(hiveTableSchema.getName());
-        table.setOwner(System.getProperty("user.name"));
+        try {
+            table.setOwner(UserGroupInformation.getCurrentUser().toString());
+        } catch (IOException e) {
+            throw new IOException("Couldn't get user information. Cannot create table", e);
+        }
         table.setOwnerIsSet(true);
         StorageDescriptor sd = new StorageDescriptor();
         sd.setCols(hiveTableSchema.getColumnFieldSchemas());
@@ -135,12 +145,8 @@ public class HiveTableCreator extends Configured implements Tool {
                 org.apache.hadoop.hive.serde2.columnar.ColumnarSerDe.class.getName());
         table.setPartitionKeys(hiveTableSchema.getPartitionFieldSchemas());
 
-        try {
-            hiveClient.createTable(table);
-            LOG.info("Successfullt create table: " + table.getTableName());
-        } catch (Exception e) {
-            LOG.error("Couldn't create table: " + table.getTableName() + ". Ignored and proceeding", e);
-        }
+        hiveClient.createTable(table);
+        LOG.info("Successfully created table: " + table.getTableName());
     }
 
     @Override
