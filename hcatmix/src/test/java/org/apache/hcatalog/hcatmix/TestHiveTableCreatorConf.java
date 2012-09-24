@@ -30,29 +30,32 @@ public class TestHiveTableCreatorConf {
             new HiveTableCreatorConf.Builder().generateData().build();
             fail("Exception expected");
         } catch (IllegalArgumentException e) {
-            assertEquals("Output directory cannot be null/empty, when data is to be generated", e.getMessage());
+            assertEquals("Output directory name cannot be null/empty, when data is to be generated", e.getMessage());
         }
 
         try {
             new HiveTableCreatorConf.Builder().outputDir("/tmp/test").build();
             fail("Exception expected");
         } catch (IllegalArgumentException e) {
-            assertEquals("Pig script output directory cannot be null/empty, when pig script is to be generated", e.getMessage());
+            assertEquals("Pig script output directory name cannot be null/empty, when pig script is to be generated", e.getMessage());
         }
 
-        HiveTableCreatorConf conf = new HiveTableCreatorConf.Builder().outputDir("/tmp/data").pigScriptDir("/tmp/pig").build();
+        HiveTableCreatorConf conf = new HiveTableCreatorConf.Builder().outputDir("/tmp/data")
+                .pigScriptDir("/tmp/pig").pigDataOutputDir("/tmp/pig_out").build();
         assertNotNull(conf);
         assertEquals("/tmp/data/", conf.getOutputDir());
         assertEquals("/tmp/pig/", conf.getPigScriptDir());
+        assertEquals("/tmp/pig_out/", conf.getPigDataOutputDir());
         assertEquals(true, conf.isGeneratePigScripts());
         assertEquals(true, conf.isCreateTable());
         assertEquals(true, conf.isGenerateData());
 
         // Check that '/' is not appended if not required
-        conf = new HiveTableCreatorConf.Builder().outputDir("/tmp/data/").pigScriptDir("/tmp/pig/").build();
+        conf = new HiveTableCreatorConf.Builder().outputDir("/tmp/data/").pigScriptDir("/tmp/pig/").pigDataOutputDir("/tmp/pig_out/").build();
         assertNotNull(conf);
         assertEquals("/tmp/data/", conf.getOutputDir());
         assertEquals("/tmp/pig/", conf.getPigScriptDir());
+        assertEquals("/tmp/pig_out/", conf.getPigDataOutputDir());
 
         try {
             new HiveTableCreatorConf.Builder().outputDir("/tmp/test").pigScriptDir("/tmp/pig").doEverything().generateData().build();

@@ -23,16 +23,21 @@ import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.pig.test.utils.DataType;
 import org.apache.pig.test.utils.datagen.ColSpec;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class PigScriptGeneratorTest {
+public class TestPigScriptGenerator {
+    private static final Logger LOG = LoggerFactory.getLogger(TestPigScriptGenerator.class);
 
-    @Test
-    public void testLoadScriptGenerator() {
-        DefaultHiveTableSchema tableSchema = new DefaultHiveTableSchema();
+    private static final DefaultHiveTableSchema tableSchema = new DefaultHiveTableSchema();
+
+    @BeforeClass
+    public static void setUp() {
         tableSchema.setName("my_table");
         tableSchema.setDatabaseName("default_db");
 
@@ -62,9 +67,35 @@ public class PigScriptGeneratorTest {
         partitionFieldSchemaList.add(new FieldSchema("uri", DataType.STRING.toString().toLowerCase(), ""));
         partitionFieldSchemaList.add(new FieldSchema("ip", DataType.INT.toString().toLowerCase(), ""));
         tableSchema.setPartitionFieldSchemas(partitionFieldSchemaList);
+    }
 
+    @Test
+    public void testPigLoaderHCatStorer() {
+        PigScriptGenerator pigScriptGenerator = new PigScriptGenerator("/tmp/table", "/tmp/pig_dir", tableSchema);
         final String EXPECTED = "input_data = load '/tmp/table' USING PigStorage(',') AS (uri:chararray, ip:int, uri:chararray, ip:int);\n" +
             "STORE input_data into 'my_table' USING  org.apache.hcatalog.pig.HCatStorer();\n";
-        Assert.assertEquals(EXPECTED, PigScriptGenerator.getPigLoadScript("/tmp/table", tableSchema));
+        final String pigScript = pigScriptGenerator.getPigLoaderHCatStorerScript();
+        LOG.info("Pig loader/HCAT storer script: \n" + pigScript);
+        Assert.assertEquals(EXPECTED, pigScript);
+    }
+
+    @Test
+    public void testPigLoaderPigStorer() {
+        PigScriptGenerator pigScriptGenerator = new PigScriptGenerator("/tmp/table", "/tmp/pig_dir", tableSchema);
+        final String EXPECTED = "input_data = load '/tmp/table' USING PigStorage(',') AS (uri:chararray, ip:int, uri:chararray, ip:int);\n" +
+            "STORE input_data into '/tmp/pig_dir' USING  PigStorage();\n";
+        final String pigScript = pigScriptGenerator.getPigLoaderPigStorerScript();
+        LOG.info("Pig loader/pig storer script: \n" + pigScript);
+        Assert.assertEquals(EXPECTED, pigScript);
+    }
+
+    @Test
+    public void testHCatLoaderPigStorer() {
+        PigScriptGenerator pigScriptGenerator = new PigScriptGenerator("/tmp/table", "/tmp/pig_dir", tableSchema);
+        final String EXPECTED = "input_data = load '/tmp/table' USING org.apache.hcatalog.pig.HCatLoader() AS (uri:chararray, ip:int, uri:chararray, ip:int);\n" +
+            "STORE input_data into '/tmp/pig_dir' USING  PigStorage();\n";
+        final String pigScript = pigScriptGenerator.getHCatLoaderPigStorerScript();
+        LOG.info("HCat loader/pig storer script: \n" + pigScript);
+        Assert.assertEquals(EXPECTED, pigScript);
     }
 }

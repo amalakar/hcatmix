@@ -86,18 +86,33 @@ public class HiveTableCreator extends Configured implements Tool {
             }
 
             if(conf.isGeneratePigScripts()) {
-                generatePigScripts(conf.getOutputDir(), hiveTableSchema, conf.getPigScriptDir());
+                generatePigScripts(conf.getOutputDir(), conf.getPigDataOutputDir(), hiveTableSchema, conf.getPigScriptDir());
             }
         }
     }
 
-    private void generatePigScripts(final String outputDir, final HiveTableSchema hiveTableSchema, final String pigScriptDir ) throws IOException {
-        final String pigScriptFileName = HCatMixUtils.getPigLoadScriptName(pigScriptDir, hiveTableSchema.getName());
-        LOG.info(MessageFormat.format("About to generate pig load script:{0}, for table: {1} for input data in location: {2}",
-                        pigScriptFileName, hiveTableSchema.getName(), outputDir));
-        String loadScript = PigScriptGenerator.getPigLoadScript(HCatMixUtils.getDataLocation(outputDir, hiveTableSchema), hiveTableSchema);
-        FileUtils.writeStringToFile(new File(pigScriptFileName), loadScript);
-        LOG.info(MessageFormat.format("Successfully created the pig script: {0}", pigScriptFileName));
+    private void generatePigScripts(final String outputDir, final String pigOutputDir,
+                                    final HiveTableSchema hiveTableSchema, final String pigScriptDir ) throws IOException {
+        PigScriptGenerator pigScriptGenerator = new PigScriptGenerator(HCatMixUtils.getDataLocation(outputDir, hiveTableSchema),
+                pigOutputDir, hiveTableSchema);
+
+        LOG.info(MessageFormat.format("About to generate pig scripts in {0}, for table: {1} for input data in location: {2}",
+                pigScriptDir, hiveTableSchema.getName(), outputDir));
+
+        // 1. Script for loading using pig store using hcatStorer()
+        final String pigLoadHCatStoreScript = HCatMixUtils.getPigLoadStoreScriptName(pigScriptDir, hiveTableSchema.getName());
+        FileUtils.writeStringToFile(new File(pigLoadHCatStoreScript), pigScriptGenerator.getPigLoaderHCatStorerScript());
+        LOG.info(MessageFormat.format("Successfully created the pig loader/hcat storer script: {0}", pigLoadHCatStoreScript));
+
+        // 2. Script for loading/storing using pigstorage()
+        final String pigLoadPigStorerScript = HCatMixUtils.getPigLoadStoreScriptName(pigScriptDir, hiveTableSchema.getName());
+        FileUtils.writeStringToFile(new File(pigLoadPigStorerScript), pigScriptGenerator.getPigLoaderPigStorerScript());
+        LOG.info(MessageFormat.format("Successfully created the pig loader/pig storer script: {0}", pigLoadPigStorerScript));
+
+        // 3. Script for loading using HCatLoader() and store using pigStorage()
+        final String hcatLoadPigStorerScript = HCatMixUtils.getPigLoadStoreScriptName(pigScriptDir, hiveTableSchema.getName());
+        FileUtils.writeStringToFile(new File(hcatLoadPigStorerScript), pigScriptGenerator.getHCatLoaderPigStorerScript());
+        LOG.info(MessageFormat.format("Successfully created the hcat loader/pig storer script: {0}", hcatLoadPigStorerScript));
     }
 
     private void generateDataForTable(HiveTableSchema hiveTableSchema, final int numMappers, String outputDir) throws IOException {
@@ -156,6 +171,7 @@ public class HiveTableCreator extends Configured implements Tool {
         opts.registerOpt('m', "mappers", CmdLineParser.ValueExpected.OPTIONAL);
         opts.registerOpt('o', "output-dir", CmdLineParser.ValueExpected.REQUIRED);
         opts.registerOpt('p', "pig-script-output-dir", CmdLineParser.ValueExpected.REQUIRED);
+        opts.registerOpt('a', "pig-data-output-dir", CmdLineParser.ValueExpected.REQUIRED);
 
         opts.registerOpt('t', "create-table", CmdLineParser.ValueExpected.NOT_ACCEPTED);
         opts.registerOpt('d', "generate-data", CmdLineParser.ValueExpected.NOT_ACCEPTED);
@@ -198,6 +214,10 @@ public class HiveTableCreator extends Configured implements Tool {
 
                 case 'd':
                     builder.generateData();
+                    break;
+
+                case 'a':
+                    builder.pigDataOutputDir(opts.getValStr());
                     break;
 
                 default:

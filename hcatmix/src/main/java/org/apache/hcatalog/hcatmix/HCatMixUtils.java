@@ -18,6 +18,7 @@
 
 package org.apache.hcatalog.hcatmix;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.hcatalog.hcatmix.conf.HiveTableSchema;
 
 public class HCatMixUtils {
@@ -32,7 +33,48 @@ public class HCatMixUtils {
         return outputDir + hiveTableSchema.getName();
     }
 
-    public static String getPigLoadScriptName(final String pigScriptDir, final String tableName) {
+    /**
+     * Get the script file name when PigLoader and HCatStorer is used
+     * @param pigScriptDir
+     * @param tableName
+     * @return
+     */
+    public static String getHCatStoreScriptName(final String pigScriptDir, final String tableName) {
         return pigScriptDir + tableName + ".load.pig";
+    }
+
+    /**
+     * Get the script file name when HCatStorer and PigLoader is used
+     * @param pigScriptDir
+     * @param tableName
+     * @return
+     */
+    public static String getHCatLoadScriptName(final String pigScriptDir, final String tableName) {
+        return pigScriptDir + tableName + ".store.pig";
+    }
+
+    /**
+     * Get the script file name when the default pig PigLoader() and PigStorer() is used
+     * @param pigScriptDir
+     * @param tableName
+     * @return
+     */
+    public static String getPigLoadStoreScriptName(final String pigScriptDir, final String tableName) {
+        return pigScriptDir + tableName + ".load.pig";
+    }
+
+    /**
+     * Check that the directory name is valid and append a slash to it if required
+     * @param outputDir
+     * @return
+     */
+    public static String appendSlashIfRequired(String outputDir) {
+        if(StringUtils.isEmpty(outputDir)) {
+            throw new IllegalArgumentException("The directory name cannot be null/empty");
+        }
+        if (!outputDir.endsWith("/")) {
+            outputDir += "/";
+        }
+        return outputDir;
     }
 }

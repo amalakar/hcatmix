@@ -30,16 +30,40 @@ import java.util.List;
  * Author: malakar
  */
 public class PigScriptGenerator {
-    public final static String LOAD_FORMAT = "input_data = load ''{0}'' USING PigStorage(''{1}'') AS ({2});\n"
-                                            + "STORE input_data into ''{3}'' USING  org.apache.hcatalog.pig.HCatStorer();\n";
+    public final static String PIG_SCRIPT_TEMPLATE = "input_data = load ''{0}'' USING {1} AS ({2});\n"
+                                            + "STORE input_data into ''{3}'' USING  {4};\n";
+    public final static String HCAT_LOADER = "org.apache.hcatalog.pig.HCatLoader()";
+    public final static String HCAT_STORER = "org.apache.hcatalog.pig.HCatStorer()";
+    public final static String PIG_LOADER = "PigStorage('" + HiveTableCreator.SEPARATOR + "')";
+    public final static String PIG_STORER = "PigStorage()";
 
-    public static String getPigLoadScript(String inputLocation, HiveTableSchema hiveTableSchema) {
-        /*
-        in = load '/user/malakar/hcatmix_uniform_bug/page_views_20000000_0/part-00000' USING PigStorage(',') AS (user:chararray, timespent:int, query_term:chararray, ip_addr:int, estimated_revenue:int, page_info:chararray, action:int);
+    private final String inputLocation;
+    private final String pigOutputLocation;
+    private final HiveTableSchema hiveTableSchema;
+    private final String pigSchema;
 
-        STORE in into 'page_views_20000000_0' USING org.apache.hcatalog.pig.HCatStorer();
-        */
+    public PigScriptGenerator(String inputLocation, String pigOutputLocation, HiveTableSchema hiveTableSchema) {
+        this.inputLocation = inputLocation;
+        this.pigOutputLocation = pigOutputLocation;
+        this.hiveTableSchema = hiveTableSchema;
+        this.pigSchema = getPigFieldSchema(hiveTableSchema);
+    }
+    public String getPigLoaderHCatStorerScript() {
+        return MessageFormat.format(PIG_SCRIPT_TEMPLATE, inputLocation, PIG_LOADER, pigSchema,
+            hiveTableSchema.getName(), HCAT_STORER);
+    }
 
+    public String getPigLoaderPigStorerScript() {
+        return MessageFormat.format(PIG_SCRIPT_TEMPLATE, inputLocation, PIG_LOADER, pigSchema,
+            pigOutputLocation, PIG_STORER);
+    }
+
+    public String getHCatLoaderPigStorerScript() {
+        return MessageFormat.format(PIG_SCRIPT_TEMPLATE, inputLocation, HCAT_LOADER, pigSchema,
+            pigOutputLocation, PIG_STORER);
+    }
+
+    public static String getPigFieldSchema(HiveTableSchema hiveTableSchema) {
         List<FieldSchema> allFields = new ArrayList<FieldSchema>();
         allFields.addAll(hiveTableSchema.getColumnFieldSchemas());
         allFields.addAll(hiveTableSchema.getPartitionFieldSchemas());
@@ -50,10 +74,8 @@ public class PigScriptGenerator {
             fields.append(delim).append(field.getName()).append(':').append(toPigType(field.getType()));
             delim = ", ";
         }
-        return MessageFormat.format(LOAD_FORMAT, inputLocation, HiveTableCreator.SEPARATOR, fields, hiveTableSchema.getName());
+        return fields.toString();
     }
-
-    public static void generatePigStoreScript(HiveTableSchema hiveTableSchema) {}
 
     public static String toPigType(String type) {
         DataType dataType = DataType.fromString(type);

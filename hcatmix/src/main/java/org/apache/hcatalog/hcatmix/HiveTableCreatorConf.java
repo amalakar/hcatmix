@@ -20,6 +20,9 @@ package org.apache.hcatalog.hcatmix;
 
 import org.apache.commons.lang.StringUtils;
 
+/**
+ * The configuration class for configuring how to create table/generate data etc.
+ */
 public class HiveTableCreatorConf {
     private final String fileName;
     private final int numMappers;
@@ -28,12 +31,15 @@ public class HiveTableCreatorConf {
     private final boolean createTable;
     private final boolean generateData;
     private final boolean generatePigScripts;
+    private final String pigDataOutputDir;
+
 
     public static class Builder {
         private String fileName = null;
         private int numMappers = 0;
         private String outputDir = null;
         private String pigScriptDir = null;
+        private String pigDataOutputDir = null;
         private boolean createTable = false;
         private boolean generateData = false;
         private boolean generatePigScripts = false;
@@ -49,26 +55,30 @@ public class HiveTableCreatorConf {
             return this;
         }
 
+        /**
+         * Directory where data is generated (could be local/HDFS based on the mode)
+         * @param outputDir
+         * @return
+         */
         public Builder outputDir(final String outputDir) {
-            if(StringUtils.isEmpty(outputDir)) {
-                throw new IllegalArgumentException("Output directory cannot be null/empty");
-            }
-            if (!outputDir.endsWith("/")) {
-                this.outputDir = outputDir + "/";
-            } else {
-                this.outputDir = outputDir;
+            try {
+                this.outputDir = HCatMixUtils.appendSlashIfRequired(outputDir);
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Output directory cannot be null/empty", e);
             }
             return this;
         }
 
+        /**
+         * The local file system directory to store generated pig scripts
+         * @param pigScriptDir
+         * @return
+         */
         public Builder pigScriptDir(final String pigScriptDir) {
-            if(StringUtils.isEmpty(pigScriptDir)) {
-                throw new IllegalArgumentException("Pig script directory cannot be null/empty");
-            }
-            if (!pigScriptDir.endsWith("/")) {
-                this.pigScriptDir = pigScriptDir + "/";
-            } else {
-                this.pigScriptDir = pigScriptDir;
+            try {
+                this.pigScriptDir = HCatMixUtils.appendSlashIfRequired(pigScriptDir);
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Pig script directory cannot be null/empty", e);
             }
             return this;
         }
@@ -85,6 +95,21 @@ public class HiveTableCreatorConf {
 
         public Builder generatePigScripts() {
             this.generatePigScripts = true;
+            return this;
+        }
+
+        /**
+         * The directory location where to store data that is written using default PigStorer()
+         * (could be local/HDFS based on the mode)
+         * @param pigDataOutputDir
+         * @return
+         */
+        public Builder pigDataOutputDir(String pigDataOutputDir) {
+            try {
+                this.pigDataOutputDir = HCatMixUtils.appendSlashIfRequired(pigDataOutputDir);
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Pig data output directory cannot be null/empty", e);
+            }
             return this;
         }
 
@@ -112,12 +137,16 @@ public class HiveTableCreatorConf {
                 createTable = true;
             }
 
-            if((generatePigScripts || doEverything) && StringUtils.isEmpty(pigScriptDir)) {
-                throw new IllegalArgumentException("Pig script output directory cannot be null/empty, when pig script is to be generated");
+            if((generateData) && StringUtils.isEmpty(outputDir)) {
+                throw new IllegalArgumentException("Output directory name cannot be null/empty, when data is to be generated");
             }
 
-            if((generateData || doEverything) && StringUtils.isEmpty(outputDir)) {
-                throw new IllegalArgumentException("Output directory cannot be null/empty, when data is to be generated");
+            if((generatePigScripts) && StringUtils.isEmpty(pigScriptDir)) {
+                throw new IllegalArgumentException("Pig script output directory name cannot be null/empty, when pig script is to be generated");
+            }
+
+            if((generatePigScripts) && StringUtils.isEmpty(pigDataOutputDir)) {
+                throw new IllegalArgumentException("Pig data output directory name cannot be null/empty, when pig script is to be generated");
             }
 
             return new HiveTableCreatorConf(this);
@@ -132,6 +161,7 @@ public class HiveTableCreatorConf {
         this.createTable = builder.createTable;
         this.generateData = builder.generateData;
         this.generatePigScripts = builder.generatePigScripts;
+        this.pigDataOutputDir = builder.pigDataOutputDir;
     }
 
     public String getFileName() {
@@ -148,6 +178,10 @@ public class HiveTableCreatorConf {
 
     public String getPigScriptDir() {
         return pigScriptDir;
+    }
+
+    public String getPigDataOutputDir() {
+        return pigDataOutputDir;
     }
 
     public boolean isCreateTable() {
