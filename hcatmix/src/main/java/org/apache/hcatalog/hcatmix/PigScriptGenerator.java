@@ -34,7 +34,7 @@ public class PigScriptGenerator {
                                             + "STORE input_data into ''{3}'' USING  {4};\n";
     public final static String HCAT_LOADER = "org.apache.hcatalog.pig.HCatLoader()";
     public final static String HCAT_STORER = "org.apache.hcatalog.pig.HCatStorer()";
-    public final static String PIG_LOADER = "PigStorage('" + HiveTableCreator.SEPARATOR + "')";
+    public final static String PIG_LOADER = "PigStorage('" + HCatMixSetup.SEPARATOR + "')";
     public final static String PIG_STORER = "PigStorage()";
 
     private final String inputLocation;

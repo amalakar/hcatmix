@@ -22,27 +22,28 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-public class TestHiveTableCreatorConf {
+public class TestHCatMixSetupConf {
 
     @Test
     public void testBuilder() {
         try {
-            new HiveTableCreatorConf.Builder().generateData().build();
+            new HCatMixSetupConf.Builder().generateData().build();
             fail("Exception expected");
         } catch (IllegalArgumentException e) {
             assertEquals("Output directory name cannot be null/empty, when data is to be generated", e.getMessage());
         }
 
         try {
-            new HiveTableCreatorConf.Builder().outputDir("/tmp/test").build();
+            new HCatMixSetupConf.Builder().outputDir("/tmp/test").build();
             fail("Exception expected");
         } catch (IllegalArgumentException e) {
             assertEquals("Pig script output directory name cannot be null/empty, when pig script is to be generated", e.getMessage());
         }
 
-        HiveTableCreatorConf conf = new HiveTableCreatorConf.Builder().outputDir("/tmp/data")
+        HCatMixSetupConf conf = new HCatMixSetupConf.Builder().confFileName("/tmp/hcat_conf.xml").outputDir("/tmp/data")
                 .pigScriptDir("/tmp/pig").pigDataOutputDir("/tmp/pig_out").build();
         assertNotNull(conf);
+        assertEquals("/tmp/hcat_conf.xml", conf.getConfFileName());
         assertEquals("/tmp/data/", conf.getOutputDir());
         assertEquals("/tmp/pig/", conf.getPigScriptDir());
         assertEquals("/tmp/pig_out/", conf.getPigDataOutputDir());
@@ -51,14 +52,15 @@ public class TestHiveTableCreatorConf {
         assertEquals(true, conf.isGenerateData());
 
         // Check that '/' is not appended if not required
-        conf = new HiveTableCreatorConf.Builder().outputDir("/tmp/data/").pigScriptDir("/tmp/pig/").pigDataOutputDir("/tmp/pig_out/").build();
+        conf = new HCatMixSetupConf.Builder().confFileName("/tmp/hcat_conf.xml").outputDir("/tmp/data/").pigScriptDir("/tmp/pig/").pigDataOutputDir("/tmp/pig_out/").build();
         assertNotNull(conf);
+        assertEquals("/tmp/hcat_conf.xml", conf.getConfFileName());
         assertEquals("/tmp/data/", conf.getOutputDir());
         assertEquals("/tmp/pig/", conf.getPigScriptDir());
         assertEquals("/tmp/pig_out/", conf.getPigDataOutputDir());
 
         try {
-            new HiveTableCreatorConf.Builder().outputDir("/tmp/test").pigScriptDir("/tmp/pig").doEverything().generateData().build();
+            new HCatMixSetupConf.Builder().outputDir("/tmp/test").pigScriptDir("/tmp/pig").doEverything().generateData().build();
             fail("Exception expected");
         } catch (IllegalArgumentException e) {
             assertEquals("Special switch for creating table, generating data and for generating pig scripts cannot be set when do-everything is set", e.getMessage());

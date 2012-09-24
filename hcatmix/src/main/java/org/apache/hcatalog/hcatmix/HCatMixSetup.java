@@ -47,14 +47,22 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class HiveTableCreator extends Configured implements Tool {
-    private static final Logger LOG = LoggerFactory.getLogger(HiveTableCreator.class);
+/**
+ * Main class to
+ *      1. create hcat tables
+ *      2. Generate data for it
+ *      3. Generate pig scripts to load the data in hcat tables
+ * This class is named HCatMixSetup as it does the initial setup for doing performance test
+ */
+
+public class HCatMixSetup extends Configured implements Tool {
+    private static final Logger LOG = LoggerFactory.getLogger(HCatMixSetup.class);
 
     HiveMetaStoreClient hiveClient;
     public final static char SEPARATOR = ',';
 
     public static void main(String[] args) throws Exception {
-        ToolRunner.run(new Configuration(), new HiveTableCreator(), args);
+        ToolRunner.run(new Configuration(), new HCatMixSetup(), args);
     }
 
     public static void usage() {
@@ -62,15 +70,15 @@ public class HiveTableCreator extends Configured implements Tool {
         throw new RuntimeException();
     }
 
-    public HiveTableCreator() throws MetaException {
-        HiveConf hiveConf = new HiveConf(HiveTableCreator.class);
+    public HCatMixSetup() throws MetaException {
+        HiveConf hiveConf = new HiveConf(HCatMixSetup.class);
         hiveClient = new HiveMetaStoreClient(hiveConf);
     }
 
-    public void createTablesFromConf(HiveTableCreatorConf conf)
+    public void setupFromConf(HCatMixSetupConf conf)
         throws IOException, SAXException, ParserConfigurationException, MetaException {
 
-        TableSchemaXMLParser configParser = new TableSchemaXMLParser(conf.getFileName());
+        TableSchemaXMLParser configParser = new TableSchemaXMLParser(conf.getConfFileName());
         List<HiveTableSchema> multiInstanceList = configParser.getHiveTableList();
         for (HiveTableSchema hiveTableSchema : multiInstanceList) {
             if(conf.isCreateTable()) {
@@ -91,7 +99,7 @@ public class HiveTableCreator extends Configured implements Tool {
         }
     }
 
-    private void generatePigScripts(final String outputDir, final String pigOutputDir,
+    public void generatePigScripts(final String outputDir, final String pigOutputDir,
                                     final HiveTableSchema hiveTableSchema, final String pigScriptDir ) throws IOException {
         PigScriptGenerator pigScriptGenerator = new PigScriptGenerator(HCatMixUtils.getDataLocation(outputDir, hiveTableSchema),
                 pigOutputDir, hiveTableSchema);
@@ -100,7 +108,7 @@ public class HiveTableCreator extends Configured implements Tool {
                 pigScriptDir, hiveTableSchema.getName(), outputDir));
 
         // 1. Script for loading using pig store using hcatStorer()
-        final String pigLoadHCatStoreScript = HCatMixUtils.getPigLoadStoreScriptName(pigScriptDir, hiveTableSchema.getName());
+        final String pigLoadHCatStoreScript = HCatMixUtils.getHCatStoreScriptName(pigScriptDir, hiveTableSchema.getName());
         FileUtils.writeStringToFile(new File(pigLoadHCatStoreScript), pigScriptGenerator.getPigLoaderHCatStorerScript());
         LOG.info(MessageFormat.format("Successfully created the pig loader/hcat storer script: {0}", pigLoadHCatStoreScript));
 
@@ -110,12 +118,12 @@ public class HiveTableCreator extends Configured implements Tool {
         LOG.info(MessageFormat.format("Successfully created the pig loader/pig storer script: {0}", pigLoadPigStorerScript));
 
         // 3. Script for loading using HCatLoader() and store using pigStorage()
-        final String hcatLoadPigStorerScript = HCatMixUtils.getPigLoadStoreScriptName(pigScriptDir, hiveTableSchema.getName());
+        final String hcatLoadPigStorerScript = HCatMixUtils.getHCatLoadScriptName(pigScriptDir, hiveTableSchema.getName());
         FileUtils.writeStringToFile(new File(hcatLoadPigStorerScript), pigScriptGenerator.getHCatLoaderPigStorerScript());
         LOG.info(MessageFormat.format("Successfully created the hcat loader/pig storer script: {0}", hcatLoadPigStorerScript));
     }
 
-    private void generateDataForTable(HiveTableSchema hiveTableSchema, final int numMappers, String outputDir) throws IOException {
+    public void generateDataForTable(HiveTableSchema hiveTableSchema, final int numMappers, String outputDir) throws IOException {
         String outputFile = HCatMixUtils.getDataLocation(outputDir, hiveTableSchema);
         LOG.info(MessageFormat.format("About to generate data for table: {0}, with number of mappers: {1}, output location: {2}",
             hiveTableSchema.getName(), numMappers, outputFile));
@@ -164,6 +172,9 @@ public class HiveTableCreator extends Configured implements Tool {
         LOG.info("Successfully created table: " + table.getTableName());
     }
 
+    public void deleteTable(String dbName, String tableName) throws TException, MetaException, NoSuchObjectException {
+        hiveClient.dropTable(dbName, tableName);
+    }
     @Override
     public int run(String[] args) throws Exception {
         CmdLineParser opts = new CmdLineParser(args);
@@ -178,14 +189,14 @@ public class HiveTableCreator extends Configured implements Tool {
         opts.registerOpt('s', "generate-pig-scripts", CmdLineParser.ValueExpected.NOT_ACCEPTED);
         opts.registerOpt('e', "do-everything", CmdLineParser.ValueExpected.NOT_ACCEPTED);
 
-        HiveTableCreatorConf.Builder builder = new HiveTableCreatorConf.Builder();
+        HCatMixSetupConf.Builder builder = new HCatMixSetupConf.Builder();
 
         char opt;
         try {
             while ((opt = opts.getNextOpt()) != CmdLineParser.EndOfOpts) {
                 switch (opt) {
                 case 'f':
-                    builder.fileName(opts.getValStr());
+                    builder.confFileName(opts.getValStr());
                     break;
 
                 case 'o':
@@ -232,7 +243,7 @@ public class HiveTableCreator extends Configured implements Tool {
         }
 
         try {
-            createTablesFromConf(builder.build());
+            setupFromConf(builder.build());
         } catch (Exception e) {
             e.printStackTrace();
         }

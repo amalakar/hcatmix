@@ -23,8 +23,8 @@ import org.apache.commons.lang.StringUtils;
 /**
  * The configuration class for configuring how to create table/generate data etc.
  */
-public class HiveTableCreatorConf {
-    private final String fileName;
+public class HCatMixSetupConf {
+    private final String confFileName;
     private final int numMappers;
     private final String outputDir;
     private final String pigScriptDir;
@@ -35,7 +35,7 @@ public class HiveTableCreatorConf {
 
 
     public static class Builder {
-        private String fileName = null;
+        private String confFileName = null;
         private int numMappers = 0;
         private String outputDir = null;
         private String pigScriptDir = null;
@@ -45,8 +45,8 @@ public class HiveTableCreatorConf {
         private boolean generatePigScripts = false;
         private Boolean doEverything = null;
 
-        public Builder fileName(final String fileName) {
-            this.fileName = fileName;
+        public Builder confFileName(final String fileName) {
+            this.confFileName = fileName;
             return this;
         }
 
@@ -118,7 +118,7 @@ public class HiveTableCreatorConf {
             return this;
         }
 
-        public HiveTableCreatorConf build() {
+        public HCatMixSetupConf build() {
             if(((generateData || createTable || generatePigScripts) && doEverything != null)) {
                 throw new IllegalArgumentException("Special switch for creating table, generating data and for generating "
                     + "pig scripts cannot be set when do-everything is set");
@@ -149,12 +149,16 @@ public class HiveTableCreatorConf {
                 throw new IllegalArgumentException("Pig data output directory name cannot be null/empty, when pig script is to be generated");
             }
 
-            return new HiveTableCreatorConf(this);
+            if(StringUtils.isEmpty(confFileName)) {
+                throw new IllegalArgumentException("Conf file name cannot be null/empty");
+            }
+
+            return new HCatMixSetupConf(this);
         }
     }
 
-    HiveTableCreatorConf(Builder builder) {
-        this.fileName = builder.fileName;
+    HCatMixSetupConf(Builder builder) {
+        this.confFileName = builder.confFileName;
         this.numMappers = builder.numMappers;
         this.outputDir = builder.outputDir;
         this.pigScriptDir = builder.pigScriptDir;
@@ -164,8 +168,8 @@ public class HiveTableCreatorConf {
         this.pigDataOutputDir = builder.pigDataOutputDir;
     }
 
-    public String getFileName() {
-        return fileName;
+    public String getConfFileName() {
+        return confFileName;
     }
 
     public int getNumMappers() {

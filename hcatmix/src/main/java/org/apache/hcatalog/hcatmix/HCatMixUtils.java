@@ -21,6 +21,8 @@ package org.apache.hcatalog.hcatmix;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hcatalog.hcatmix.conf.HiveTableSchema;
 
+import java.io.File;
+
 public class HCatMixUtils {
     /**
      * The returned location would be a directory in case of map reduce mode, otherwise a file in case of
@@ -40,7 +42,7 @@ public class HCatMixUtils {
      * @return
      */
     public static String getHCatStoreScriptName(final String pigScriptDir, final String tableName) {
-        return pigScriptDir + tableName + ".load.pig";
+        return pigScriptDir + tableName + ".hcatLoad.pig";
     }
 
     /**
@@ -76,5 +78,16 @@ public class HCatMixUtils {
             outputDir += "/";
         }
         return outputDir;
+    }
+
+    public static void assertDirExists(String dirName) {
+        File directory = new File(dirName);
+        if(!directory.exists()) {
+            throw new IllegalStateException("The directory name: " + dirName + " does not exist");
+        }
+
+        if(!directory.isDirectory()) {
+            throw new IllegalStateException("The directory name: " + dirName + " is not a directory");
+        }
     }
 }
