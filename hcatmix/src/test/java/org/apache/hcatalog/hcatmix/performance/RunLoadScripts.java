@@ -53,10 +53,10 @@ public class RunLoadScripts {
     private static HCatMixSetup hCatMixSetup;
     public MethodRule benchmarkRun = new BenchmarkRule();
 
-    public final String TABLE_NAME = "page_views_199_0";
+    public final String TABLE_NAME = "page_views_20000000_0";
     public final String DB_NAME = "default";
 
-    @AxisRange(min = 0, max = 10000)
+ //   @AxisRange()
 
     @BeforeClass
     public static void prepare() throws IOException, MetaException {

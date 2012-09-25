@@ -56,13 +56,14 @@ public class PigScriptGenerator {
     }
 
     public String getPigLoaderPigStorerScript() {
+        // TODO the pig data location, should be the one that user supplies
         return MessageFormat.format(PIG_SCRIPT_TEMPLATE, inputLocation, PIG_LOADER, pigSchema,
-            pigOutputLocation, PIG_STORER);
+            pigOutputLocation + "_pig_load_pig_store", PIG_STORER);
     }
 
     public String getHCatLoaderPigStorerScript() {
         return MessageFormat.format(PIG_SCRIPT_HCATLOADER_TEMPLATE, hiveTableSchema.getDatabaseName() + "." + hiveTableSchema.getName(),
-                HCAT_LOADER, pigOutputLocation, PIG_STORER);
+                HCAT_LOADER, pigOutputLocation + "_hcat_load_pig_store", PIG_STORER);
     }
 
     public static String getPigFieldSchema(HiveTableSchema hiveTableSchema) {
