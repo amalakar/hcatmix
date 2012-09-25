@@ -236,6 +236,7 @@
                     <additionalClasspathElements>
                         <additionalClasspathElement>${env.HADOOP_CONF_DIR}</additionalClasspathElement>
                         <additionalClasspathElement>${env.HADOOP_HOME}/lib/hadoop-gpl-compression-0.1.0-1206210100.jar</additionalClasspathElement>
+                        <additionalClasspathElement>${env.HCAT_HOME}/lib/hcatalog-0.4.1.2.jar</additionalClasspathElement>
                     </additionalClasspathElements>
                     <systemPropertyVariables>
                         <LIBPATH>${env.HADOOP_HOME}/lib/native/Linux-amd64-64/</LIBPATH>
