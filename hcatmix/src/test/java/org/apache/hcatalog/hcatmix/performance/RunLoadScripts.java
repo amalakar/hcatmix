@@ -23,6 +23,7 @@ import com.carrotsearch.junitbenchmarks.BenchmarkOptions;
 import com.carrotsearch.junitbenchmarks.BenchmarkRule;
 import com.carrotsearch.junitbenchmarks.annotation.AxisRange;
 import com.carrotsearch.junitbenchmarks.annotation.BenchmarkMethodChart;
+import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hcatalog.hcatmix.HCatMixSetup;
@@ -48,8 +49,8 @@ import java.io.IOException;
 public class RunLoadScripts extends AbstractBenchmark {
     public static PigServer pigServer;
     private static final Logger LOG = LoggerFactory.getLogger(RunLoadScripts.class);
-    private static final String HCATMIX_LOCAL_ROOT = "/tmp/hcatmix/";
-    private static final String HCATMIX_HDFS_ROOT = "/tmp/hcatmix/";
+    private static final String HCATMIX_LOCAL_ROOT = "/tmp/hcatmix";
+    private static final String HCATMIX_HDFS_ROOT = "/tmp/hcatmix";
     private static final String HCATMIX_PIG_SCRIPT_DIR = HCATMIX_LOCAL_ROOT + "/pig_scripts";
     private static HCatMixSetup hCatMixSetup;
     public MethodRule benchmarkRun = new BenchmarkRule();
@@ -64,17 +65,15 @@ public class RunLoadScripts extends AbstractBenchmark {
         for (File jarFile : hcatLibDir.listFiles()) {
             pigServer.registerJar(jarFile.getAbsolutePath());
         }
-
-        hCatMixSetup = new HCatMixSetup();
-
     }
 
-    @Before
-    public void setUp() throws MetaException, IOException, SAXException, ParserConfigurationException {
+    @BeforeClass
+    public static void setUp() throws MetaException, IOException, SAXException, ParserConfigurationException {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         String hcatConfFile = classLoader.getResource("hcat_table_specification.xml").getPath();
         HCatMixSetupConf conf = new HCatMixSetupConf.Builder().confFileName(hcatConfFile).outputDir(HCATMIX_HDFS_ROOT + "/data")
-                .pigScriptDir(HCATMIX_PIG_SCRIPT_DIR).pigDataOutputDir(HCATMIX_HDFS_ROOT + "/pigdata").build();
+                .numMappers(2).pigScriptDir(HCATMIX_PIG_SCRIPT_DIR).pigDataOutputDir(HCATMIX_HDFS_ROOT + "/pigdata").build();
+        hCatMixSetup = new HCatMixSetup();
         hCatMixSetup.setupFromConf(conf);
     }
 
@@ -98,6 +97,11 @@ public class RunLoadScripts extends AbstractBenchmark {
 
     @After
     public void tearDown() throws NoSuchObjectException, MetaException, TException {
-        hCatMixSetup.deleteTable("default", "page_views_199_0");
+        File pigData = new File(HCATMIX_HDFS_ROOT + "/pigdata");
+        try {
+            FileUtil.fullyDelete(pigData);
+        } catch (IOException e) {
+            LOG.error("Could not delete directory: " + pigData.getAbsolutePath());
+        }
     }
 }

@@ -73,7 +73,7 @@ public class TestPigScriptGenerator {
     public void testPigLoaderHCatStorer() {
         PigScriptGenerator pigScriptGenerator = new PigScriptGenerator("/tmp/table", "/tmp/pig_dir", tableSchema);
         final String EXPECTED = "input_data = load '/tmp/table' USING PigStorage(',') AS (uri:chararray, ip:int, uri:chararray, ip:int);\n" +
-            "STORE input_data into 'my_table' USING  org.apache.hcatalog.pig.HCatStorer();\n";
+            "STORE input_data into 'default_db.my_table' USING  org.apache.hcatalog.pig.HCatStorer();\n";
         final String pigScript = pigScriptGenerator.getPigLoaderHCatStorerScript();
         LOG.info("Pig loader/HCAT storer script: \n" + pigScript);
         Assert.assertEquals(EXPECTED, pigScript);
@@ -92,7 +92,7 @@ public class TestPigScriptGenerator {
     @Test
     public void testHCatLoaderPigStorer() {
         PigScriptGenerator pigScriptGenerator = new PigScriptGenerator("/tmp/table", "/tmp/pig_dir", tableSchema);
-        final String EXPECTED = "input_data = load '/tmp/table' USING org.apache.hcatalog.pig.HCatLoader() AS (uri:chararray, ip:int, uri:chararray, ip:int);\n" +
+        final String EXPECTED = "input_data = load 'default_db.my_table' USING org.apache.hcatalog.pig.HCatLoader();\n" +
             "STORE input_data into '/tmp/pig_dir' USING  PigStorage();\n";
         final String pigScript = pigScriptGenerator.getHCatLoaderPigStorerScript();
         LOG.info("HCat loader/pig storer script: \n" + pigScript);

@@ -51,7 +51,12 @@ public class HadoopRunner {
         // Configuration processed by ToolRunner
 
         // Create a JobConf using the processed conf
-        JobConf job = new JobConf(conf);
+        JobConf job;
+        if(conf != null) { // TODO: conf could be null, check when and why
+            job = new JobConf(conf);
+        } else {
+            job = new JobConf();
+        }
         fs = FileSystem.get(job);
 
         tmpHome = createTempDir(null);

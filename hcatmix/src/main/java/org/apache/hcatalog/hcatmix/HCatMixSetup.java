@@ -173,8 +173,11 @@ public class HCatMixSetup extends Configured implements Tool {
     }
 
     public void deleteTable(String dbName, String tableName) throws TException, MetaException, NoSuchObjectException {
+        LOG.info(MessageFormat.format("About to delete table: {0}.{1}", dbName, dbName));
         hiveClient.dropTable(dbName, tableName);
+        LOG.info(MessageFormat.format("Successfully deleted table: {0}.{1}", dbName, dbName));
     }
+
     @Override
     public int run(String[] args) throws Exception {
         CmdLineParser opts = new CmdLineParser(args);

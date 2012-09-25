@@ -32,6 +32,8 @@ import java.util.List;
 public class PigScriptGenerator {
     public final static String PIG_SCRIPT_TEMPLATE = "input_data = load ''{0}'' USING {1} AS ({2});\n"
                                             + "STORE input_data into ''{3}'' USING  {4};\n";
+    public final static String PIG_SCRIPT_HCATLOADER_TEMPLATE = "input_data = load ''{0}'' USING {1};\n"
+            + "STORE input_data into ''{2}'' USING  {3};\n";
     public final static String HCAT_LOADER = "org.apache.hcatalog.pig.HCatLoader()";
     public final static String HCAT_STORER = "org.apache.hcatalog.pig.HCatStorer()";
     public final static String PIG_LOADER = "PigStorage('" + HCatMixSetup.SEPARATOR + "')";
@@ -50,7 +52,7 @@ public class PigScriptGenerator {
     }
     public String getPigLoaderHCatStorerScript() {
         return MessageFormat.format(PIG_SCRIPT_TEMPLATE, inputLocation, PIG_LOADER, pigSchema,
-            hiveTableSchema.getName(), HCAT_STORER);
+            hiveTableSchema.getDatabaseName() + "." + hiveTableSchema.getName(), HCAT_STORER);
     }
 
     public String getPigLoaderPigStorerScript() {
@@ -59,8 +61,8 @@ public class PigScriptGenerator {
     }
 
     public String getHCatLoaderPigStorerScript() {
-        return MessageFormat.format(PIG_SCRIPT_TEMPLATE, inputLocation, HCAT_LOADER, pigSchema,
-            pigOutputLocation, PIG_STORER);
+        return MessageFormat.format(PIG_SCRIPT_HCATLOADER_TEMPLATE, hiveTableSchema.getDatabaseName() + "." + hiveTableSchema.getName(),
+                HCAT_LOADER, pigOutputLocation, PIG_STORER);
     }
 
     public static String getPigFieldSchema(HiveTableSchema hiveTableSchema) {

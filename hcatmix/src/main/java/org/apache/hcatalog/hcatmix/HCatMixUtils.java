@@ -42,7 +42,7 @@ public class HCatMixUtils {
      * @return
      */
     public static String getHCatStoreScriptName(final String pigScriptDir, final String tableName) {
-        return pigScriptDir + tableName + ".hcatLoad.pig";
+        return appendSlashIfRequired(pigScriptDir) + tableName + ".hcatLoad.pig";
     }
 
     /**
@@ -52,7 +52,7 @@ public class HCatMixUtils {
      * @return
      */
     public static String getHCatLoadScriptName(final String pigScriptDir, final String tableName) {
-        return pigScriptDir + tableName + ".store.pig";
+        return appendSlashIfRequired(pigScriptDir) + tableName + ".store.pig";
     }
 
     /**
@@ -62,7 +62,7 @@ public class HCatMixUtils {
      * @return
      */
     public static String getPigLoadStoreScriptName(final String pigScriptDir, final String tableName) {
-        return pigScriptDir + tableName + ".load.pig";
+        return appendSlashIfRequired(pigScriptDir) + tableName + ".load.pig";
     }
 
     /**
