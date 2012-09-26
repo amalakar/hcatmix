@@ -54,7 +54,7 @@ import java.util.List;
 import static junit.framework.Assert.assertEquals;
 
 @BenchmarkMethodChart(filePrefix = "benchmark-lists")
-public abstract class TestLoadStoreMethods {
+public class TestLoadStoreMethods {
     private static final Logger LOG = LoggerFactory.getLogger(TestLoadStoreMethods.class);
     private static final String HCATMIX_LOCAL_ROOT = "/tmp/hcatmix";
     private static final String HCATMIX_HDFS_ROOT = "/tmp/hcatmix";
@@ -67,17 +67,20 @@ public abstract class TestLoadStoreMethods {
     public static final int NUM_MAPPERS = 1;
     public static String additionalJars;
 
-    protected static String hcatTableSpecFileName;
+    protected static String hcatTableSpecFileName = "performance/hcat_table_100GB.xml";
+
 
     @AxisRange(min=0, max=Double.MAX_VALUE)
 
     @BeforeClass
-    public static void setUp() throws MetaException, IOException, SAXException, ParserConfigurationException, NoSuchObjectException, TException, InvalidObjectException {
+    public static void setUp() throws MetaException, IOException, SAXException, ParserConfigurationException,
+            NoSuchObjectException, TException, InvalidObjectException {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         final String hcatTableSpecFile = classLoader.getResource(hcatTableSpecFileName).getPath();
 
         HCatMixSetupConf conf = new HCatMixSetupConf.Builder().confFileName(hcatTableSpecFile)
-                .createTable().pigScriptDir(HCATMIX_PIG_SCRIPT_DIR).pigDataOutputDir(HCATMIX_HDFS_ROOT + "/pigdata").build();
+                .createTable().generateData().outputDir(HCATMIX_HDFS_ROOT + "/data").generatePigScripts()
+                .pigScriptDir(HCATMIX_PIG_SCRIPT_DIR).pigDataOutputDir(HCATMIX_HDFS_ROOT + "/pigdata").build();
         hCatMixSetup = new HCatMixSetup();
         hCatMixSetup.setupFromConf(conf);
 
@@ -112,7 +115,16 @@ public abstract class TestLoadStoreMethods {
 
     public void runScript(String scriptName) {
         PigProgressListener listener = new PigProgressListener();
-        final String logFileName =  System.getenv("buildDirectory") + "/" + getClass() + scriptName + ".log";
+        String tmpDir = System.getenv("buildDirectory");
+        if( tmpDir == null) {
+            if(new File("target/").exists()) {
+                tmpDir = "target";
+            } else {
+                tmpDir = "/tmp";
+            }
+        }
+        final String logFileName =  tmpDir + "/" + getClass().getName() + scriptName + ".log";
+        LOG.info("[" + scriptName + "] log file: " + logFileName);
         String[] args = {"-Dpig.additional.jars=" + additionalJars, "-f", scriptName, "-l", logFileName};
         PigRunner.run(args, listener);
     }

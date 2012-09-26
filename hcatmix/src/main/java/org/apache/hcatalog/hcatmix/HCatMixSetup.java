@@ -110,17 +110,22 @@ public class HCatMixSetup extends Configured implements Tool {
         // 1. Script for loading using pig store using hcatStorer()
         final String pigLoadHCatStoreScript = HCatMixUtils.getHCatStoreScriptName(pigScriptDir, hiveTableSchema.getName());
         FileUtils.writeStringToFile(new File(pigLoadHCatStoreScript), pigScriptGenerator.getPigLoaderHCatStorerScript());
-        LOG.info(MessageFormat.format("Successfully created the pig loader/hcat storer script: {0}", pigLoadHCatStoreScript));
+        LOG.info(MessageFormat.format("1. Successfully created the pig loader/hcat storer script: {0}", pigLoadHCatStoreScript));
 
         // 2. Script for loading/storing using pigstorage()
         final String pigLoadPigStorerScript = HCatMixUtils.getPigLoadStoreScriptName(pigScriptDir, hiveTableSchema.getName());
         FileUtils.writeStringToFile(new File(pigLoadPigStorerScript), pigScriptGenerator.getPigLoaderPigStorerScript());
-        LOG.info(MessageFormat.format("Successfully created the pig loader/pig storer script: {0}", pigLoadPigStorerScript));
+        LOG.info(MessageFormat.format("2. Successfully created the pig loader/pig storer script: {0}", pigLoadPigStorerScript));
 
         // 3. Script for loading using HCatLoader() and store using pigStorage()
         final String hcatLoadPigStorerScript = HCatMixUtils.getHCatLoadScriptName(pigScriptDir, hiveTableSchema.getName());
         FileUtils.writeStringToFile(new File(hcatLoadPigStorerScript), pigScriptGenerator.getHCatLoaderPigStorerScript());
-        LOG.info(MessageFormat.format("Successfully created the hcat loader/pig storer script: {0}", hcatLoadPigStorerScript));
+        LOG.info(MessageFormat.format("3. Successfully created the hcat loader/pig storer script: {0}", hcatLoadPigStorerScript));
+
+        // 3. Script for loading using HCatLoader() and store using HCatStorage()
+        final String hcatLoadHCatStorerScript = HCatMixUtils.getHCatLoadStoreScriptName(pigScriptDir, hiveTableSchema.getName());
+        FileUtils.writeStringToFile(new File(hcatLoadHCatStorerScript), pigScriptGenerator.getHCatLoaderHCatStorerScript());
+        LOG.info(MessageFormat.format("4. Successfully created the hcat loader/hcat storer script: {0}", hcatLoadPigStorerScript));
     }
 
     public void generateDataForTable(HiveTableSchema hiveTableSchema, final int numMappers, String outputDir) throws IOException {
