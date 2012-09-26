@@ -137,8 +137,8 @@ public class HCatMixSetupConf {
                 createTable = true;
             }
 
-            if((generateData) && StringUtils.isEmpty(outputDir)) {
-                throw new IllegalArgumentException("Output directory name cannot be null/empty, when data is to be generated");
+            if((generateData || generatePigScripts) && StringUtils.isEmpty(outputDir)) {
+                throw new IllegalArgumentException("Output directory name cannot be null/empty, when data/pig script is to be generated");
             }
 
             if((generatePigScripts) && StringUtils.isEmpty(pigScriptDir)) {

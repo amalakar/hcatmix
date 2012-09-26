@@ -30,7 +30,7 @@ public class TestHCatMixSetupConf {
             new HCatMixSetupConf.Builder().generateData().build();
             fail("Exception expected");
         } catch (IllegalArgumentException e) {
-            assertEquals("Output directory name cannot be null/empty, when data is to be generated", e.getMessage());
+            assertEquals("Output directory name cannot be null/empty, when data/pig script is to be generated", e.getMessage());
         }
 
         try {
@@ -38,6 +38,13 @@ public class TestHCatMixSetupConf {
             fail("Exception expected");
         } catch (IllegalArgumentException e) {
             assertEquals("Pig script output directory name cannot be null/empty, when pig script is to be generated", e.getMessage());
+        }
+
+        try {
+            new HCatMixSetupConf.Builder().confFileName("/tmp/hcat_conf.xml").pigScriptDir("/tmp/pig").pigDataOutputDir("/tmp/pig_out").build();
+            fail("Exception expected");
+        } catch (IllegalArgumentException e) {
+            assertEquals("Output directory name cannot be null/empty, when data/pig script is to be generated", e.getMessage());
         }
 
         HCatMixSetupConf conf = new HCatMixSetupConf.Builder().confFileName("/tmp/hcat_conf.xml").outputDir("/tmp/data")

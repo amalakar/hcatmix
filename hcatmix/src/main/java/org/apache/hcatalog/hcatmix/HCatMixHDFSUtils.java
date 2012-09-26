@@ -16,28 +16,32 @@
  * limitations under the License.
  */
 
-package org.apache.hcatalog.hcatmix.conf;
+package org.apache.hcatalog.hcatmix;
 
-import org.apache.hadoop.hive.metastore.api.FieldSchema;
-import org.apache.pig.test.utils.datagen.ColSpec;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.hdfs.DistributedFileSystem;
 
-import java.util.List;
+import java.io.IOException;
+import java.net.URI;
 
-public interface HiveTableSchema {
-    public List<ColSpec> getPartitionColSpecs();
+/**
+ * Author: malakar
+ */
+public class HCatMixHDFSUtils {
+    private static Configuration conf;
+    private static DistributedFileSystem dfs;
+    static {
+        conf = new Configuration();
+        dfs = new DistributedFileSystem();
+        try {
+            dfs.initialize(new URI(conf.get("fs.default.name")), conf);
+        } catch (Exception e) {
+            throw new RuntimeException("Couldn't initialize DFS client");
+        }
+    }
 
-    public List<FieldSchema> getPartitionFieldSchemas();
-
-    public List<ColSpec> getColumnColSpecs();
-
-    public List<FieldSchema> getColumnFieldSchemas();
-
-    public String getName();
-
-    public void setName(String name);
-
-    public String getDatabaseName();
-
-    public int getRowCount();
-
+    public static boolean exists(String path) throws IOException {
+        return dfs.exists(new Path(path));
+    }
 }

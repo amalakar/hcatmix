@@ -36,33 +36,43 @@ public class HCatMixUtils {
     }
 
     /**
-     * Get the script file name when PigLoader and HCatStorer is used
+     * Get the script file name where PigLoader and HCatStorer is used
      * @param pigScriptDir
      * @param tableName
      * @return
      */
     public static String getHCatStoreScriptName(final String pigScriptDir, final String tableName) {
-        return appendSlashIfRequired(pigScriptDir) + tableName + ".hcatLoad.pig";
+        return appendSlashIfRequired(pigScriptDir) + tableName + ".pigLoadHcatStore.pig";
     }
 
     /**
-     * Get the script file name when HCatStorer and PigLoader is used
+     * Get the script file name where HCatStorer and PigLoader is used
      * @param pigScriptDir
      * @param tableName
      * @return
      */
     public static String getHCatLoadScriptName(final String pigScriptDir, final String tableName) {
-        return appendSlashIfRequired(pigScriptDir) + tableName + ".store.pig";
+        return appendSlashIfRequired(pigScriptDir) + tableName + ".hcatLoadPigStore.pig";
     }
 
     /**
-     * Get the script file name when the default pig PigLoader() and PigStorer() is used
+     * Get the script file name where the default pig PigLoader() and PigStorer() is used
      * @param pigScriptDir
      * @param tableName
      * @return
      */
     public static String getPigLoadStoreScriptName(final String pigScriptDir, final String tableName) {
-        return appendSlashIfRequired(pigScriptDir) + tableName + ".load.pig";
+        return appendSlashIfRequired(pigScriptDir) + tableName + ".pigLoadPigStore.pig";
+    }
+
+    /**
+     * Get the script file name where HCatLoader() and HCatStorer() is used
+     * @param pigScriptDir
+     * @param tableName
+     * @return
+     */
+    public static String getHCatLoadStoreScriptName(final String pigScriptDir, final String tableName) {
+        return appendSlashIfRequired(pigScriptDir) + tableName + ".hcatLoadHCatStore.pig";
     }
 
     /**
@@ -78,6 +88,10 @@ public class HCatMixUtils {
             outputDir += "/";
         }
         return outputDir;
+    }
+
+    public static String getCopyTableName(String tableName) {
+        return tableName + "_copy";
     }
 
     public static void assertDirExists(String dirName) {

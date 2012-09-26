@@ -26,7 +26,7 @@ import java.util.List;
 /**
  * Author: malakar
  */
-public class DefaultHiveTableSchema implements HiveTableSchema{
+public class DefaultHiveTableSchema implements HiveTableSchema {
     private List<ColSpec> partitionColSpecs;
     private List<FieldSchema> partitionFieldSchemas;
     private List<ColSpec> columnColSpecs;

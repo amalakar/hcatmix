@@ -76,7 +76,7 @@ public class HCatMixSetup extends Configured implements Tool {
     }
 
     public void setupFromConf(HCatMixSetupConf conf)
-        throws IOException, SAXException, ParserConfigurationException, MetaException {
+            throws IOException, SAXException, ParserConfigurationException, MetaException, NoSuchObjectException, TException, InvalidObjectException {
 
         TableSchemaXMLParser configParser = new TableSchemaXMLParser(conf.getConfFileName());
         List<HiveTableSchema> multiInstanceList = configParser.getHiveTableList();
@@ -84,8 +84,8 @@ public class HCatMixSetup extends Configured implements Tool {
             if(conf.isCreateTable()) {
                 try {
                     createTable(hiveTableSchema);
-                } catch (Exception e) {
-                    LOG.info("Couldn't create table, " + hiveTableSchema.getName() + " ignored and proceeding", e);
+                } catch (AlreadyExistsException e) {
+                    LOG.info("Couldn't create table, " + hiveTableSchema.getName() + ". Already exists ignored and proceeding", e);
                 }
             }
 
@@ -126,19 +126,24 @@ public class HCatMixSetup extends Configured implements Tool {
     public void generateDataForTable(HiveTableSchema hiveTableSchema, final int numMappers, String outputDir) throws IOException {
         String outputFile = HCatMixUtils.getDataLocation(outputDir, hiveTableSchema);
         LOG.info(MessageFormat.format("About to generate data for table: {0}, with number of mappers: {1}, output location: {2}",
-            hiveTableSchema.getName(), numMappers, outputFile));
-        List<ColSpec> colSpecs = new ArrayList<ColSpec>(hiveTableSchema.getColumnColSpecs());
-        colSpecs.addAll(hiveTableSchema.getPartitionColSpecs());
-        DataGeneratorConf dgConf = new DataGeneratorConf.Builder()
-                                        .colSpecs(colSpecs.toArray(new ColSpec[colSpecs.size()]))
-                                        .separator(SEPARATOR)
-                                        .numMappers(numMappers)
-                                        .numRows(hiveTableSchema.getRowCount()) // TODO
-                                        .outputFile(outputFile)
-                                        .build();
-        DataGenerator dataGenerator = new DataGenerator();
-        dataGenerator.runJob(dgConf, getConf());
-        LOG.info(MessageFormat.format("Successfully created input data in: {0}", outputFile));
+                hiveTableSchema.getName(), numMappers, outputFile));
+
+        if (!HCatMixHDFSUtils.exists(outputFile)) {
+            List<ColSpec> colSpecs = new ArrayList<ColSpec>(hiveTableSchema.getColumnColSpecs());
+            colSpecs.addAll(hiveTableSchema.getPartitionColSpecs());
+            DataGeneratorConf dgConf = new DataGeneratorConf.Builder()
+                    .colSpecs(colSpecs.toArray(new ColSpec[colSpecs.size()]))
+                    .separator(SEPARATOR)
+                    .numMappers(numMappers)
+                    .numRows(hiveTableSchema.getRowCount())
+                    .outputFile(outputFile)
+                    .build();
+            DataGenerator dataGenerator = new DataGenerator();
+            dataGenerator.runJob(dgConf, getConf());
+            LOG.info(MessageFormat.format("Successfully created input data in: {0}", outputFile));
+        } else {
+            LOG.info(MessageFormat.format("Output location {0} already exists, skipping data generation", outputFile));
+        }
     }
 
     public void createTable(HiveTableSchema hiveTableSchema) throws IOException, TException, NoSuchObjectException, MetaException, AlreadyExistsException, InvalidObjectException {

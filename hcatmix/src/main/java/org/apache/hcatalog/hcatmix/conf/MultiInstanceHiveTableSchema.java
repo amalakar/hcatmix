@@ -24,8 +24,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MultiInstanceHiveTableSchema implements HiveTableSchema {
+
     private final MultiInstanceHiveTablesSchema multiInstanceHiveTablesSchema;
-    private final String name;
+    private String name;
     private int rowCount;
 
     public MultiInstanceHiveTableSchema(MultiInstanceHiveTablesSchema multiInstanceHiveTablesSchema, final String name, int rowCount) {
@@ -83,11 +84,20 @@ public class MultiInstanceHiveTableSchema implements HiveTableSchema {
         return name;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public String getDatabaseName() {
         return multiInstanceHiveTablesSchema.getDatabaseName();
     }
 
     public int getRowCount() {
         return  rowCount;
+    }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        return new MultiInstanceHiveTableSchema(multiInstanceHiveTablesSchema, name, rowCount);
     }
 }

@@ -16,28 +16,13 @@
  * limitations under the License.
  */
 
-package org.apache.hcatalog.hcatmix.conf;
+package org.apache.hcatalog.hcatmix.performance;
 
-import org.apache.hadoop.hive.metastore.api.FieldSchema;
-import org.apache.pig.test.utils.datagen.ColSpec;
-
-import java.util.List;
-
-public interface HiveTableSchema {
-    public List<ColSpec> getPartitionColSpecs();
-
-    public List<FieldSchema> getPartitionFieldSchemas();
-
-    public List<ColSpec> getColumnColSpecs();
-
-    public List<FieldSchema> getColumnFieldSchemas();
-
-    public String getName();
-
-    public void setName(String name);
-
-    public String getDatabaseName();
-
-    public int getRowCount();
-
+/**
+ * Author: malakar
+ */
+public class Perf100GBTable extends TestLoadStoreMethods {
+    public Perf100GBTable() {
+        hcatTableSpecFileName = "performance/hcat_table_100GB.xml";
+    }
 }

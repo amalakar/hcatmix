@@ -83,7 +83,7 @@ public class TestPigScriptGenerator {
     public void testPigLoaderPigStorer() {
         PigScriptGenerator pigScriptGenerator = new PigScriptGenerator("/tmp/table", "/tmp/pig_dir", tableSchema);
         final String EXPECTED = "input_data = load '/tmp/table' USING PigStorage(',') AS (uri:chararray, ip:int, uri:chararray, ip:int);\n" +
-            "STORE input_data into '/tmp/pig_dir' USING  PigStorage();\n";
+            "STORE input_data into '/tmp/pig_dir/default_db.my_table/pig_load_pig_store' USING  PigStorage();\n";
         final String pigScript = pigScriptGenerator.getPigLoaderPigStorerScript();
         LOG.info("Pig loader/pig storer script: \n" + pigScript);
         Assert.assertEquals(EXPECTED, pigScript);
@@ -93,9 +93,19 @@ public class TestPigScriptGenerator {
     public void testHCatLoaderPigStorer() {
         PigScriptGenerator pigScriptGenerator = new PigScriptGenerator("/tmp/table", "/tmp/pig_dir", tableSchema);
         final String EXPECTED = "input_data = load 'default_db.my_table' USING org.apache.hcatalog.pig.HCatLoader();\n" +
-            "STORE input_data into '/tmp/pig_dir' USING  PigStorage();\n";
+            "STORE input_data into '/tmp/pig_dir/default_db.my_table/hcat_load_pig_store' USING  PigStorage();\n";
         final String pigScript = pigScriptGenerator.getHCatLoaderPigStorerScript();
         LOG.info("HCat loader/pig storer script: \n" + pigScript);
+        Assert.assertEquals(EXPECTED, pigScript);
+    }
+
+    @Test
+    public void testHCatLoaderHCatStorer() {
+        PigScriptGenerator pigScriptGenerator = new PigScriptGenerator("/tmp/table", "/tmp/pig_dir", tableSchema);
+        final String EXPECTED = "input_data = load 'default_db.my_table' USING org.apache.hcatalog.pig.HCatLoader();\n" +
+                "STORE input_data into 'default_db.my_table_copy' USING  org.apache.hcatalog.pig.HCatStorer();\n";
+        final String pigScript = pigScriptGenerator.getHCatLoaderHCatStorerScript();
+        LOG.info("HCat loader/HCat storer script: \n" + pigScript);
         Assert.assertEquals(EXPECTED, pigScript);
     }
 }
