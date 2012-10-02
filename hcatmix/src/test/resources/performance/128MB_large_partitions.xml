@@ -73,7 +73,20 @@
                     <name>action</name>
                     <type>int</type>
                     <distribution>uniform</distribution>
-                    <cardinality>8000</cardinality>
+                    <cardinality>2</cardinality>
+                </partition>
+                <partition>
+                    <name>sourceid</name>
+                    <type>int</type>
+                    <distribution>uniform</distribution>
+                    <cardinality>10</cardinality>
+                </partition>
+                <partition>
+                    <name>testid</name>
+                    <type>string</type>
+                    <avgLength>5</avgLength>
+                    <distribution>uniform</distribution>
+                    <cardinality>30</cardinality>
                 </partition>
             </partitions>
             <instances>

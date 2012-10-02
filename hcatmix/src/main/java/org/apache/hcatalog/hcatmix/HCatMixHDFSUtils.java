@@ -44,4 +44,8 @@ public class HCatMixHDFSUtils {
     public static boolean exists(String path) throws IOException {
         return dfs.exists(new Path(path));
     }
+
+    public static boolean deleteRecursive(String path) throws IOException {
+        return dfs.delete(new Path(path), true);
+    }
 }

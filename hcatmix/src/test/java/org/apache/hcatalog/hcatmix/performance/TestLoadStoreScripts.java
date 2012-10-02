@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import static org.testng.Assert.assertNotNull;
 
@@ -58,6 +59,7 @@ public class TestLoadStoreScripts {
         if (hcatSpecFile == null) {
             ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
             final String hcatTableSpecFileDir = classLoader.getResource("performance").getPath();
+            LOG.info("Will look in directory:" + hcatTableSpecFileDir + " for hcatalog table specification files");
             File hcatSpecDir = new File(hcatTableSpecFileDir);
 
             assertNotNull(hcatSpecDir.listFiles());
@@ -78,9 +80,10 @@ public class TestLoadStoreScripts {
 
 
     @Test(dataProvider = "HCatSpecFileNames")
-    public void testAllLoadStoreScripts(String specFileName) throws IOException, TException, NoSuchObjectException, MetaException, SAXException, InvalidObjectException, ParserConfigurationException {
-        System.out.println("Spec file name: "  +specFileName);
-        LoadStoreScriptRunner runner = new LoadStoreScriptRunner(specFileName);
+    public void testAllLoadStoreScripts(String hcatSpecFileName) throws IOException, TException, NoSuchObjectException,
+            MetaException, SAXException, InvalidObjectException, ParserConfigurationException {
+        LOG.info("HCatalog spec file name: " + hcatSpecFileName);
+        LoadStoreScriptRunner runner = new LoadStoreScriptRunner(hcatSpecFileName);
 
         int numRuns = 2;
         for (int i = 0; i < numRuns; i++) {
@@ -95,7 +98,7 @@ public class TestLoadStoreScripts {
                 runner.deleteHCatTables();
                 runner.deletePigData();
             } catch (IOException e) {
-                LOG.error("Error running script: " + specFileName + " ignored.", e);
+                LOG.error("Error running script: " + hcatSpecFileName + " ignored.", e);
             }
         }
 

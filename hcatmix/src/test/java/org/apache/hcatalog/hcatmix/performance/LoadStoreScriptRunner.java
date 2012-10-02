@@ -23,10 +23,7 @@ import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
-import org.apache.hcatalog.hcatmix.HCatMixSetup;
-import org.apache.hcatalog.hcatmix.HCatMixSetupConf;
-import org.apache.hcatalog.hcatmix.HCatMixUtils;
-import org.apache.hcatalog.hcatmix.LoadStoreStopWatch;
+import org.apache.hcatalog.hcatmix.*;
 import org.apache.hcatalog.hcatmix.conf.HiveTableSchema;
 import org.apache.hcatalog.hcatmix.conf.TableSchemaXMLParser;
 import org.apache.pig.PigRunner;
@@ -61,7 +58,7 @@ public class LoadStoreScriptRunner {
 
     private String tableName;
     private String dbName;
-    private final int NUM_MAPPERS = 1;
+    private final int NUM_MAPPERS = 30;
     private String additionalJars;
     private int rowCount;
     private final String hcatTableSpecFileName;
@@ -183,14 +180,14 @@ public class LoadStoreScriptRunner {
 
     public void deletePigData() {
         // Delete the generated pig data
-        File pigData = new File(HCatMixUtils.getPigOutputLocation(PIG_DATA_OUTPUT_DIR, dbName, tableName));
-        LOG.info(MessageFormat.format("About to delete pig output directory: {0}", pigData.getAbsolutePath()));
+        final String pigData = HCatMixUtils.getPigOutputLocation(PIG_DATA_OUTPUT_DIR, dbName, tableName);
+        LOG.info(MessageFormat.format("About to delete pig output directory: {0}", pigData));
         try {
-            FileUtil.fullyDelete(pigData);
-            LOG.info(MessageFormat.format("Deleted pig output directory: {0}", pigData.getAbsolutePath()));
+            HCatMixHDFSUtils.deleteRecursive(pigData);
+            LOG.info(MessageFormat.format("Deleted pig output directory: {0}", pigData));
         } catch (IOException e) {
             LOG.error(MessageFormat.format("Could not delete directory: {0}. Ignored proceeding",
-                    pigData.getAbsolutePath()), e);
+                    pigData), e);
         }
     }
 
@@ -198,11 +195,11 @@ public class LoadStoreScriptRunner {
      * Delete generated input data
      */
     public void deleteGeneratedDataDir() {
-        File data = new File(HCatMixUtils.getDataLocation(DATAGEN_OUTPUT_DIR, tableName));
+        final String dataDir = HCatMixUtils.getDataLocation(DATAGEN_OUTPUT_DIR, tableName);
         try {
-            FileUtil.fullyDelete(data);
+            HCatMixHDFSUtils.deleteRecursive(dataDir);
         } catch (IOException e) {
-            LOG.error("Could not delete directory: " + data.getAbsolutePath());
+            LOG.error("Could not delete directory: " + dataDir);
         }
     }
 

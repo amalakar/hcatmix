@@ -291,8 +291,8 @@
                     <systemPropertyVariables>
                         <LIBPATH>${env.HADOOP_HOME}/lib/native/Linux-amd64-64/</LIBPATH>
                         <buildDirectory>${project.build.directory}</buildDirectory>
+                        <hcatSpecFile>${hcatSpecFile}</hcatSpecFile>
                     </systemPropertyVariables>
-                    <argLine>-Djub.consumers=CONSOLE,H2 -Djub.db.file=/tmp/hcatmix_benchmarks</argLine>
                 </configuration>
                 <executions>
                     <execution>
@@ -333,7 +333,7 @@
                         <configuration>
                             <mainClass>org.perf4j.LogParser</mainClass>
                             <arguments>
-                                <argument>InlineLogging.log</argument>
+                                <argument>hcatMix-stats.log</argument>
                             </arguments>
                         </configuration>
                     </execution>
