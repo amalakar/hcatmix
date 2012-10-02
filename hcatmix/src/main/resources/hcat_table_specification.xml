@@ -3,6 +3,7 @@
         <table>
             <namePrefix>page_views</namePrefix>
             <dbName>default</dbName>
+            <storedAs>RCFile</storedAs>
             <columns>
                 <column>
                     <name>user</name>

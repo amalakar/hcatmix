@@ -73,12 +73,12 @@
                     <name>action</name>
                     <type>int</type>
                     <distribution>uniform</distribution>
-                    <cardinality>100000</cardinality>
+                    <cardinality>400000000</cardinality>
                 </partition>
             </partitions>
             <instances>
                 <instance>
-                    <size>2000000000</size>
+                    <size>4000000</size><!-- 200 MB -->
                     <count>1</count>
                 </instance>
             </instances>

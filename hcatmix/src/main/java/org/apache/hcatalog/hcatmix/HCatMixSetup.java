@@ -101,7 +101,7 @@ public class HCatMixSetup extends Configured implements Tool {
 
     public void generatePigScripts(final String outputDir, final String pigOutputDir,
                                     final HiveTableSchema hiveTableSchema, final String pigScriptDir ) throws IOException {
-        PigScriptGenerator pigScriptGenerator = new PigScriptGenerator(HCatMixUtils.getDataLocation(outputDir, hiveTableSchema),
+        PigScriptGenerator pigScriptGenerator = new PigScriptGenerator(HCatMixUtils.getDataLocation(outputDir, hiveTableSchema.getName()),
                 pigOutputDir, hiveTableSchema);
 
         LOG.info(MessageFormat.format("About to generate pig scripts in {0}, for table: {1} for input data in location: {2}",
@@ -125,11 +125,11 @@ public class HCatMixSetup extends Configured implements Tool {
         // 3. Script for loading using HCatLoader() and store using HCatStorage()
         final String hcatLoadHCatStorerScript = HCatMixUtils.getHCatLoadStoreScriptName(pigScriptDir, hiveTableSchema.getName());
         FileUtils.writeStringToFile(new File(hcatLoadHCatStorerScript), pigScriptGenerator.getHCatLoaderHCatStorerScript());
-        LOG.info(MessageFormat.format("4. Successfully created the hcat loader/hcat storer script: {0}", hcatLoadPigStorerScript));
+        LOG.info(MessageFormat.format("4. Successfully created the hcat loader/hcat storer script: {0}", hcatLoadHCatStorerScript));
     }
 
     public void generateDataForTable(HiveTableSchema hiveTableSchema, final int numMappers, String outputDir) throws IOException {
-        String outputFile = HCatMixUtils.getDataLocation(outputDir, hiveTableSchema);
+        String outputFile = HCatMixUtils.getDataLocation(outputDir, hiveTableSchema.getName());
         LOG.info(MessageFormat.format("About to generate data for table: {0}, with number of mappers: {1}, output location: {2}",
                 hiveTableSchema.getName(), numMappers, outputFile));
 

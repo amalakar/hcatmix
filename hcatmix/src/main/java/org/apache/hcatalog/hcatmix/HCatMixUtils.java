@@ -28,11 +28,11 @@ public class HCatMixUtils {
      * The returned location would be a directory in case of map reduce mode, otherwise a file in case of
      * local mode
      * @param outputDir
-     * @param hiveTableSchema
+     * @param tableName
      * @return
      */
-    public static String getDataLocation(final String outputDir, final HiveTableSchema hiveTableSchema) {
-        return outputDir + hiveTableSchema.getName();
+    public static String getDataLocation(final String outputDir, final String tableName) {
+        return outputDir + tableName;
     }
 
     /**
@@ -92,6 +92,10 @@ public class HCatMixUtils {
 
     public static String getCopyTableName(String tableName) {
         return tableName + "_copy";
+    }
+
+    public static String getPigOutputLocation(final String pigOutputRoot, final String tableName) {
+        return HCatMixUtils.appendSlashIfRequired(pigOutputRoot) + tableName + "/";
     }
 
     public static void assertDirExists(String dirName) {

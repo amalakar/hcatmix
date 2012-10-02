@@ -16,13 +16,23 @@
  * limitations under the License.
  */
 
-package org.apache.hcatalog.hcatmix.performance;
+package org.apache.hcatalog.hcatmix;
+import org.perf4j.LoggingStopWatch;
+
 
 /**
  * Author: malakar
  */
-public class Perf100GBTable extends TestLoadStoreMethods {
-    public Perf100GBTable() {
-        hcatTableSpecFileName = "performance/hcat_table_100GB.xml";
+public class LoadStoreStopWatch extends LoggingStopWatch {
+    public enum LoadStoreType {
+        PIG_LOAD_HCAT_STORE,
+        PIG_LOAD_PIG_STORE,
+        HCAT_LOAD_PIG_STORE,
+        HCAT_LOAD_HCAT_STORE
+    };
+
+    public LoadStoreStopWatch(String pigScriptName, LoadStoreType type) {
+        super(pigScriptName + "-" + type.toString());
     }
+
 }

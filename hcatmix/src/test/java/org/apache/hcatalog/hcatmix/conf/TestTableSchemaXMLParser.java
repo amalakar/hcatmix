@@ -21,14 +21,14 @@ package org.apache.hcatalog.hcatmix.conf;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.pig.test.utils.DataType;
 import org.apache.pig.test.utils.datagen.ColSpec;
-import org.junit.Test;
+import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
+import static org.testng.Assert.assertEquals;
 
 public class TestTableSchemaXMLParser {
 

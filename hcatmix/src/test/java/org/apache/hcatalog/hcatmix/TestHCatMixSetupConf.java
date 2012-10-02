@@ -18,9 +18,11 @@
 
 package org.apache.hcatalog.hcatmix;
 
-import org.junit.Test;
+import org.testng.annotations.Test;
 
-import static org.junit.Assert.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.fail;
 
 public class TestHCatMixSetupConf {
 
