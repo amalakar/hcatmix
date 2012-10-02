@@ -31,6 +31,7 @@ import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -55,7 +56,13 @@ public class TestLoadStoreScripts {
             File hcatSpecDir = new File(hcatTableSpecFileDir);
 
             assertNotNull(hcatSpecDir.listFiles());
-            for (File file : hcatSpecDir.listFiles()) {
+            FilenameFilter xmlFilter = new FilenameFilter() {
+                @Override
+                public boolean accept(File dir, String name) {
+                    return name.endsWith(".xml");
+                }
+            };
+            for (File file : hcatSpecDir.listFiles(xmlFilter)) {
                 specFiles.add(new Object[]{ file.getAbsolutePath()});
             }
         } else {
@@ -68,7 +75,7 @@ public class TestLoadStoreScripts {
     @Test(dataProvider = "HCatSpecFileNames")
     public void testAllLoadStoreScripts(String specFileName) throws IOException, TException, NoSuchObjectException, MetaException, SAXException, InvalidObjectException, ParserConfigurationException {
         System.out.println("Spec file name: "  +specFileName);
-        LoadStoreScriptRunner runner = new LoadStoreScriptRunner(HCAT_SPEC_FILE);
+        LoadStoreScriptRunner runner = new LoadStoreScriptRunner(specFileName);
 
         runner.runPigLoadHCatStoreScript();
         runner.runHCatLoadPigStoreScript();
@@ -81,7 +88,9 @@ public class TestLoadStoreScripts {
         GroupedTimingStatistics stats = runner.getTimedStats();
 
         for (Map.Entry<String, TimingStatistics> stat : stats.getStatisticsByTag().entrySet()) {
-            System.out.println(stat);
+            String stopWatch = stat.getKey();
+            TimingStatistics ts = stat.getValue();
+            System.out.println(stopWatch + ": " +  stat.getValue().toString());
 
         }
     }

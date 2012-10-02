@@ -67,11 +67,9 @@ public class LoadStoreScriptRunner {
     private final String hcatTableSpecFileName;
     private GroupedTimingStatistics timedStats = new GroupedTimingStatistics();
 
-    public LoadStoreScriptRunner(String hcatTableSpecFileName) throws MetaException, IOException, SAXException, ParserConfigurationException,
+    public LoadStoreScriptRunner(String hcatTableSpecFile) throws MetaException, IOException, SAXException, ParserConfigurationException,
             NoSuchObjectException, TException, InvalidObjectException {
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        final String hcatTableSpecFile = classLoader.getResource(hcatTableSpecFileName).getPath();
-        this.hcatTableSpecFileName = new File(hcatTableSpecFileName).getName();
+        this.hcatTableSpecFileName = new File(hcatTableSpecFile).getName();
 
         // Generate data
         HCatMixSetupConf conf = new HCatMixSetupConf.Builder().confFileName(hcatTableSpecFile)
