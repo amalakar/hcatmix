@@ -18,13 +18,15 @@
 
 package org.apache.hcatalog.hcatmix;
 
-import junit.framework.TestCase;
 import org.testng.annotations.Test;
+
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.fail;
 
 /**
  * Author: malakar
  */
-public class TestHCatMixUtils extends TestCase {
+public class TestHCatMixUtils {
 
     @Test
     public void testRemoveCopyFromTableName() {
