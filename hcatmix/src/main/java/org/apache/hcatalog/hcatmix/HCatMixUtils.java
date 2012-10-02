@@ -94,8 +94,8 @@ public class HCatMixUtils {
         return tableName + "_copy";
     }
 
-    public static String getPigOutputLocation(final String pigOutputRoot, final String tableName) {
-        return HCatMixUtils.appendSlashIfRequired(pigOutputRoot) + tableName + "/";
+    public static String getPigOutputLocation(final String pigOutputRoot, final String dbName, final String tableName) {
+        return HCatMixUtils.appendSlashIfRequired(pigOutputRoot) + dbName + "." + tableName + "/";
     }
 
     public static void assertDirExists(String dirName) {

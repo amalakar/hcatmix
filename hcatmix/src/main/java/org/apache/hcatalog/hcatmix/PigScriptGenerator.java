@@ -47,7 +47,8 @@ public class PigScriptGenerator {
     public PigScriptGenerator(String inputLocation, String pigOutputRoot, HiveTableSchema hiveTableSchema) {
         this.inputLocation = inputLocation;
         this.hcatTableName = hiveTableSchema.getDatabaseName() + "." + hiveTableSchema.getName();
-        this.pigOutputLocation = HCatMixUtils.getPigOutputLocation(pigOutputRoot, hcatTableName);
+        this.pigOutputLocation = HCatMixUtils.getPigOutputLocation(pigOutputRoot, hiveTableSchema.getDatabaseName(),
+                hiveTableSchema.getName());
         this.pigSchema = getPigFieldSchema(hiveTableSchema);
     }
     public String getPigLoaderHCatStorerScript() {

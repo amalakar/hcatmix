@@ -183,7 +183,7 @@ public class LoadStoreScriptRunner {
 
     public void deletePigData() {
         // Delete the generated pig data
-        File pigData = new File(HCatMixUtils.getPigOutputLocation(PIG_DATA_OUTPUT_DIR, tableName));
+        File pigData = new File(HCatMixUtils.getPigOutputLocation(PIG_DATA_OUTPUT_DIR, dbName, tableName));
         LOG.info(MessageFormat.format("About to delete pig output directory: {0}", pigData.getAbsolutePath()));
         try {
             FileUtil.fullyDelete(pigData);

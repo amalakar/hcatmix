@@ -52,7 +52,6 @@ public class HCatGrapher {
             if(stat.getMax() > max) {
                 max = (double) stat.getMax();
             }
-
         }
 
         // EXAMPLE CODE START
@@ -71,7 +70,7 @@ public class HCatGrapher {
         typeAxisLabels.setAxisStyle(axisStyle);
         AxisLabels timeAxis = AxisLabelsFactory.newAxisLabels("Time in seconds");
         timeAxis.setAxisStyle(axisStyle);
-        AxisLabels timeScale = AxisLabelsFactory.newNumericRangeAxisLabels(0, 500);
+        AxisLabels timeScale = AxisLabelsFactory.newNumericRangeAxisLabels(0, max);
         timeScale.setAxisStyle(axisStyle);
 
 
