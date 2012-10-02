@@ -18,7 +18,6 @@
 
 package org.apache.hcatalog.hcatmix.performance;
 
-import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
 import org.apache.hadoop.hive.metastore.api.MetaException;
@@ -55,29 +54,41 @@ public class LoadStoreScriptRunner {
     private static final String PIG_DATA_OUTPUT_DIR = HCATMIX_HDFS_ROOT + "/pigdata";
     private static final String DATAGEN_OUTPUT_DIR = HCATMIX_HDFS_ROOT + "/data";
     private static final String HCATMIX_PIG_SCRIPT_DIR = HCATMIX_LOCAL_ROOT + "/pig_scripts";
-    private static HCatMixSetup hCatMixSetup;
 
-    private String tableName;
-    private String dbName;
+    private final HCatMixSetup hCatMixSetup;
+    private final HCatMixSetupConf hCatMixSetupConf;
+    private final String tableName;
+    private final String dbName;
     private final int NUM_MAPPERS = 30;
-    private String additionalJars;
-    private int rowCount;
+    private final String additionalJars;
+    private final int rowCount;
     private final String hcatTableSpecFileName;
-    private GroupedTimingStatistics timedStats = new GroupedTimingStatistics();
+    private final GroupedTimingStatistics timedStats = new GroupedTimingStatistics();
+    private final HiveTableSchema hiveTableSchema;
 
     public LoadStoreScriptRunner(String hcatTableSpecFile) throws MetaException, IOException, SAXException, ParserConfigurationException,
             NoSuchObjectException, TException, InvalidObjectException {
         this.hcatTableSpecFileName = new File(hcatTableSpecFile).getName();
 
         // Generate data
-        HCatMixSetupConf conf = new HCatMixSetupConf.Builder().confFileName(hcatTableSpecFile)
+        hCatMixSetupConf = new HCatMixSetupConf.Builder().confFileName(hcatTableSpecFile)
                 .createTable().generateData().outputDir(DATAGEN_OUTPUT_DIR).generatePigScripts()
                 .pigScriptDir(HCATMIX_PIG_SCRIPT_DIR).pigDataOutputDir(PIG_DATA_OUTPUT_DIR)
                 .numMappers(NUM_MAPPERS).build();
         hCatMixSetup = new HCatMixSetup();
-        hCatMixSetup.setupFromConf(conf);
 
+        additionalJars = getHCatLibJars();
 
+        TableSchemaXMLParser configParser = new TableSchemaXMLParser(hcatTableSpecFile);
+        List<HiveTableSchema> multiInstanceList = configParser.getHiveTableList();
+        assertEquals("Only one table specification should be present per file", 1, multiInstanceList.size());
+        hiveTableSchema = multiInstanceList.get(0);
+        tableName = hiveTableSchema.getName();
+        dbName = hiveTableSchema.getDatabaseName();
+        rowCount = hiveTableSchema.getRowCount();
+    }
+
+    private String getHCatLibJars() {
         String hcatDir = System.getenv("HCAT_HOME");
         File hcatLibDir = new File(hcatDir + "/lib/");
 
@@ -87,15 +98,12 @@ public class LoadStoreScriptRunner {
             jars.append(delim).append(jarFile);
             delim = ":";
         }
-        additionalJars = jars.toString();
+        return jars.toString();
+    }
 
-        TableSchemaXMLParser configParser = new TableSchemaXMLParser(hcatTableSpecFile);
-        List<HiveTableSchema> multiInstanceList = configParser.getHiveTableList();
-        assertEquals("Only one table specification should be present per file", 1, multiInstanceList.size());
-        HiveTableSchema hiveTableSchema = multiInstanceList.get(0);
-        tableName = hiveTableSchema.getName();
-        dbName = hiveTableSchema.getDatabaseName();
-        rowCount = hiveTableSchema.getRowCount();
+    public void setUp() throws IOException, TException, NoSuchObjectException, MetaException, SAXException,
+            InvalidObjectException, ParserConfigurationException {
+        hCatMixSetup.setupFromConf(hCatMixSetupConf);
 
         // Also create one more copy of the table for testing copying from one HCat table to another
         hiveTableSchema.setName(HCatMixUtils.getCopyTableName(tableName));
@@ -103,6 +111,8 @@ public class LoadStoreScriptRunner {
             LOG.info("About to create table: " + hiveTableSchema.getName());
             hCatMixSetup.createTable(hiveTableSchema);
             LOG.info("Successfully created table: " + hiveTableSchema.getName());
+            // Revert back the name to the original name, so that the calling setUp() again wont give a wrong name
+            hiveTableSchema.setName(HCatMixUtils.removeCopyFromTableName(hiveTableSchema.getName()));
         } catch (AlreadyExistsException e) {
             LOG.info("Couldn't create table, " + hiveTableSchema.getName() + ". Already exists ignored and proceeding", e);
         }
@@ -112,18 +122,19 @@ public class LoadStoreScriptRunner {
     private void runScript(String scriptName) {
         PigProgressListener listener = new PigProgressListener(rowCount);
 
-//        String tmpDir = System.getenv("buildDirectory");
-//        if( tmpDir == null) {
-//            if(new File("target/").exists()) {
-//                tmpDir = "target";
-//            } else {
-//                tmpDir = "/tmp";
-//            }
-//        }
-//        final String logFileName =  tmpDir + "/" + getClass().getName() + scriptName + ".log";
-//        LOG.info("[" + scriptName + "] log file: " + logFileName);
-//        String[] args = {"-Dpig.additional.jars=" + additionalJars, "-f", scriptName, "-l", logFileName};
-        String[] args = {"-Dpig.additional.jars=" + additionalJars, "-f", scriptName};
+        String tmpDir = System.getProperty("buildDirectory");
+        if( tmpDir == null) {
+            if(new File("target/").exists()) {
+                tmpDir = "target";
+            } else {
+                tmpDir = "/tmp";
+            }
+        }
+        final String logFileName =  new StringBuilder().append(tmpDir).append("/").append(scriptName).append("-")
+                .append(System.currentTimeMillis()/1000).append(".log").toString();
+        LOG.info("[" + scriptName + "] log file: " + logFileName);
+        String[] args = {"-Dpig.additional.jars=" + additionalJars, "-f", scriptName, "-l", logFileName};
+//        String[] args = {"-Dpig.additional.jars=" + additionalJars, "-f", scriptName};
         PigRunner.run(args, listener);
     }
 

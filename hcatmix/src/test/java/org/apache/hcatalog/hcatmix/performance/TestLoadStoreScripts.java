@@ -89,6 +89,7 @@ public class TestLoadStoreScripts {
         for (int i = 0; i < numRuns; i++) {
 
             try {
+                runner.setUp();
                 runner.runPigLoadHCatStoreScript();
                 runner.runHCatLoadPigStoreScript();
                 runner.runPigLoadPigStoreScript();

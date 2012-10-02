@@ -24,6 +24,7 @@ import org.apache.hcatalog.hcatmix.conf.HiveTableSchema;
 import java.io.File;
 
 public class HCatMixUtils {
+    public static final String COPY_TABLE_NAME_SUFFIX = "_copy";
     /**
      * The returned location would be a directory in case of map reduce mode, otherwise a file in case of
      * local mode
@@ -91,7 +92,15 @@ public class HCatMixUtils {
     }
 
     public static String getCopyTableName(String tableName) {
-        return tableName + "_copy";
+        return tableName + COPY_TABLE_NAME_SUFFIX;
+    }
+
+    public static String removeCopyFromTableName(String tableName) {
+        if(tableName == null || !tableName.endsWith(COPY_TABLE_NAME_SUFFIX)) {
+            throw new IllegalArgumentException(COPY_TABLE_NAME_SUFFIX + " suffix could only be removed if present in the name:"
+                + tableName);
+        }
+        return tableName.substring(0, tableName.lastIndexOf(COPY_TABLE_NAME_SUFFIX));
     }
 
     public static String getPigOutputLocation(final String pigOutputRoot, final String dbName, final String tableName) {
