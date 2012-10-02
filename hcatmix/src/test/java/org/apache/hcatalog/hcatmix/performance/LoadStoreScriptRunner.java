@@ -108,7 +108,6 @@ public class LoadStoreScriptRunner {
         // Also create one more copy of the table for testing copying from one HCat table to another
         hiveTableSchema.setName(HCatMixUtils.getCopyTableName(tableName));
         try {
-            LOG.info("About to create table: " + hiveTableSchema.getName());
             hCatMixSetup.createTable(hiveTableSchema);
             LOG.info("Successfully created table: " + hiveTableSchema.getName());
             // Revert back the name to the original name, so that the calling setUp() again wont give a wrong name
@@ -130,8 +129,7 @@ public class LoadStoreScriptRunner {
                 tmpDir = "/tmp";
             }
         }
-        final String logFileName =  new StringBuilder().append(tmpDir).append("/").append(scriptName).append("-")
-                .append(System.currentTimeMillis()/1000).append(".log").toString();
+        final String logFileName = tmpDir + "/" + new File(scriptName).getName() + "-" + System.currentTimeMillis() / 1000 + ".log";
         LOG.info("[" + scriptName + "] log file: " + logFileName);
         String[] args = {"-Dpig.additional.jars=" + additionalJars, "-f", scriptName, "-l", logFileName};
 //        String[] args = {"-Dpig.additional.jars=" + additionalJars, "-f", scriptName};
@@ -228,7 +226,7 @@ public class LoadStoreScriptRunner {
 
         @Override
         public void launchStartedNotification(String scriptId, int numJobsToLaunch) {
-            LOG.info(MessageFormat.format("{0}: number of jobs to launch: {1}", scriptId, numJobsToLaunch));
+            LOG.info(MessageFormat.format("{0}: Number of jobs to launch: {1}", scriptId, numJobsToLaunch));
         }
 
         @Override
@@ -259,7 +257,7 @@ public class LoadStoreScriptRunner {
 
         @Override
         public void progressUpdatedNotification(String scriptId, int progress) {
-            LOG.info(MessageFormat.format("{0}: Progress: {1}", scriptId, progress));
+            LOG.info(MessageFormat.format("{0}: Progress: {1}%", scriptId, progress));
 
         }
 

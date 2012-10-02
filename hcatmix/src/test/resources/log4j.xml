@@ -87,9 +87,23 @@
       that timing statements will only be sent to this logger and NOT to
       upstream loggers.
     -->
+
+    <appender name="hcatalogExecutionAppender" class="org.apache.log4j.FileAppender">
+        <param name="File" value="hcatMix-execution.log"/>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%d %5p (%F:%L) - %m%n"/>
+        </layout>
+    </appender>
+
     <logger name="org.perf4j.TimingLogger" additivity="false">
         <level value="INFO"/>
         <appender-ref ref="CoalescingStatistics"/>
+    </logger>
+
+    <logger name="org.apache.hcatalog.hcatmix" additivity="false">
+        <level value="INFO"/>
+        <appender-ref ref="hcatalogExecutionAppender"/>
+        <appender-ref ref="console"/>
     </logger>
 
     <!--
