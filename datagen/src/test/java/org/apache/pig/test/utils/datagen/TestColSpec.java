@@ -19,9 +19,9 @@
 package org.apache.pig.test.utils.datagen;
 
 import org.apache.pig.test.utils.DataType;
-import org.junit.Test;
+import org.testng.annotations.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.testng.Assert.assertEquals;
 
 public class TestColSpec {
 
