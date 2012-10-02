@@ -18,7 +18,7 @@
 <database>
     <tables>
         <table>
-            <namePrefix>page_views</namePrefix>
+            <namePrefix>page_views_no_partitions</namePrefix>
             <dbName>default</dbName>
             <columns>
                 <column>
@@ -67,18 +67,18 @@
                     <cardinality>10000</cardinality>
                     <percentageNull>10</percentageNull>
                 </column>
-            </columns>
-            <partitions>
                 <partition>
                     <name>action</name>
                     <type>int</type>
                     <distribution>uniform</distribution>
-                    <cardinality>400000000</cardinality>
+                    <cardinality>100000</cardinality>
+                    <percentageNull>10</percentageNull>
                 </partition>
-            </partitions>
+            </columns>
+            <partitions/>
             <instances>
                 <instance>
-                    <size>4000000</size><!-- 200 MB -->
+                    <size>2000000000</size>
                     <count>1</count>
                 </instance>
             </instances>

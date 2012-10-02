@@ -25,6 +25,8 @@ import org.apache.hcatalog.hcatmix.HCatGrapher;
 import org.apache.hcatalog.hcatmix.HTMLWriter;
 import org.apache.thrift.TException;
 import org.perf4j.GroupedTimingStatistics;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -41,6 +43,8 @@ import java.util.List;
 import static org.testng.Assert.assertNotNull;
 
 public class TestLoadStoreScripts {
+    private static final Logger LOG = LoggerFactory.getLogger(TestLoadStoreScripts.class);
+
 
     // Use -DhcatSpecFile=<fileName> to run load/store for a single hcat table specification file
     private static final String HCAT_SPEC_FILE = "hcatSpecFile";
@@ -80,13 +84,19 @@ public class TestLoadStoreScripts {
 
         int numRuns = 2;
         for (int i = 0; i < numRuns; i++) {
-            runner.runPigLoadHCatStoreScript();
-            runner.runHCatLoadPigStoreScript();
-            runner.runPigLoadPigStoreScript();
-            runner.runHCatLoadHCatStoreScript();
 
-            runner.deleteHCatTables();
-            runner.deletePigData();
+            try {
+                runner.runPigLoadHCatStoreScript();
+
+                runner.runHCatLoadPigStoreScript();
+                runner.runPigLoadPigStoreScript();
+                runner.runHCatLoadHCatStoreScript();
+
+                runner.deleteHCatTables();
+                runner.deletePigData();
+            } catch (IOException e) {
+                LOG.error("Error running script: " + specFileName + " ignored.", e);
+            }
         }
 
         GroupedTimingStatistics stats = runner.getTimedStats();
