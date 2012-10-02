@@ -4,8 +4,10 @@
     </head>
     <body>
 
+    <h3>Comparison of HCatMix load store functions with pig load store functions for various data.</h3>
+
 #foreach( $url in $urlList )
-        <img src="$url" alt="HCatMix Graph"/><br/>
+        <img src="$url" alt="HCatMix Graph"/><br/><hr/>
 #end
 
     </body>

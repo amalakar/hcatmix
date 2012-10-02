@@ -90,7 +90,6 @@ public class TestLoadStoreScripts {
 
             try {
                 runner.runPigLoadHCatStoreScript();
-
                 runner.runHCatLoadPigStoreScript();
                 runner.runPigLoadPigStoreScript();
                 runner.runHCatLoadHCatStoreScript();
@@ -104,6 +103,7 @@ public class TestLoadStoreScripts {
 
         GroupedTimingStatistics stats = runner.getTimedStats();
         String chartUrl = HCatGrapher.createChart(stats);
+        LOG.info("Stats for: " + hcatSpecFileName + " : " + stats.toString());
         urls.add(chartUrl);
     }
 

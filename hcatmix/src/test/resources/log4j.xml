@@ -26,7 +26,7 @@
           GroupedTimingStatistics log. Here we set it to 10 seconds, overriding
           the default of 30000 ms
         -->
-        <param name="TimeSlice" value="10000"/>
+        <param name="TimeSlice" value="100000"/>
         <appender-ref ref="fileAppender"/>
         <!--
           Note how the GraphingStatisticsAppenders have been attached to the

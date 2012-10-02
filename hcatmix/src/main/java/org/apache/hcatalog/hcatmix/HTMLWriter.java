@@ -23,11 +23,12 @@ import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import org.apache.velocity.exception.ParseErrorException;
 import org.apache.velocity.exception.ResourceNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.util.List;
 import java.util.Properties;
 
@@ -36,10 +37,17 @@ import java.util.Properties;
  */
 public class HTMLWriter {
 
+    private static final Logger LOG = LoggerFactory.getLogger(HTMLWriter.class);
+    private static final String TEMPLATE_FILE = "graphs.vm";
+
     public static void publish(List<String> urls) throws IOException {
 
         try {
             VelocityContext context = new VelocityContext();
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Chart urls are: " + urls);
+            }
+
             context.put("urlList", urls);
 
             Properties props = new Properties();
@@ -47,15 +55,14 @@ public class HTMLWriter {
             props.setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
 
             Velocity.init(props);
-            final String templateFile = "graphs.vm";
             Template template = null;
 
             try {
-                template = Velocity.getTemplate(templateFile);
-            } catch (ResourceNotFoundException rnfe) {
-                System.out.println("Example : error : cannot find template " + templateFile);
-            } catch (ParseErrorException pee) {
-                System.out.println("Example : Syntax error in template " + templateFile + ":" + pee);
+                template = Velocity.getTemplate(TEMPLATE_FILE);
+            } catch (ResourceNotFoundException e) {
+                LOG.error("Cannot publish HTML page. Couldn't find template: " + TEMPLATE_FILE, e);
+            } catch (ParseErrorException e) {
+                LOG.error("Couldn't publish HTML page. Syntax error in template " + TEMPLATE_FILE, e);
             }
 
 

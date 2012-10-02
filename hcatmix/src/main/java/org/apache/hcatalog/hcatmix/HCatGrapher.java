@@ -23,6 +23,8 @@ import static com.googlecode.charts4j.Color.*;
 
 import org.perf4j.GroupedTimingStatistics;
 import org.perf4j.TimingStatistics;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +34,8 @@ import java.util.Map;
  * Author: malakar
  */
 public class HCatGrapher {
+
+    private static final Logger LOG = LoggerFactory.getLogger(HCatGrapher.class);
 
 
     public static String createChart(GroupedTimingStatistics timedStats) {
@@ -85,11 +89,13 @@ public class HCatGrapher {
 
         chart.setTitle(fileName, BLACK, 16);
         //51 is the max number of medals.
-        chart.setGrid((50.0/500)*20, 600, 3, 2);
+        chart.setGrid((50.0 / 500) * 20, 600, 3, 2);
         chart.setBackgroundFill(Fills.newSolidFill(LIGHTGREY));
 //        LinearGradientFill fill = Fills.newLinearGradientFill(0, Color.newColor("E37600"), 100);
 //        fill.addColorAndOffset(Color.newColor("DC4800"), 0);
 //        chart.setAreaFill(fill);
-        return chart.toURLString();
+        String url = chart.toURLString();
+        LOG.info("Generated Chart: " + url);
+        return url;
     }
 }

@@ -35,6 +35,7 @@ import org.apache.thrift.TException;
 import org.perf4j.GroupedTimingStatistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.testng.Assert;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -216,24 +217,27 @@ public class LoadStoreScriptRunner {
 
         @Override
         public void launchStartedNotification(String scriptId, int numJobsToLaunch) {
-            LOG.info(scriptId + " numJob: " + numJobsToLaunch);
+            LOG.info(MessageFormat.format("{0}: number of jobs to launch: {1}", scriptId, numJobsToLaunch));
         }
 
         @Override
         public void jobsSubmittedNotification(String scriptId, int numJobsSubmitted) {
+            LOG.info(MessageFormat.format("{0}: Number of job submitted: {1}", scriptId, numJobsSubmitted));
         }
 
         @Override
         public void jobStartedNotification(String scriptId, String assignedJobId) {
+            LOG.info(MessageFormat.format("{0}: Hadoop job ID: {1}", scriptId, assignedJobId));
         }
 
         @Override
         public void jobFinishedNotification(String scriptId, JobStats jobStats) {
-            LOG.info(scriptId + "Finished Job: " + jobStats.toString());
+            LOG.info(MessageFormat.format("{0}: Avg map time: {1}", scriptId, jobStats.getAvgMapTime()));
         }
 
         @Override
         public void jobFailedNotification(String scriptId, JobStats jobStats) {
+            Assert.fail(MessageFormat.format("{0}: Hadoop job ID: {1} failed", scriptId, jobStats.getJobId()));
         }
 
         @Override
@@ -244,10 +248,14 @@ public class LoadStoreScriptRunner {
 
         @Override
         public void progressUpdatedNotification(String scriptId, int progress) {
+            LOG.info(MessageFormat.format("{0}: Progress: {1}", scriptId, progress));
+
         }
 
         @Override
         public void launchCompletedNotification(String scriptId, int numJobsSucceeded) {
+            LOG.info(MessageFormat.format("{0}: Launch completed: {1}", scriptId, numJobsSucceeded));
+
         }
     }
 }
