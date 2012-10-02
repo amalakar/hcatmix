@@ -17,22 +17,36 @@
  */
 
 package org.apache.hcatalog.hcatmix;
-import org.perf4j.LoggingStopWatch;
+import org.perf4j.slf4j.Slf4JStopWatch;
 
 
 /**
  * Author: malakar
  */
-public class LoadStoreStopWatch extends LoggingStopWatch {
+public class LoadStoreStopWatch extends Slf4JStopWatch {
+    String hcatSchemaFile;
+    LoadStoreType type;
+
     public enum LoadStoreType {
         PIG_LOAD_HCAT_STORE,
         PIG_LOAD_PIG_STORE,
         HCAT_LOAD_PIG_STORE,
         HCAT_LOAD_HCAT_STORE
-    };
-
-    public LoadStoreStopWatch(String pigScriptName, LoadStoreType type) {
-        super(pigScriptName + "-" + type.toString());
     }
 
+    public LoadStoreStopWatch(String hcatSchemaFile, LoadStoreType type) {
+        super(hcatSchemaFile + "-" + type.toString());
+        this.hcatSchemaFile = hcatSchemaFile;
+        this.type = type;
+    }
+
+    public static String getTypeFromTag(String tagName) {
+        String[] parts = tagName.split("-");
+        return parts[1];
+    }
+
+    public static String getFileNameFromTag(String tagName) {
+        String[] parts = tagName.split("-");
+        return parts[0];
+    }
 }

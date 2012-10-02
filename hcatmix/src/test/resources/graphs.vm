@@ -1,0 +1,12 @@
+<html>
+    <head>
+        <title>HCatMix graphs</title>
+    </head>
+    <body>
+
+#foreach( $url in $urlList )
+        <img src="$url" alt="HCatMix Graph"/><br/>
+#end
+
+    </body>
+</html>

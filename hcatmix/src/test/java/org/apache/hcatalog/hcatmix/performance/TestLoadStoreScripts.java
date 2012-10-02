@@ -21,10 +21,11 @@ package org.apache.hcatalog.hcatmix.performance;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
+import org.apache.hcatalog.hcatmix.HCatGrapher;
+import org.apache.hcatalog.hcatmix.HTMLWriter;
 import org.apache.thrift.TException;
 import org.perf4j.GroupedTimingStatistics;
-import org.perf4j.TimingStatistics;
-import org.testng.annotations.BeforeClass;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
@@ -36,7 +37,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import static org.testng.Assert.assertNotNull;
 
@@ -44,6 +44,7 @@ public class TestLoadStoreScripts {
 
     // Use -DhcatSpecFile=<fileName> to run load/store for a single hcat table specification file
     private static final String HCAT_SPEC_FILE = "hcatSpecFile";
+    private static List<String> urls = new ArrayList<String>();
 
     @DataProvider(name = "HCatSpecFileNames")
     public Iterator<Object[]> hcatSpecFileNames() {
@@ -77,21 +78,24 @@ public class TestLoadStoreScripts {
         System.out.println("Spec file name: "  +specFileName);
         LoadStoreScriptRunner runner = new LoadStoreScriptRunner(specFileName);
 
-        runner.runPigLoadHCatStoreScript();
-        runner.runHCatLoadPigStoreScript();
-        runner.runPigLoadPigStoreScript();
-        runner.runHCatLoadHCatStoreScript();
+        int numRuns = 2;
+        for (int i = 0; i < numRuns; i++) {
+            runner.runPigLoadHCatStoreScript();
+            runner.runHCatLoadPigStoreScript();
+            runner.runPigLoadPigStoreScript();
+            runner.runHCatLoadHCatStoreScript();
 
-        runner.deleteHCatTables();
-        runner.deletePigData();
+            runner.deleteHCatTables();
+            runner.deletePigData();
+        }
 
         GroupedTimingStatistics stats = runner.getTimedStats();
+        String chartUrl = HCatGrapher.createChart(stats);
+        urls.add(chartUrl);
+    }
 
-        for (Map.Entry<String, TimingStatistics> stat : stats.getStatisticsByTag().entrySet()) {
-            String stopWatch = stat.getKey();
-            TimingStatistics ts = stat.getValue();
-            System.out.println(stopWatch + ": " +  stat.getValue().toString());
-
-        }
+    @AfterClass
+    public static void publishResults() throws IOException {
+        HTMLWriter.publish(urls);
     }
 }
