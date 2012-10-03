@@ -294,32 +294,32 @@
                         <hcatSpecFile>${hcatSpecFile}</hcatSpecFile>
                     </systemPropertyVariables>
                 </configuration>
-                <executions>
-                    <execution>
-                        <id>unit-tests</id>
-                        <phase>test</phase>
-                        <goals>
-                            <goal>test</goal>
-                        </goals>
-                        <configuration>
-                            <excludes>
-                                <exclude>**/Perf*.java</exclude>
-                            </excludes>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>integration-tests</id>
-                        <phase>integration-test</phase>
-                        <goals>
-                            <goal>test</goal>
-                        </goals>
-                        <configuration>
-                            <includes>
-                                <include>**/Perf*.java</include>
-                            </includes>
-                        </configuration>
-                    </execution>
-                </executions>
+                <!--<executions>-->
+                    <!--<execution>-->
+                        <!--<id>unit-tests</id>-->
+                        <!--<phase>test</phase>-->
+                        <!--<goals>-->
+                            <!--<goal>test</goal>-->
+                        <!--</goals>-->
+                        <!--<configuration>-->
+                            <!--<excludes>-->
+                                <!--<exclude>**/Perf*.java</exclude>-->
+                            <!--</excludes>-->
+                        <!--</configuration>-->
+                    <!--</execution>-->
+                    <!--<execution>-->
+                        <!--<id>integration-tests</id>-->
+                        <!--<phase>integration-test</phase>-->
+                        <!--<goals>-->
+                            <!--<goal>test</goal>-->
+                        <!--</goals>-->
+                        <!--<configuration>-->
+                            <!--<includes>-->
+                                <!--<include>**/Perf*.java</include>-->
+                            <!--</includes>-->
+                        <!--</configuration>-->
+                    <!--</execution>-->
+                <!--</executions>-->
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>

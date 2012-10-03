@@ -16,8 +16,9 @@
  * limitations under the License.
  */
 
-package org.apache.hcatalog.hcatmix.performance;
+package org.apache.hcatalog.hcatmix.results;
 
+import junit.framework.Assert;
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
 import org.apache.hadoop.hive.metastore.api.MetaException;
@@ -34,7 +35,6 @@ import org.apache.thrift.TException;
 import org.perf4j.GroupedTimingStatistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testng.Assert;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -60,7 +60,6 @@ public class LoadStoreScriptRunner {
     private final String tableName;
     private final String dbName;
     private final int NUM_MAPPERS = 30;
-    private final String additionalJars;
     private final int rowCount;
     private final String hcatTableSpecFileName;
     private final GroupedTimingStatistics timedStats = new GroupedTimingStatistics();
@@ -77,11 +76,9 @@ public class LoadStoreScriptRunner {
                 .numMappers(NUM_MAPPERS).build();
         hCatMixSetup = new HCatMixSetup();
 
-        additionalJars = getHCatLibJars();
-
         TableSchemaXMLParser configParser = new TableSchemaXMLParser(hcatTableSpecFile);
         List<HiveTableSchema> multiInstanceList = configParser.getHiveTableList();
-        assertEquals("Only one table specification should be present per file", 1, multiInstanceList.size());
+        Assert.assertEquals("Only one table specification should be present per file", 1, multiInstanceList.size());
         hiveTableSchema = multiInstanceList.get(0);
         tableName = hiveTableSchema.getName();
         dbName = hiveTableSchema.getDatabaseName();
@@ -92,8 +89,19 @@ public class LoadStoreScriptRunner {
         String hcatDir = System.getenv("HCAT_HOME");
         File hcatLibDir = new File(hcatDir + "/lib/");
 
+        if(!hcatLibDir.exists()) {
+            IllegalArgumentException e = new IllegalArgumentException("Define shell variable $HCAT_HOME");
+            LOG.error(e.getMessage(), e);
+            throw e;
+        }
         StringBuffer jars = new StringBuffer();
         String delim = "";
+        if(hcatLibDir.listFiles() == null) {
+            IllegalArgumentException e = new IllegalArgumentException("lib directory inside $HCAT_HOME has no jars");
+            LOG.error(e.getMessage(), e);
+            throw e;
+        }
+
         for (File jarFile : hcatLibDir.listFiles()) {
             jars.append(delim).append(jarFile);
             delim = ":";
@@ -109,7 +117,6 @@ public class LoadStoreScriptRunner {
         hiveTableSchema.setName(HCatMixUtils.getCopyTableName(tableName));
         try {
             hCatMixSetup.createTable(hiveTableSchema);
-            LOG.info("Successfully created table: " + hiveTableSchema.getName());
             // Revert back the name to the original name, so that the calling setUp() again wont give a wrong name
             hiveTableSchema.setName(HCatMixUtils.removeCopyFromTableName(hiveTableSchema.getName()));
         } catch (AlreadyExistsException e) {
@@ -118,7 +125,7 @@ public class LoadStoreScriptRunner {
 
     }
 
-    private void runScript(String scriptName) {
+    protected void runScript(String scriptName) {
         PigProgressListener listener = new PigProgressListener(rowCount);
 
         String tmpDir = System.getProperty("buildDirectory");
@@ -131,7 +138,7 @@ public class LoadStoreScriptRunner {
         }
         final String logFileName = tmpDir + "/" + new File(scriptName).getName() + "-" + System.currentTimeMillis() / 1000 + ".log";
         LOG.info("[" + scriptName + "] log file: " + logFileName);
-        String[] args = {"-Dpig.additional.jars=" + additionalJars, "-f", scriptName, "-l", logFileName};
+        String[] args = {"-Dpig.additional.jars=" + getHCatLibJars(), "-f", scriptName, "-l", logFileName};
 //        String[] args = {"-Dpig.additional.jars=" + additionalJars, "-f", scriptName};
         PigRunner.run(args, listener);
     }
@@ -219,6 +226,8 @@ public class LoadStoreScriptRunner {
 
     public static class PigProgressListener implements PigProgressNotificationListener {
         private final int expectedNumRecords;
+        int numJobsSubmitted;
+        int numJobsToLaunch;
 
         public PigProgressListener(int expectedNumRecords) {
             this.expectedNumRecords = expectedNumRecords;
@@ -227,11 +236,13 @@ public class LoadStoreScriptRunner {
         @Override
         public void launchStartedNotification(String scriptId, int numJobsToLaunch) {
             LOG.info(MessageFormat.format("{0}: Number of jobs to launch: {1}", scriptId, numJobsToLaunch));
+            this.numJobsToLaunch = numJobsToLaunch;
         }
 
         @Override
         public void jobsSubmittedNotification(String scriptId, int numJobsSubmitted) {
             LOG.info(MessageFormat.format("{0}: Number of job submitted: {1}", scriptId, numJobsSubmitted));
+            this.numJobsSubmitted = numJobsSubmitted;
         }
 
         @Override
@@ -241,7 +252,7 @@ public class LoadStoreScriptRunner {
 
         @Override
         public void jobFinishedNotification(String scriptId, JobStats jobStats) {
-            LOG.info(MessageFormat.format("{0}: Avg map time: {1}", scriptId, jobStats.getAvgMapTime()));
+            LOG.info(MessageFormat.format("{0}: Number of maps: {1}", scriptId, jobStats.getNumberMaps()));
         }
 
         @Override
@@ -264,7 +275,7 @@ public class LoadStoreScriptRunner {
         @Override
         public void launchCompletedNotification(String scriptId, int numJobsSucceeded) {
             LOG.info(MessageFormat.format("{0}: Launch completed: {1}", scriptId, numJobsSucceeded));
-
+            Assert.assertEquals(numJobsSubmitted, numJobsSubmitted);
         }
     }
 }

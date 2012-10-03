@@ -21,8 +21,8 @@ package org.apache.hcatalog.hcatmix.performance;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
-import org.apache.hcatalog.hcatmix.HCatGrapher;
-import org.apache.hcatalog.hcatmix.HTMLWriter;
+import org.apache.hcatalog.hcatmix.results.LoadStoreScriptRunner;
+import org.apache.hcatalog.hcatmix.results.TestResults;
 import org.apache.thrift.TException;
 import org.perf4j.GroupedTimingStatistics;
 import org.slf4j.Logger;
@@ -36,20 +36,17 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.testng.Assert.assertNotNull;
 
 public class TestLoadStoreScripts {
     private static final Logger LOG = LoggerFactory.getLogger(TestLoadStoreScripts.class);
-
+    private static TestResults testResults = new TestResults();
 
     // Use -DhcatSpecFile=<fileName> to run load/store for a single hcat table specification file
     private static final String HCAT_SPEC_FILE = "hcatSpecFile";
-    private static List<String> urls = new ArrayList<String>();
+    private static HashMap<String, String> urls = new HashMap<String, String>();
 
     @DataProvider(name = "HCatSpecFileNames")
     public Iterator<Object[]> hcatSpecFileNames() {
@@ -83,7 +80,7 @@ public class TestLoadStoreScripts {
     public void testAllLoadStoreScripts(String hcatSpecFileName) throws IOException, TException, NoSuchObjectException,
             MetaException, SAXException, InvalidObjectException, ParserConfigurationException {
         LOG.info("HCatalog spec file name: " + hcatSpecFileName);
-        LoadStoreScriptRunner runner = new LoadStoreScriptRunner(hcatSpecFileName);
+        LoadStoreScriptRunner runner = new MockLoadStoreScriptRunner(hcatSpecFileName);
 
         int numRuns = 2;
         for (int i = 0; i < numRuns; i++) {
@@ -103,13 +100,11 @@ public class TestLoadStoreScripts {
         }
 
         GroupedTimingStatistics stats = runner.getTimedStats();
-        String chartUrl = HCatGrapher.createChart(stats);
-        LOG.info("Stats for: " + hcatSpecFileName + " : " + stats.toString());
-        urls.add(chartUrl);
+        testResults.addResult(hcatSpecFileName, stats);
     }
 
     @AfterClass
-    public static void publishResults() throws IOException {
-        HTMLWriter.publish(urls);
+    public static void publishResults() throws Exception {
+        testResults.publish();
     }
 }

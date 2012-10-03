@@ -16,9 +16,10 @@
  * limitations under the License.
  */
 
-package org.apache.hcatalog.hcatmix;
+package org.apache.hcatalog.hcatmix.results;
 
 import com.googlecode.charts4j.*;
+
 import static com.googlecode.charts4j.Color.*;
 
 import org.perf4j.GroupedTimingStatistics;
@@ -30,51 +31,59 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Author: malakar
- */
-public class HCatGrapher {
+public class HCatStats {
 
-    private static final Logger LOG = LoggerFactory.getLogger(HCatGrapher.class);
+    private static final Logger LOG = LoggerFactory.getLogger(HCatStats.class);
+    private String fileName;
+    private GroupedTimingStatistics timedStats;
+    private String chartUrl;
 
+    public HCatStats(String fileName, GroupedTimingStatistics timedStats) {
+        this.fileName = fileName;
+        this.timedStats = timedStats;
+        chartUrl = generateChart(); //TODO remove this
+    }
 
-    public static String createChart(GroupedTimingStatistics timedStats) {
+    public String getChartUrl() {
+        return chartUrl;
+    }
+
+    protected String generateChart() {
         List<Double> minsList = new ArrayList<Double>();
         List<Double> avgList = new ArrayList<Double>();
         List<Double> maxList = new ArrayList<Double>();
 
         List<String> labels = new ArrayList<String>();
         Double max = 0.0;
-        String fileName = "";
         for (Map.Entry<String, TimingStatistics> statEntry : timedStats.getStatisticsByTag().entrySet()) {
-            labels.add(LoadStoreStopWatch.getTypeFromTag(statEntry.getKey()));
-            fileName = LoadStoreStopWatch.getFileNameFromTag(statEntry.getKey());
+            labels.add(statEntry.getKey());
             TimingStatistics stat = statEntry.getValue();
-            minsList.add(Double.valueOf(stat.getMin()));
+            minsList.add((double) stat.getMin());
             avgList.add(stat.getMean());
-            maxList.add(Double.valueOf(stat.getMax()));
-            if(stat.getMax() > max) {
+            maxList.add((double) stat.getMax());
+            if (stat.getMax() > max) {
                 max = (double) stat.getMax();
             }
+            LOG.info(statEntry.getKey() + " " + stat);
         }
 
-        // EXAMPLE CODE START
-        // Defining data series.
-        Data mins = DataUtil.scaleWithinRange(0, max, minsList);
-        Data avgs = DataUtil.scaleWithinRange(0, max, avgList);
-        Data maxes = DataUtil.scaleWithinRange(0, max, maxList);
-        BarChartPlot red = Plots.newBarChartPlot(maxes, RED, "Max");
-        BarChartPlot green = Plots.newBarChartPlot(avgs, GREEN, "Avg");
-        BarChartPlot yellow = Plots.newBarChartPlot(mins, YELLOW, "Min");
-        BarChart chart = GCharts.newBarChart(red, green,  yellow);
+        final double MAX_LIMIT = max + 0.1 * max;
+
+        Data mins = DataUtil.scaleWithinRange(0, MAX_LIMIT, minsList);
+        Data avgs = DataUtil.scaleWithinRange(0, MAX_LIMIT, avgList);
+        Data maxes = DataUtil.scaleWithinRange(0, MAX_LIMIT, maxList);
+        BarChartPlot maxBar = Plots.newBarChartPlot(maxes, BROWN, "Max");
+        BarChartPlot avgBar = Plots.newBarChartPlot(avgs, BLUE, "Avg");
+        BarChartPlot minBar = Plots.newBarChartPlot(mins, SALMON, "Min");
+        BarChart chart = GCharts.newBarChart(maxBar, avgBar, minBar);
 
         // Defining axis info and styles
         AxisStyle axisStyle = AxisStyle.newAxisStyle(BLACK, 13, AxisTextAlignment.CENTER);
         AxisLabels typeAxisLabels = AxisLabelsFactory.newAxisLabels(labels);
         typeAxisLabels.setAxisStyle(axisStyle);
-        AxisLabels timeAxis = AxisLabelsFactory.newAxisLabels("Time in seconds");
+        AxisLabels timeAxis = AxisLabelsFactory.newAxisLabels("Time in milliseconds");
         timeAxis.setAxisStyle(axisStyle);
-        AxisLabels timeScale = AxisLabelsFactory.newNumericRangeAxisLabels(0, max);
+        AxisLabels timeScale = AxisLabelsFactory.newNumericRangeAxisLabels(0, MAX_LIMIT);
         timeScale.setAxisStyle(axisStyle);
 
 
@@ -89,13 +98,26 @@ public class HCatGrapher {
 
         chart.setTitle(fileName, BLACK, 16);
         //51 is the max number of medals.
-        chart.setGrid((50.0 / 500) * 20, 600, 3, 2);
+        chart.setGrid((MAX_LIMIT / 500) * 20, 600, 3, 2);
         chart.setBackgroundFill(Fills.newSolidFill(LIGHTGREY));
 //        LinearGradientFill fill = Fills.newLinearGradientFill(0, Color.newColor("E37600"), 100);
 //        fill.addColorAndOffset(Color.newColor("DC4800"), 0);
 //        chart.setAreaFill(fill);
-        String url = chart.toURLString();
-        LOG.info("Generated Chart: " + url);
-        return url;
+        chartUrl = chart.toURLString();
+        LOG.info("Generated Chart: " + chartUrl);
+        return  chartUrl;
+    }
+
+    public GroupedTimingStatistics getTimedStats() {
+        return timedStats;
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    @Override
+    public String toString() {
+        return fileName + ":\n" + timedStats + "\n" + getChartUrl();
     }
 }

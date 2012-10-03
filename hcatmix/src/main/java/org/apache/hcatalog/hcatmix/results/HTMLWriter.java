@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.hcatalog.hcatmix;
+package org.apache.hcatalog.hcatmix.results;
 
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
@@ -28,31 +28,26 @@ import org.slf4j.LoggerFactory;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
 
-/**
- * Author: malakar
- */
-public class HTMLWriter {
+class HTMLWriter {
 
     private static final Logger LOG = LoggerFactory.getLogger(HTMLWriter.class);
     private static final String TEMPLATE_FILE = "graphs.vm";
+    private static final String HTML_FILE = "hcatmix_results.html";
 
-    public static void publish(List<String> urls) throws IOException {
+    public static void publish(List<HCatStats> stats) throws Exception {
 
         try {
             VelocityContext context = new VelocityContext();
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Chart urls are: " + urls);
-            }
 
-            context.put("urlList", urls);
+            context.put("hcatStats", stats);
 
             Properties props = new Properties();
             props.setProperty("resource.loader", "file, class, jar");
             props.setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
+            props.setProperty("runtime.references.strict", "true");
 
             Velocity.init(props);
             Template template = null;
@@ -61,12 +56,13 @@ public class HTMLWriter {
                 template = Velocity.getTemplate(TEMPLATE_FILE);
             } catch (ResourceNotFoundException e) {
                 LOG.error("Cannot publish HTML page. Couldn't find template: " + TEMPLATE_FILE, e);
+                throw e;
             } catch (ParseErrorException e) {
                 LOG.error("Couldn't publish HTML page. Syntax error in template " + TEMPLATE_FILE, e);
+                throw e;
             }
 
-
-            BufferedWriter writer = new BufferedWriter(new FileWriter("graphs.html"));
+            BufferedWriter writer = new BufferedWriter(new FileWriter(HTML_FILE));
 
             if (template != null)
                 template.merge(context, writer);
@@ -74,7 +70,8 @@ public class HTMLWriter {
             writer.flush();
             writer.close();
         } catch (Exception e) {
-            System.out.println(e);
+            LOG.error("Couldn't publish HTML page", e);
+            throw e;
         }
     }
 }

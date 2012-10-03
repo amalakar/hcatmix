@@ -1,14 +1,43 @@
 <html>
     <head>
         <title>HCatMix graphs</title>
+        <link href="http://twitter.github.com/bootstrap/assets/css/bootstrap.css" rel="stylesheet"/>
     </head>
     <body>
 
-    <h3>Comparison of HCatMix load store functions with pig load store functions for various data.</h3>
+    <div class="container">
+    <h1>Comparison of HCatMix load store functions with pig load store functions for various data</h1>
 
-#foreach( $url in $urlList )
-        <img src="$url" alt="HCatMix Graph"/><br/><hr/>
+#foreach( $hcatStat in $hcatStats )
+    <h3>$hcatStat.FileName</h6>
+    <img src="$hcatStat.ChartUrl" alt="HCatMix Chart"  class="img-polaroid" />
+    #set ($map = $hcatStat.timedStats.statisticsByTag )
+    <p>
+    <table class="table">
+        <tr>
+            <th>Test</th>
+            <th>Avg</th>
+            <th>Min</th>
+            <th>Max</th>
+            <th>Std Dev</th>
+            <th>Count</th>
+        </tr>
+    #foreach ($result in $map.entrySet())
+        #set ($statistics = $result.value)
+        <tr>
+            <td>$result.key</td>
+            <td>$statistics.Mean</td>
+            <td>$statistics.Min</td>
+            <td>$statistics.Max</td>
+            <td>$statistics.StandardDeviation</td>
+            <td>$statistics.Count</td>
+        </tr>
+    #end
+    </table>
+    <br/><hr/>
+    </p>
 #end
 
+        </div>
     </body>
 </html>

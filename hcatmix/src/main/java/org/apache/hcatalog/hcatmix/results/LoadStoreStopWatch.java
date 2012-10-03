@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.hcatalog.hcatmix;
+package org.apache.hcatalog.hcatmix.results;
 import org.perf4j.slf4j.Slf4JStopWatch;
 
 
@@ -35,18 +35,46 @@ public class LoadStoreStopWatch extends Slf4JStopWatch {
     }
 
     public LoadStoreStopWatch(String hcatSchemaFile, LoadStoreType type) {
-        super(hcatSchemaFile + "-" + type.toString());
+        super(type.toString());
         this.hcatSchemaFile = hcatSchemaFile;
         this.type = type;
     }
 
-    public static String getTypeFromTag(String tagName) {
-        String[] parts = tagName.split("-");
-        return parts[1];
-    }
-
-    public static String getFileNameFromTag(String tagName) {
-        String[] parts = tagName.split("-");
-        return parts[0];
-    }
+//    public static class Key {
+//        private String hcatSchemaFile;
+//        private String type;
+//
+//        public Key(String hcatSchemaFile, String type) {
+//            this.hcatSchemaFile = hcatSchemaFile;
+//            this.type = type;
+//        }
+//
+//        public Key(String tagName) {
+//            hcatSchemaFile = getFileNameFromTag(tagName);
+//            type = getTypeFromTag(tagName);
+//        }
+//
+//        @Override
+//        public String toString() {
+//            return hcatSchemaFile + "-" + type;
+//        }
+//
+//        public static String getTypeFromTag(String tagName) {
+//            String[] parts = tagName.split("-");
+//            return parts[1];
+//        }
+//
+//        public static String getFileNameFromTag(String tagName) {
+//            String[] parts = tagName.split("-");
+//            return parts[0];
+//        }
+//
+//        public String getHcatSchemaFile() {
+//            return hcatSchemaFile;
+//        }
+//
+//        public String getType() {
+//            return type;
+//        }
+//    }
 }

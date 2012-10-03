@@ -21,19 +21,11 @@
     <appender name="CoalescingStatistics"
               class="org.perf4j.log4j.AsyncCoalescingStatisticsAppender">
         <!--
-          The TimeSlice option is used to determine the time window for which
-          all received StopWatch logs are aggregated to create a single
-          GroupedTimingStatistics log. Here we set it to 10 seconds, overriding
-          the default of 30000 ms
+          Timely collection of stats (in milliseconds)
         -->
         <param name="TimeSlice" value="100000"/>
         <appender-ref ref="fileAppender"/>
-        <!--
-          Note how the GraphingStatisticsAppenders have been attached to the
-          CoalescingStatistics here.
-        -->
-        <!--<appender-ref ref="graphExecutionTimes"/>-->
-        <!--<appender-ref ref="graphExecutionTPS"/>-->
+
     </appender>
 
     <!-- This file appender is used to output aggregated performance statistics -->
@@ -44,54 +36,10 @@
         </layout>
     </appender>
 
-    <!--&lt;!&ndash;-->
-      <!--This first GraphingStatisticsAppender graphs Mean execution times for the-->
-      <!--firstBlock and secondBlock tags-->
-    <!--&ndash;&gt;-->
-    <!--<appender name="graphExecutionTimes"-->
-              <!--class="org.perf4j.log4j.GraphingStatisticsAppender">-->
-        <!--&lt;!&ndash; Possible GraphTypes are Mean, Min, Max, StdDev, Count and TPS &ndash;&gt;-->
-        <!--<param name="GraphType" value="Mean"/>-->
-        <!--&lt;!&ndash; The tags of the timed execution blocks to graph are specified here &ndash;&gt;-->
-        <!--<param name="TagNamesToGraph" value="firstBlock,secondBlock"/>-->
-        <!--<appender-ref ref="graphsFileAppender"/>-->
-    <!--</appender>-->
-
-    <!--&lt;!&ndash;-->
-      <!--This second GraphingStatisticsAppender graphs transactions per second-->
-      <!--for the firstBlock and secondBlock tags-->
-    <!--&ndash;&gt;-->
-    <!--<appender name="graphExecutionTPS"-->
-              <!--class="org.perf4j.log4j.GraphingStatisticsAppender">-->
-        <!--<param name="GraphType" value="Mean"/>-->
-        <!--<param name="TagNamesToGraph" value="firstBlock,secondBlock"/>-->
-        <!--<appender-ref ref="graphsFileAppender"/>-->
-    <!--</appender>-->
-
-    <!--&lt;!&ndash;-->
-      <!--This file appender is used to output the graph URLs generated-->
-      <!--by the GraphingStatisticsAppenders-->
-    <!--&ndash;&gt;-->
-    <!--<appender name="graphsFileAppender" class="org.apache.log4j.FileAppender">-->
-        <!--<param name="File" value="perfGraphs.log"/>-->
-        <!--<layout class="org.apache.log4j.PatternLayout">-->
-            <!--<param name="ConversionPattern" value="%m%n"/>-->
-        <!--</layout>-->
-    <!--</appender>-->
-
-    <!-- Loggers -->
-    <!--
-      The Perf4J logger. Note that org.perf4j.TimingLogger is the value of the
-      org.perf4j.StopWatch.DEFAULT_LOGGER_NAME constant. Also, note that
-      additivity is set to false, which is usually what is desired - this means
-      that timing statements will only be sent to this logger and NOT to
-      upstream loggers.
-    -->
-
     <appender name="hcatalogExecutionAppender" class="org.apache.log4j.FileAppender">
         <param name="File" value="hcatMix-execution.log"/>
         <layout class="org.apache.log4j.PatternLayout">
-            <param name="ConversionPattern" value="%d %5p (%F:%L) - %m%n"/>
+            <param name="ConversionPattern" value="%d %5p (%F) - %m%n"/>
         </layout>
     </appender>
 
