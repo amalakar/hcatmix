@@ -36,6 +36,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.*;
 
 import static org.testng.Assert.assertNotNull;
@@ -80,11 +81,11 @@ public class TestLoadStoreScripts {
     public void testAllLoadStoreScripts(String hcatSpecFileName) throws IOException, TException, NoSuchObjectException,
             MetaException, SAXException, InvalidObjectException, ParserConfigurationException {
         LOG.info("HCatalog spec file name: " + hcatSpecFileName);
-        LoadStoreScriptRunner runner = new MockLoadStoreScriptRunner(hcatSpecFileName);
+        LoadStoreScriptRunner runner = new LoadStoreScriptRunner(hcatSpecFileName);
 
         int numRuns = 2;
         for (int i = 0; i < numRuns; i++) {
-
+            LOG.info(MessageFormat.format("{0}: Run - {1}/{2}", hcatSpecFileName, i, numRuns));
             try {
                 runner.setUp();
                 runner.runPigLoadHCatStoreScript();

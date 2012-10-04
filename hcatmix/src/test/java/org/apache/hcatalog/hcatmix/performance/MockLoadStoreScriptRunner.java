@@ -24,16 +24,21 @@ import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hcatalog.hcatmix.results.LoadStoreScriptRunner;
 import org.apache.thrift.TException;
 import org.perf4j.GroupedTimingStatistics;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.Random;
 
 /**
- * Mock class which doesn't do anything, to test graph/html generation etc.
+ * Mock class which doesn't do anything, it could be used for testing graph/html generation classes.
  */
 public class MockLoadStoreScriptRunner extends LoadStoreScriptRunner {
+    private static final Logger LOG = LoggerFactory.getLogger(MockLoadStoreScriptRunner.class);
+    private Random random = new Random();
     public MockLoadStoreScriptRunner(String hcatTableSpecFile) throws MetaException, IOException, SAXException,
             ParserConfigurationException, NoSuchObjectException, TException, InvalidObjectException {
         super(hcatTableSpecFile);
@@ -46,8 +51,10 @@ public class MockLoadStoreScriptRunner extends LoadStoreScriptRunner {
 
     @Override
     protected void runScript(String scriptName) {
+        int sleepTime = random.nextInt(1000);
+        LOG.info(MessageFormat.format("Supposed to run {0}, but mock runner will only sleep for {1} milliseconds", scriptName, sleepTime));
         try {
-            Thread.sleep(new Random().nextInt(100));
+            Thread.sleep(sleepTime);
         } catch (InterruptedException e) {
         }
     }
@@ -66,6 +73,6 @@ public class MockLoadStoreScriptRunner extends LoadStoreScriptRunner {
 
     @Override
     public GroupedTimingStatistics getTimedStats() {
-        return super.getTimedStats();    //To change body of overridden methods use File | Settings | File Templates.
+        return super.getTimedStats();
     }
 }

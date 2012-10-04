@@ -23,6 +23,7 @@ import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import org.apache.velocity.exception.ParseErrorException;
 import org.apache.velocity.exception.ResourceNotFoundException;
+import org.apache.velocity.tools.generic.NumberTool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,6 +44,7 @@ class ResultsPublisher {
     ResultsPublisher(List<HCatStats> stats) throws Exception {
         context = new VelocityContext();
         context.put("hcatStats", stats);
+        context.put("numberTool", new NumberTool());
         Properties props = new Properties();
         props.setProperty("resource.loader", "file, class, jar");
         props.setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");

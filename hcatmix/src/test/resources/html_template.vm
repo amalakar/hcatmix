@@ -14,28 +14,37 @@
     #set ($map = $hcatStat.timedStats.statisticsByTag )
     <p>
     <table class="table">
-        <tr>
-            <th>Test</th>
-            <th>Avg</th>
-            <th>Min</th>
-            <th>Max</th>
-            <th>Std Dev</th>
-            <th>Count</th>
-        </tr>
+        <thead>
+            <caption>Load and Store times in milliseconds for $hcatStat.FileName</caption>
+            <tr>
+                <th>Test</th>
+                <th>Avg</th>
+                <th>Min</th>
+                <th>Max</th>
+                <th>Std Dev</th>
+                <th>Number of runs</th>
+            </tr>
+        </thead>
+        <tbody>
     #foreach ($result in $map.entrySet())
         #set ($statistics = $result.value)
-        <tr>
-            <td>$result.key</td>
-            <td>$statistics.Mean</td>
-            <td>$statistics.Min</td>
-            <td>$statistics.Max</td>
-            <td>$statistics.StandardDeviation</td>
-            <td>$statistics.Count</td>
-        </tr>
+            <tr>
+                <td>$result.key</td>
+                <td>$numberTool.format("###,###.##", $statistics.Mean) </td>
+                <td>$numberTool.format("###,###.##", $statistics.Min)</td>
+                <td>$numberTool.format("###,###.##", $statistics.Max)</td>
+                <td>$numberTool.format("###,###.##", $statistics.StandardDeviation)</td>
+                <td>$numberTool.format("###,###.##", $statistics.Count)</td>
+            </tr>
     #end
+        </tbody>
     </table>
-    <br/><hr/>
     </p>
+    <br/><br/>
+        <p>
+          <small>The time is in milliseconds.</small>
+        </p>
+    <br/><br/>
 #end
 
         </div>
