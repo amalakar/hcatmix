@@ -18,7 +18,7 @@
 <database>
     <tables>
         <table>
-            <namePrefix>page_views_paritions</namePrefix>
+            <namePrefix>hcatmix_paritions</namePrefix>
             <dbName>default</dbName>
             <columns>
                 <column>
@@ -73,12 +73,25 @@
                     <name>action</name>
                     <type>int</type>
                     <distribution>uniform</distribution>
-                    <cardinality>100000</cardinality>
+                    <cardinality>2</cardinality>
+                </partition>
+                <partition>
+                    <name>sourceid</name>
+                    <type>int</type>
+                    <distribution>uniform</distribution>
+                    <cardinality>10</cardinality>
+                </partition>
+                <partition>
+                    <name>testid</name>
+                    <type>string</type>
+                    <avgLength>5</avgLength>
+                    <distribution>uniform</distribution>
+                    <cardinality>30</cardinality>
                 </partition>
             </partitions>
             <instances>
                 <instance>
-                    <size>2000000000</size>
+                    <size>200000000</size>
                     <count>1</count>
                 </instance>
             </instances>

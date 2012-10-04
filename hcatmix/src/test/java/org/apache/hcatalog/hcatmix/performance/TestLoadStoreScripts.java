@@ -45,13 +45,13 @@ public class TestLoadStoreScripts {
     private static final Logger LOG = LoggerFactory.getLogger(TestLoadStoreScripts.class);
     private static TestResults testResults = new TestResults();
 
-    // Use -DhcatSpecFile=<fileName> to run load/store for a single hcat table specification file
-    private static final String HCAT_SPEC_FILE = "hcatSpecFile";
+    // Use -DhcatSpecFile=<fileName1>,<fileName2> to run load/store for these table specification file only
+    private static final String HCAT_SPEC_FILES = "hcatSpecFiles";
     private static HashMap<String, String> urls = new HashMap<String, String>();
 
     @DataProvider(name = "HCatSpecFileNames")
     public Iterator<Object[]> hcatSpecFileNames() {
-        final String hcatSpecFile = System.getProperty(HCAT_SPEC_FILE);
+        final String hcatSpecFile = System.getProperty(HCAT_SPEC_FILES);
         final List<Object[]> specFiles = new ArrayList<Object[]>();
 
         if (hcatSpecFile == null) {
@@ -71,7 +71,7 @@ public class TestLoadStoreScripts {
                 specFiles.add(new Object[]{ file.getAbsolutePath()});
             }
         } else {
-            specFiles.add(new Object[]{ hcatSpecFile});
+            specFiles.add(hcatSpecFile.split(","));
         }
         return specFiles.iterator();
     }
@@ -81,7 +81,7 @@ public class TestLoadStoreScripts {
     public void testAllLoadStoreScripts(String hcatSpecFileName) throws IOException, TException, NoSuchObjectException,
             MetaException, SAXException, InvalidObjectException, ParserConfigurationException {
         LOG.info("HCatalog spec file name: " + hcatSpecFileName);
-        LoadStoreScriptRunner runner = new LoadStoreScriptRunner(hcatSpecFileName);
+        LoadStoreScriptRunner runner = new MockLoadStoreScriptRunner(hcatSpecFileName);
 
         int numRuns = 2;
         for (int i = 0; i < numRuns; i++) {
