@@ -53,6 +53,7 @@ public class HCatStats {
         List<Double> avgList = new ArrayList<Double>();
         List<Double> maxList = new ArrayList<Double>();
 
+        List<String> labelsReverse = new ArrayList<String>();
         List<String> labels = new ArrayList<String>();
         Double max = 0.0;
         for (Map.Entry<String, TimingStatistics> statEntry : timedStats.getStatisticsByTag().entrySet()) {
@@ -66,20 +67,24 @@ public class HCatStats {
             }
             LOG.info(statEntry.getKey() + " " + stat);
         }
+        // Reverse the order of labels, as that is what charts4j expects
+        for (int i = labels.size() - 1; i >=0 ; i--) {
+            labelsReverse.add(labels.get(i));
+        }
 
         final double MAX_LIMIT = max + 0.1 * max;
 
         Data mins = DataUtil.scaleWithinRange(0, MAX_LIMIT, minsList);
         Data avgs = DataUtil.scaleWithinRange(0, MAX_LIMIT, avgList);
         Data maxes = DataUtil.scaleWithinRange(0, MAX_LIMIT, maxList);
-        BarChartPlot maxBar = Plots.newBarChartPlot(maxes, BROWN, "Max");
-        BarChartPlot avgBar = Plots.newBarChartPlot(avgs, BLUE, "Avg");
-        BarChartPlot minBar = Plots.newBarChartPlot(mins, SALMON, "Min");
+        BarChartPlot maxBar = Plots.newBarChartPlot(maxes, Color.newColor("9ad2ff"), "Max");
+        BarChartPlot avgBar = Plots.newBarChartPlot(avgs, Color.newColor("0040ff"), "Avg");
+        BarChartPlot minBar = Plots.newBarChartPlot(mins, Color.newColor("6898ce"), "Min");
         BarChart chart = GCharts.newBarChart(maxBar, avgBar, minBar);
 
         // Defining axis info and styles
         AxisStyle axisStyle = AxisStyle.newAxisStyle(BLACK, 13, AxisTextAlignment.CENTER);
-        AxisLabels typeAxisLabels = AxisLabelsFactory.newAxisLabels(labels);
+        AxisLabels typeAxisLabels = AxisLabelsFactory.newAxisLabels(labelsReverse);
         typeAxisLabels.setAxisStyle(axisStyle);
         AxisLabels timeAxis = AxisLabelsFactory.newAxisLabels("Time in milliseconds");
         timeAxis.setAxisStyle(axisStyle);
@@ -94,15 +99,9 @@ public class HCatStats {
         chart.addTopAxisLabels(timeScale);
         chart.setHorizontal(true);
         chart.setSize(650, 450);
-//        chart.setSpaceBetweenGroupsOfBars(30);
 
         chart.setTitle(fileName, BLACK, 16);
-        //51 is the max number of medals.
         chart.setGrid((MAX_LIMIT / 500) * 20, 600, 3, 2);
-        chart.setBackgroundFill(Fills.newSolidFill(LIGHTGREY));
-//        LinearGradientFill fill = Fills.newLinearGradientFill(0, Color.newColor("E37600"), 100);
-//        fill.addColorAndOffset(Color.newColor("DC4800"), 0);
-//        chart.setAreaFill(fill);
         chartUrl = chart.toURLString();
         LOG.info("Generated Chart: " + chartUrl);
         return  chartUrl;

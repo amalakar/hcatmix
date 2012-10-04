@@ -23,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,30 +31,31 @@ import java.util.Map;
  * Author: malakar
  */
 public class TestResults {
-    private Map<String, HCatStats> result;
+    private Map<String, HCatStats> results;
     private static final Logger LOG = LoggerFactory.getLogger(HCatStats.class);
 
     public TestResults() {
-        result = new HashMap<String, HCatStats>();
+        results = new HashMap<String, HCatStats>();
     }
 
     public void addResult(String fileName, GroupedTimingStatistics stats) {
         LOG.info(fileName + " Statistics:\n" + stats.toString());
-        result.put(fileName, new HCatStats(new File(fileName).getName(), stats));
+        results.put(fileName, new HCatStats(new File(fileName).getName(), stats));
     }
 
     public void publish() throws Exception {
-        for (Map.Entry<String, HCatStats> hCatStatsEntry : result.entrySet()) {
+        for (Map.Entry<String, HCatStats> hCatStatsEntry : results.entrySet()) {
             String fileName = hCatStatsEntry.getKey();
             HCatStats stats = hCatStatsEntry.getValue();
             LOG.info(fileName + " Statistics:\n" + stats.toString());
             LOG.info("Chart URL: " + stats.getChartUrl());
         }
-        HTMLWriter.publish(new ArrayList<HCatStats>(result.values()));
+        ResultsPublisher publisher = new ResultsPublisher(new ArrayList<HCatStats>(results.values()));
+        publisher.publishAll();
     }
 
-    public Map<String, HCatStats> getResult() {
-        return result;
+    public Map<String, HCatStats> getResults() {
+        return results;
     }
 
 }
