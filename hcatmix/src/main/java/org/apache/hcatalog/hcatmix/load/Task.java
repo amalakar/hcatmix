@@ -21,11 +21,14 @@ package org.apache.hcatalog.hcatmix.load;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.MetaException;
+import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.security.token.Token;
+import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Random;
 
 /**
 * Author: malakar
@@ -52,10 +55,15 @@ public abstract class Task {
     }
 
     public void close() {
-        hiveClient.close();
+        try {
+            hiveClient.close();
+        } catch (Exception e) {
+            LOG.error("Couldn't close hiveClient, ignored error", e);
+        }
     }
 
     public static class ReadTask extends Task {
+        Random rand = new Random();
 
         ReadTask(Token token) throws IOException {
             super(token);
@@ -69,7 +77,16 @@ public abstract class Task {
         @Override
         public void doTask() throws MetaException {
             LOG.info("Doing work in Task");
-            hiveClient.getAllDatabases();
+            try {
+                hiveClient.getDatabase("default");
+            } catch (Exception e) {
+                LOG.info("Error reading database: default", e);
+                try {
+                    Thread.sleep(rand.nextInt(1000));
+                } catch (InterruptedException e1) {
+                    LOG.info("interupted, ignored");
+                }
+            }
         }
     }
 }
