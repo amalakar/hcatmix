@@ -22,6 +22,8 @@ import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.security.token.Token;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -32,12 +34,17 @@ public abstract class Task {
     public abstract String getName();
     public abstract void doTask() throws MetaException;
     protected HiveMetaStoreClient hiveClient;
+    private static final Logger LOG = LoggerFactory.getLogger(Task.class);
+    public static final String HIVE_CONF_TOKEN_KEY = "hive.metastore.token.signature";
 
     Task(Token token) throws IOException {
+        if(token == null) {
+            throw new IllegalArgumentException("Delegation token needs to be set");
+        }
+
         try {
             HiveConf hiveConf = new HiveConf(Task.class);
-            hiveConf.set("hive.metastore.token.signature", token.encodeToUrlString());
-
+            hiveConf.set(HIVE_CONF_TOKEN_KEY, HadoopLoadGenerator.METASTORE_TOKEN_SIGNATURE);
             hiveClient = new HiveMetaStoreClient(hiveConf);
         } catch (MetaException e) {
             throw new RuntimeException("Couldn't create HiveMetaStoreClient", e);

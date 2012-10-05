@@ -21,6 +21,7 @@ package org.apache.hcatalog.hcatmix.load;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.*;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.perf4j.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,7 +52,18 @@ public class HCatMapper extends MapReduceBase implements Mapper<LongWritable, Te
         expiryTimeInMillis = System.currentTimeMillis() + MAP_TIMEOUT_MINUTES * 60 * 1000;
         expiryTimeWithBufferInMillis = System.currentTimeMillis() + MAP_TIMEOUT_MINUTES * 60 * 1000
                             + MAP_TIMEOUT_BUFFER_IN_MINUTES * 60 * 1000;
-        Token token = jobConf.getCredentials().getToken(new Text(HadoopLoadGenerator.METASTORE_TOKEN_KEY));
+        token = jobConf.getCredentials().getToken(new Text(HadoopLoadGenerator.METASTORE_TOKEN_KEY));
+        try {
+            LOG.info("Kerberos token received from job launcher: " + token.encodeToUrlString());
+        } catch (IOException e) {
+            LOG.error("Couldn't encode token to URL string");
+        }
+        try {
+            UserGroupInformation.getCurrentUser().addToken(token);
+        } catch (IOException e) {
+            LOG.info("Error adding token to user", e);
+        }
+
     }
 
     @Override

@@ -44,10 +44,11 @@ import java.io.PrintWriter;
 public class HadoopLoadGenerator extends Configured implements Tool {
     public final String JOB_NAME = "hcat-load-generator";
     public final int NUM_MAPPERS = 30;
-    public final String OUTPUT_DIR = "/tmp/hcatmix/load/output";
+    public final Path OUTPUT_DIR = new Path("/tmp/hcatmix/load/output");
     public final String INPUT_DIR = "/tmp/hcatmix/load/input";
 
     public static final String METASTORE_TOKEN_KEY = "metaStoreToken";
+    public static final String METASTORE_TOKEN_SIGNATURE = "metaStoreTokenSig";
 
     private FileSystem fs;
 
@@ -85,7 +86,10 @@ public class HadoopLoadGenerator extends Configured implements Tool {
         fs = FileSystem.get(jobConf);
 
         FileInputFormat.setInputPaths(jobConf, createInputFiles(INPUT_DIR, NUM_MAPPERS));
-        FileOutputFormat.setOutputPath(jobConf, new Path(OUTPUT_DIR));
+        if(fs.exists(OUTPUT_DIR)) {
+            fs.delete(OUTPUT_DIR, true);
+        }
+        FileOutputFormat.setOutputPath(jobConf, OUTPUT_DIR);
 
         // Set up delegation token required for hiveMetaStoreClient in map task
         HiveConf hiveConf = new HiveConf(Task.class);
@@ -93,6 +97,7 @@ public class HadoopLoadGenerator extends Configured implements Tool {
         String tokenStr = hiveClient.getDelegationToken(UserGroupInformation.getCurrentUser().getUserName(), "mapred");
         Token<? extends AbstractDelegationTokenIdentifier> token = new Token<DelegationTokenIdentifier>();
         token.decodeFromUrlString(tokenStr);
+        token.setService(new Text(METASTORE_TOKEN_SIGNATURE));
         jobConf.getCredentials().addToken(new Text(METASTORE_TOKEN_KEY), token);
 
         // Submit the job, then poll for progress until the job is complete
