@@ -38,9 +38,9 @@ import java.util.concurrent.*;
 public class HCatMapper extends MapReduceBase implements Mapper<LongWritable, Text, LongWritable, List<StopWatch>> {
     public static final int THREAD_INCREMENT_COUNT = 5;
     public static final long THREAD_INCREMENT_INTERVAL = 5 * 60 * 1000;
-    public static final int MAP_TIMEOUT_MINUTES = 10;
-    public static final int MAP_TIMEOUT_BUFFER_IN_MINUTES = 2;
-    public static final int TIME_SERIES_INTERVAL_IN_MINUTES = 2;
+    public static final int MAP_TIMEOUT_MINUTES = 3;
+    public static final int MAP_TIMEOUT_BUFFER_IN_MINUTES = 1;
+    public static final int TIME_SERIES_INTERVAL_IN_MINUTES = 1;
     private static final Logger LOG = LoggerFactory.getLogger(HCatMapper.class);
 
     private long expiryTimeInMillis;
@@ -50,7 +50,8 @@ public class HCatMapper extends MapReduceBase implements Mapper<LongWritable, Te
     @Override
     public void configure(JobConf jobConf) {
         super.configure(jobConf);
-        expiryTimeInMillis = System.currentTimeMillis() + MAP_TIMEOUT_MINUTES * 60 * 1000;
+        long startTime = System.currentTimeMillis();
+        expiryTimeInMillis = startTime + MAP_TIMEOUT_MINUTES * 60 * 1000;
         expiryTimeWithBufferInMillis = System.currentTimeMillis() + MAP_TIMEOUT_MINUTES * 60 * 1000
                             + MAP_TIMEOUT_BUFFER_IN_MINUTES * 60 * 1000;
         token = jobConf.getCredentials().getToken(new Text(HadoopLoadGenerator.METASTORE_TOKEN_KEY));
@@ -158,6 +159,7 @@ public class HCatMapper extends MapReduceBase implements Mapper<LongWritable, Te
         private final List<Task> tasks;
         private final List<Future<SortedMap<Long, List<StopWatch>>>> futures;
         private final Reporter reporter;
+        enum COUNTERS { NUM_THREADS};
 
         public ThreadCreatorTimer(final long expiryTimeInMillis, List<Task> tasks, List<Future<SortedMap<Long, List<StopWatch>>>> futures, Reporter reporter) {
             this.expiryTimeInMillis = expiryTimeInMillis;
@@ -183,8 +185,14 @@ public class HCatMapper extends MapReduceBase implements Mapper<LongWritable, Te
             threadCount += THREAD_INCREMENT_COUNT;
             LOG.info("Current number of threads: " + threadCount);
             reporter.progress();
+            reporter.setStatus(MessageFormat.format("#Threads: {0}, Progress: {1}%", threadCount, getProgress()));
+            reporter.incrCounter(COUNTERS.NUM_THREADS, THREAD_INCREMENT_COUNT);
         }
 
+        public long getProgress() {
+            final long startTime = expiryTimeInMillis - MAP_TIMEOUT_MINUTES * 60 * 1000;
+            return (System.currentTimeMillis() - startTime) / (expiryTimeInMillis -startTime);
+        }
         public int getThreadCount() {
             return threadCount;
         }

@@ -82,7 +82,7 @@ public abstract class Task {
             } catch (Exception e) {
                 LOG.info("Error reading database: default", e);
                 try {
-                    Thread.sleep(rand.nextInt(1000));
+                    Thread.sleep(10000 + rand.nextInt(10000));
                 } catch (InterruptedException e1) {
                     LOG.info("interupted, ignored");
                 }
