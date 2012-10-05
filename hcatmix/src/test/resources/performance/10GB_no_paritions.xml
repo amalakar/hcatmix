@@ -71,8 +71,24 @@
                     <name>action</name>
                     <type>int</type>
                     <distribution>uniform</distribution>
-                    <cardinality>100000</cardinality>
-                    <percentageNull>10</percentageNull>
+                    <cardinality>2</cardinality>
+                    <percentageNull>0</percentageNull>
+                </partition>
+                <partition>
+                    <name>sourceid</name>
+                    <type>int</type>
+                    <distribution>uniform</distribution>
+                    <cardinality>10</cardinality>
+                    <percentageNull>0</percentageNull>
+
+                </partition>
+                <partition>
+                    <name>testid</name>
+                    <type>string</type>
+                    <avgLength>5</avgLength>
+                    <distribution>uniform</distribution>
+                    <cardinality>30</cardinality>
+                    <percentageNull>0</percentageNull>
                 </partition>
             </columns>
             <partitions/>

@@ -18,7 +18,7 @@
 <database>
     <tables>
         <table>
-            <namePrefix>hcatmix_no_partitions</namePrefix>
+            <namePrefix>hcatmix_paritions</namePrefix>
             <dbName>default</dbName>
             <columns>
                 <column>
@@ -90,10 +90,11 @@
                     <percentageNull>0</percentageNull>
                 </partition>
             </columns>
-            <partitions/>
+            <partitions>
+            </partitions>
             <instances>
                 <instance>
-                    <size>2000000000</size>
+                    <size>4000000</size><!-- 210 MB -->
                     <count>1</count>
                 </instance>
             </instances>

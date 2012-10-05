@@ -55,7 +55,7 @@
                     <type>int</type>
                     <distribution>uniform</distribution>
                     <cardinality>100000</cardinality>
-                    <percentageNull>10</percentageNull>
+                    <percentageNull>0</percentageNull>
                 </partition>
             </columns>
             <partitions/>

@@ -201,8 +201,8 @@ public class HadoopRunner {
     }
 
     private static class TempFile {
-        public final Path path;
-        public final OutputStream outputStream;
+        final Path path;
+        final OutputStream outputStream;
 
         private TempFile(Path path, OutputStream outputStream) throws IOException {
             this.path = path;

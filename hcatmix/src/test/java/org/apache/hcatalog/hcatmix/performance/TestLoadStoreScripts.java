@@ -47,7 +47,6 @@ public class TestLoadStoreScripts {
 
     // Use -DhcatSpecFile=<fileName1>,<fileName2> to run load/store for these table specification file only
     private static final String HCAT_SPEC_FILES = "hcatSpecFiles";
-    private static HashMap<String, String> urls = new HashMap<String, String>();
 
     @DataProvider(name = "HCatSpecFileNames")
     public Iterator<Object[]> hcatSpecFileNames() {
@@ -71,6 +70,7 @@ public class TestLoadStoreScripts {
                 specFiles.add(new Object[]{ file.getAbsolutePath()});
             }
         } else {
+            LOG.info(MessageFormat.format("Honouring command line option: -D{0}={1}", HCAT_SPEC_FILES, hcatSpecFile));
             specFiles.add(hcatSpecFile.split(","));
         }
         return specFiles.iterator();
@@ -81,9 +81,9 @@ public class TestLoadStoreScripts {
     public void testAllLoadStoreScripts(String hcatSpecFileName) throws IOException, TException, NoSuchObjectException,
             MetaException, SAXException, InvalidObjectException, ParserConfigurationException {
         LOG.info("HCatalog spec file name: " + hcatSpecFileName);
-        LoadStoreScriptRunner runner = new MockLoadStoreScriptRunner(hcatSpecFileName);
+        LoadStoreScriptRunner runner = new LoadStoreScriptRunner(hcatSpecFileName);
 
-        int numRuns = 2;
+        int numRuns = 10;
         for (int i = 0; i < numRuns; i++) {
             LOG.info(MessageFormat.format("{0}: Run - {1}/{2}", hcatSpecFileName, i, numRuns));
             try {
