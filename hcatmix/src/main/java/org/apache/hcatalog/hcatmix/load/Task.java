@@ -68,6 +68,7 @@ public abstract class Task {
 
         @Override
         public void doTask() throws MetaException {
+            LOG.info("Doing work in Task");
             hiveClient.getAllDatabases();
         }
     }

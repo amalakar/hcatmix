@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import org.apache.hadoop.security.token.Token;
 
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -68,6 +69,7 @@ public class HCatMapper extends MapReduceBase implements Mapper<LongWritable, Te
 
     @Override
     public void map(LongWritable longWritable, Text text, OutputCollector<LongWritable, List<StopWatch>> collector, Reporter reporter) throws IOException {
+        LOG.info(MessageFormat.format("Input: {0}={1}", longWritable, text));
         final long expiryTimeInMillis = this.expiryTimeInMillis;
         final List<Future<SortedMap<Long, List<StopWatch>>>> futures = new ArrayList<Future<SortedMap<Long, List<StopWatch>>>>();
         final List<Task> tasks = new ArrayList<Task>();
@@ -75,6 +77,7 @@ public class HCatMapper extends MapReduceBase implements Mapper<LongWritable, Te
 
         TimerTask createNewThreads = new TimerTask(){
             public void run() {
+                LOG.info("About to create " + THREAD_INCREMENT_COUNT + " threads.");
                 final ExecutorService executorPool = Executors.newFixedThreadPool(THREAD_INCREMENT_COUNT);
                 Collection<MetaStoreWorker> workers = new ArrayList<MetaStoreWorker>(THREAD_INCREMENT_COUNT);
                 for (int i = 0; i < THREAD_INCREMENT_COUNT; i++) {
@@ -91,10 +94,16 @@ public class HCatMapper extends MapReduceBase implements Mapper<LongWritable, Te
 
         Timer newThreadCreator = new Timer(true);
         newThreadCreator.scheduleAtFixedRate(createNewThreads, 0, THREAD_INCREMENT_INTERVAL);
+        try {
+            Thread.sleep(expiryTimeWithBufferInMillis);
+        } catch (InterruptedException e) {
+            LOG.error("Got interrupted while sleeping for timer thread to finish");
+        }
+        newThreadCreator.cancel();
         SortedMap<Long, List<StopWatch>> stopWatches = new TreeMap<Long, List<StopWatch>>();
         for (Future<SortedMap<Long, List<StopWatch>>> future : futures) {
             try {
-                stopWatches.putAll(future.get(expiryTimeWithBufferInMillis, TimeUnit.MILLISECONDS));
+                stopWatches.putAll(future.get());
             } catch (Exception e) {
                 LOG.error("Error while getting thread results", e);
             }
@@ -128,6 +137,7 @@ public class HCatMapper extends MapReduceBase implements Mapper<LongWritable, Te
                         }
                         stopWatches = new ArrayList<StopWatch>();
                         currentCheckPoint = nextCheckpoint();
+                        LOG.info("Checkpoint is:" + currentCheckPoint);
                     }
 
                     StopWatch stopWatch = new StopWatch(task.getName());
@@ -135,6 +145,7 @@ public class HCatMapper extends MapReduceBase implements Mapper<LongWritable, Te
                     stopWatch.stop();
                     stopWatches.add(stopWatch);
                     if(System.currentTimeMillis() > expiryTime) {
+                        LOG.info("Stopped doing work as thread expired");
                         break metastoreCalls;
                     }
                 }
