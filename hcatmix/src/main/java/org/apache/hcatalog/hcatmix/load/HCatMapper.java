@@ -35,7 +35,7 @@ import java.util.concurrent.*;
 /**
 * Author: malakar
 */
-public class HCatMapper extends MapReduceBase implements Mapper<LongWritable, Text, LongWritable, List<StopWatch>> {
+public class HCatMapper extends MapReduceBase implements Mapper<LongWritable, Text, LongWritable, HCatMapper.StopWatches> {
     public static final int THREAD_INCREMENT_COUNT = 5;
     public static final long THREAD_INCREMENT_INTERVAL = 5 * 60 * 1000;
     public static final int MAP_TIMEOUT_MINUTES = 3;
@@ -69,9 +69,9 @@ public class HCatMapper extends MapReduceBase implements Mapper<LongWritable, Te
     }
 
     @Override
-    public void map(LongWritable longWritable, Text text, OutputCollector<LongWritable, List<StopWatch>> collector, final Reporter reporter) throws IOException {
+    public void map(LongWritable longWritable, Text text, OutputCollector<LongWritable, StopWatches> collector, final Reporter reporter) throws IOException {
         LOG.info(MessageFormat.format("Input: {0}={1}", longWritable, text));
-        final List<Future<SortedMap<Long, List<StopWatch>>>> futures = new ArrayList<Future<SortedMap<Long, List<StopWatch>>>>();
+        final List<Future<SortedMap<Long, StopWatches>>> futures = new ArrayList<Future<SortedMap<Long, StopWatches>>>();
         final List<Task> tasks = new ArrayList<Task>();
         tasks.add(new Task.ReadTask(token));
 
@@ -80,14 +80,14 @@ public class HCatMapper extends MapReduceBase implements Mapper<LongWritable, Te
         Timer newThreadCreator = new Timer(true);
         newThreadCreator.scheduleAtFixedRate(createNewThreads, 0, THREAD_INCREMENT_INTERVAL);
         try {
-            Thread.sleep(expiryTimeWithBufferInMillis);
+            Thread.sleep(expiryTimeWithBufferInMillis - System.currentTimeMillis());
         } catch (InterruptedException e) {
             LOG.error("Got interrupted while sleeping for timer thread to finish");
         }
         newThreadCreator.cancel();
         LOG.info("Time is over, will collect the futures now");
-        SortedMap<Long, List<StopWatch>> stopWatches = new TreeMap<Long, List<StopWatch>>();
-        for (Future<SortedMap<Long, List<StopWatch>>> future : futures) {
+        SortedMap<Long, StopWatches> stopWatches = new TreeMap<Long, StopWatches>();
+        for (Future<SortedMap<Long, StopWatches>> future : futures) {
             try {
                 stopWatches.putAll(future.get());
             } catch (Exception e) {
@@ -95,12 +95,12 @@ public class HCatMapper extends MapReduceBase implements Mapper<LongWritable, Te
             }
         }
         LOG.info("Collected all the statistics for #threads: " + createNewThreads.getThreadCount());
-        for (Map.Entry<Long, List<StopWatch>> entry : stopWatches.entrySet()) {
+        for (Map.Entry<Long, StopWatches> entry : stopWatches.entrySet()) {
             collector.collect(new LongWritable(entry.getKey()), entry.getValue());
         }
     }
 
-    public static class MetaStoreWorker implements Callable<SortedMap<Long, List<StopWatch>>> {
+    public static class MetaStoreWorker implements Callable<SortedMap<Long, StopWatches>> {
         private final long expiryTime;
         private final List<Task> tasks;
 
@@ -111,10 +111,10 @@ public class HCatMapper extends MapReduceBase implements Mapper<LongWritable, Te
         }
 
         @Override
-        public SortedMap<Long, List<StopWatch>> call() throws Exception {
-            SortedMap<Long, List<StopWatch>> timeSeriesStopWatches = new TreeMap<Long, List<StopWatch>>();
+        public SortedMap<Long, StopWatches> call() throws Exception {
+            SortedMap<Long, StopWatches> timeSeriesStopWatches = new TreeMap<Long, StopWatches>();
 
-            List<StopWatch> stopWatches = new ArrayList<StopWatch>();
+            StopWatches stopWatches = new StopWatches();
             long currentCheckPoint = 0;
             metastoreCalls: while(true) {
                 for (Task task : tasks) {
@@ -122,7 +122,7 @@ public class HCatMapper extends MapReduceBase implements Mapper<LongWritable, Te
                         if(currentCheckPoint != 0) { // Not first time
                             timeSeriesStopWatches.put(currentCheckPoint, stopWatches);
                         }
-                        stopWatches = new ArrayList<StopWatch>();
+                        stopWatches = new StopWatches();
                         currentCheckPoint = nextCheckpoint();
                         LOG.info(Thread.currentThread().getName() + ": Checkpoint is:" + currentCheckPoint);
                     }
@@ -153,15 +153,19 @@ public class HCatMapper extends MapReduceBase implements Mapper<LongWritable, Te
         }
     }
 
-    private static class ThreadCreatorTimer extends TimerTask {
-        int threadCount;
+    public static class StopWatches extends ArrayList<StopWatch> {
+
+    }
+
+    public static class ThreadCreatorTimer extends TimerTask {
+        private int threadCount;
         private final long expiryTimeInMillis;
         private final List<Task> tasks;
-        private final List<Future<SortedMap<Long, List<StopWatch>>>> futures;
+        private final List<Future<SortedMap<Long, StopWatches>>> futures;
         private final Reporter reporter;
         enum COUNTERS { NUM_THREADS};
 
-        public ThreadCreatorTimer(final long expiryTimeInMillis, List<Task> tasks, List<Future<SortedMap<Long, List<StopWatch>>>> futures, Reporter reporter) {
+        public ThreadCreatorTimer(final long expiryTimeInMillis, List<Task> tasks, List<Future<SortedMap<Long, StopWatches>>> futures, Reporter reporter) {
             this.expiryTimeInMillis = expiryTimeInMillis;
             this.tasks = tasks;
             this.futures = futures;
@@ -177,10 +181,8 @@ public class HCatMapper extends MapReduceBase implements Mapper<LongWritable, Te
                 workers.add(new MetaStoreWorker(expiryTimeInMillis, tasks));
             }
 
-            try {
-                futures.addAll(executorPool.invokeAll(workers));
-            } catch (InterruptedException e) {
-                LOG.error("Got interrupted, ignored", e);
+            for (MetaStoreWorker worker : workers) {
+                futures.add(executorPool.submit(worker));
             }
             threadCount += THREAD_INCREMENT_COUNT;
             LOG.info("Current number of threads: " + threadCount);
