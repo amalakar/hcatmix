@@ -18,15 +18,13 @@
 
 package org.apache.hcatalog.hcatmix.load;
 
-import org.apache.hadoop.hive.conf.HiveConf;
-import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
-import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.*;
 import org.perf4j.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.apache.hadoop.security.token.Token;
 
 import java.io.IOException;
 import java.util.*;
@@ -45,13 +43,15 @@ public class HCatMapper extends MapReduceBase implements Mapper<LongWritable, Te
 
     private long expiryTimeInMillis;
     private long expiryTimeWithBufferInMillis;
+    private Token token;
 
     @Override
-    public void configure(JobConf job) {
-        super.configure(job);
+    public void configure(JobConf jobConf) {
+        super.configure(jobConf);
         expiryTimeInMillis = System.currentTimeMillis() + MAP_TIMEOUT_MINUTES * 60 * 1000;
         expiryTimeWithBufferInMillis = System.currentTimeMillis() + MAP_TIMEOUT_MINUTES * 60 * 1000
                             + MAP_TIMEOUT_BUFFER_IN_MINUTES * 60 * 1000;
+        Token token = jobConf.getCredentials().getToken(new Text(HadoopLoadGenerator.METASTORE_TOKEN_KEY));
     }
 
     @Override
@@ -59,7 +59,7 @@ public class HCatMapper extends MapReduceBase implements Mapper<LongWritable, Te
         final long expiryTimeInMillis = this.expiryTimeInMillis;
         final List<Future<SortedMap<Long, List<StopWatch>>>> futures = new ArrayList<Future<SortedMap<Long, List<StopWatch>>>>();
         final List<Task> tasks = new ArrayList<Task>();
-        tasks.add(new ReadTask());
+        tasks.add(new Task.ReadTask(token));
 
         TimerTask createNewThreads = new TimerTask(){
             public void run() {
@@ -127,6 +127,9 @@ public class HCatMapper extends MapReduceBase implements Mapper<LongWritable, Te
                     }
                 }
             }
+            for (Task task : tasks) {
+                task.close();
+            }
             return timeSeriesStopWatches;
         }
 
@@ -140,30 +143,4 @@ public class HCatMapper extends MapReduceBase implements Mapper<LongWritable, Te
         }
     }
 
-    public static abstract class Task {
-        public abstract String getName();
-        public abstract void doTask() throws MetaException;
-        protected HiveMetaStoreClient hiveClient;
-
-        protected Task() {
-            try {
-                HiveConf hiveConf = new HiveConf(Task.class);
-                hiveClient = new HiveMetaStoreClient(hiveConf);
-            } catch (MetaException e) {
-                throw new RuntimeException("Couldn't create HiveMetaStoreClient", e);
-            }
-        }
-    }
-
-    public static class ReadTask extends Task {
-        @Override
-        public String getName() {
-            return "getDatabase";
-        }
-
-        @Override
-        public void doTask() throws MetaException {
-            hiveClient.getAllDatabases();
-        }
-    }
 }

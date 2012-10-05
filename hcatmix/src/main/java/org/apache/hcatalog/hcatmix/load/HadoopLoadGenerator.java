@@ -18,11 +18,22 @@
 
 package org.apache.hcatalog.hcatmix.load;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
+import org.apache.hadoop.hive.metastore.api.MetaException;
+import org.apache.hadoop.hive.thrift.DelegationTokenIdentifier;
+import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.*;
+import org.apache.hadoop.security.UserGroupInformation;
+import org.apache.hadoop.security.token.Token;
+import org.apache.hadoop.security.token.delegation.AbstractDelegationTokenIdentifier;
 import org.apache.hadoop.util.Tool;
+import org.apache.hadoop.util.ToolRunner;
+import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +47,8 @@ public class HadoopLoadGenerator extends Configured implements Tool {
     public final String OUTPUT_DIR = "/tmp/hcatmix/load/output";
     public final String INPUT_DIR = "/tmp/hcatmix/load/input";
 
+    public static final String METASTORE_TOKEN_KEY = "metaStoreToken";
+
     private FileSystem fs;
 
     private static final Logger LOG = LoggerFactory.getLogger(HadoopLoadGenerator.class);
@@ -43,29 +56,48 @@ public class HadoopLoadGenerator extends Configured implements Tool {
     public HadoopLoadGenerator() {
     }
 
+    public static void main(String[] args) throws Exception {
+        ToolRunner.run(new Configuration(), new HadoopLoadGenerator(), args);
+    }
+
     @Override
     public int run(String[] strings) throws Exception {
         return run();
     }
 
-    public int run() throws IOException {
+    public int run() throws IOException, MetaException, TException {
 
         // Create a JobConf using the processed conf
-        JobConf job = new JobConf(getConf());
+        JobConf jobConf;
+        if(getConf() != null) {
+            jobConf = new JobConf(getConf());
+        } else {
+            jobConf = new JobConf();
+        }
 
-        job.setJobName(JOB_NAME);
-        job.setNumMapTasks(NUM_MAPPERS);
-        job.setMapperClass(HCatMapper.class);
-        job.setReducerClass(HCatReducer.class);
 
-        fs = FileSystem.get(job);
+        jobConf.setJobName(JOB_NAME);
+        jobConf.setNumMapTasks(NUM_MAPPERS);
+        jobConf.setMapperClass(HCatMapper.class);
+        jobConf.setJarByClass(HCatMapper.class);
+        jobConf.setReducerClass(HCatReducer.class);
 
-        FileInputFormat.setInputPaths(job, createInputFiles(INPUT_DIR, NUM_MAPPERS));
-        FileOutputFormat.setOutputPath(job, new Path(OUTPUT_DIR));
+        fs = FileSystem.get(jobConf);
+
+        FileInputFormat.setInputPaths(jobConf, createInputFiles(INPUT_DIR, NUM_MAPPERS));
+        FileOutputFormat.setOutputPath(jobConf, new Path(OUTPUT_DIR));
+
+        // Set up delegation token required for hiveMetaStoreClient in map task
+        HiveConf hiveConf = new HiveConf(Task.class);
+        HiveMetaStoreClient hiveClient = new HiveMetaStoreClient(hiveConf);
+        String tokenStr = hiveClient.getDelegationToken(UserGroupInformation.getCurrentUser().getUserName(), "mapred");
+        Token<? extends AbstractDelegationTokenIdentifier> token = new Token<DelegationTokenIdentifier>();
+        token.decodeFromUrlString(tokenStr);
+        jobConf.getCredentials().addToken(new Text(METASTORE_TOKEN_KEY), token);
 
         // Submit the job, then poll for progress until the job is complete
         LOG.info("Submitted hadoop job");
-        RunningJob j = JobClient.runJob(job);
+        RunningJob j = JobClient.runJob(jobConf);
         LOG.info("JobID is: " + j.getJobName());
         if (!j.isSuccessful()) {
             throw new IOException("Job failed");
@@ -73,22 +105,31 @@ public class HadoopLoadGenerator extends Configured implements Tool {
         return 0;
     }
 
-    private Path createInputFiles(final String inputDirName, final int numMappers) throws IOException {
+    private Path[] createInputFiles(final String inputDirName, final int numMappers) throws IOException {
         Path inputDir = new Path(inputDirName);
-
+        Path[] paths = new Path[numMappers];
         if (!fs.exists(inputDir)) {
+            LOG.info("Directory doesn't exist will create input dir: " + inputDirName);
             fs.mkdirs(inputDir);
+        } else {
+            LOG.info("Input directory already exists, skipping creation : " + inputDirName);
         }
 
         for (int i = 0; i < numMappers; i++) {
             Path childDir = new Path(inputDir, "input_" + i);
-            fs.mkdirs(childDir);
+            if(!fs.exists(childDir)) {
+                fs.mkdirs(childDir);
+            }
             Path childFile = new Path(childDir, "input");
-            OutputStream out = fs.create(childFile);
-            PrintWriter pw = new PrintWriter(out);
-            pw.println("Dummy Input");
-            pw.close();
+            if(!fs.exists(childFile)) {
+                OutputStream out = fs.create(childFile);
+                PrintWriter pw = new PrintWriter(out);
+                pw.println("Dummy Input");
+                pw.close();
+            }
+            paths[i] = childDir;
         }
-        return inputDir;
+
+        return paths;
     }
 }
