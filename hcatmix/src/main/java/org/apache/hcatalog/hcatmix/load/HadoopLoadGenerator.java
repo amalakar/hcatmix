@@ -36,14 +36,12 @@ import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.thrift.TException;
 import org.perf4j.GroupedTimingStatistics;
-import org.perf4j.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.util.List;
 
 public class HadoopLoadGenerator extends Configured implements Tool {
     public final String JOB_NAME = "hcat-load-generator";
@@ -87,7 +85,7 @@ public class HadoopLoadGenerator extends Configured implements Tool {
         jobConf.setJarByClass(HCatMapper.class);
         jobConf.setReducerClass(HCatReducer.class);
         jobConf.setMapOutputKeyClass(LongWritable.class);
-        jobConf.setMapOutputValueClass(HCatMapper.StopWatches.class);
+        jobConf.setMapOutputValueClass(HCatMapper.ArrayStopWatchWritable.class);
         jobConf.setOutputKeyClass(LongWritable.class);
         jobConf.setOutputValueClass(GroupedTimingStatistics.class);
         fs = FileSystem.get(jobConf);

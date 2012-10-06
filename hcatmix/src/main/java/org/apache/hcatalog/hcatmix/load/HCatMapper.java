@@ -18,8 +18,10 @@
 
 package org.apache.hcatalog.hcatmix.load;
 
+import org.apache.hadoop.io.ArrayWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapred.*;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.perf4j.StopWatch;
@@ -27,6 +29,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.apache.hadoop.security.token.Token;
 
+import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.*;
@@ -35,7 +39,7 @@ import java.util.concurrent.*;
 /**
 * Author: malakar
 */
-public class HCatMapper extends MapReduceBase implements Mapper<LongWritable, Text, LongWritable, HCatMapper.StopWatches> {
+public class HCatMapper extends MapReduceBase implements Mapper<LongWritable, Text, LongWritable, HCatMapper.ArrayStopWatchWritable> {
     public static final int THREAD_INCREMENT_COUNT = 5;
     public static final long THREAD_INCREMENT_INTERVAL = 5 * 60 * 1000;
     public static final int MAP_TIMEOUT_MINUTES = 3;
@@ -69,9 +73,9 @@ public class HCatMapper extends MapReduceBase implements Mapper<LongWritable, Te
     }
 
     @Override
-    public void map(LongWritable longWritable, Text text, OutputCollector<LongWritable, StopWatches> collector, final Reporter reporter) throws IOException {
+    public void map(LongWritable longWritable, Text text, OutputCollector<LongWritable, ArrayStopWatchWritable> collector, final Reporter reporter) throws IOException {
         LOG.info(MessageFormat.format("Input: {0}={1}", longWritable, text));
-        final List<Future<SortedMap<Long, StopWatches>>> futures = new ArrayList<Future<SortedMap<Long, StopWatches>>>();
+        final List<Future<SortedMap<Long, ArrayStopWatchWritable>>> futures = new ArrayList<Future<SortedMap<Long, ArrayStopWatchWritable>>>();
         final List<Task> tasks = new ArrayList<Task>();
         tasks.add(new Task.ReadTask(token));
 
@@ -86,8 +90,8 @@ public class HCatMapper extends MapReduceBase implements Mapper<LongWritable, Te
         }
         newThreadCreator.cancel();
         LOG.info("Time is over, will collect the futures now");
-        SortedMap<Long, StopWatches> stopWatches = new TreeMap<Long, StopWatches>();
-        for (Future<SortedMap<Long, StopWatches>> future : futures) {
+        SortedMap<Long, ArrayStopWatchWritable> stopWatches = new TreeMap<Long, ArrayStopWatchWritable>();
+        for (Future<SortedMap<Long, ArrayStopWatchWritable>> future : futures) {
             try {
                 stopWatches.putAll(future.get());
             } catch (Exception e) {
@@ -95,12 +99,12 @@ public class HCatMapper extends MapReduceBase implements Mapper<LongWritable, Te
             }
         }
         LOG.info("Collected all the statistics for #threads: " + createNewThreads.getThreadCount());
-        for (Map.Entry<Long, StopWatches> entry : stopWatches.entrySet()) {
+        for (Map.Entry<Long, ArrayStopWatchWritable> entry : stopWatches.entrySet()) {
             collector.collect(new LongWritable(entry.getKey()), entry.getValue());
         }
     }
 
-    public static class MetaStoreWorker implements Callable<SortedMap<Long, StopWatches>> {
+    public static class MetaStoreWorker implements Callable<SortedMap<Long, ArrayStopWatchWritable>> {
         private final long expiryTime;
         private final List<Task> tasks;
 
@@ -111,18 +115,19 @@ public class HCatMapper extends MapReduceBase implements Mapper<LongWritable, Te
         }
 
         @Override
-        public SortedMap<Long, StopWatches> call() throws Exception {
-            SortedMap<Long, StopWatches> timeSeriesStopWatches = new TreeMap<Long, StopWatches>();
+        public SortedMap<Long, ArrayStopWatchWritable> call() throws Exception {
+            SortedMap<Long, ArrayStopWatchWritable> timeSeriesStopWatches = new TreeMap<Long, ArrayStopWatchWritable>();
 
-            StopWatches stopWatches = new StopWatches();
+            List<StopWatch> stopWatches = new ArrayList<StopWatch>();
             long currentCheckPoint = 0;
             metastoreCalls: while(true) {
                 for (Task task : tasks) {
                     if(currentTimeInMinutes() >= currentCheckPoint + TIME_SERIES_INTERVAL_IN_MINUTES) {
                         if(currentCheckPoint != 0) { // Not first time
-                            timeSeriesStopWatches.put(currentCheckPoint, stopWatches);
+                            ArrayStopWatchWritable arrayStopWatchWritable = new ArrayStopWatchWritable(stopWatches.toArray(new StopWatchWritable[0]));
+                            timeSeriesStopWatches.put(currentCheckPoint, arrayStopWatchWritable);
                         }
-                        stopWatches = new StopWatches();
+                        stopWatches = new ArrayList<StopWatch>();
                         currentCheckPoint = nextCheckpoint();
                         LOG.info(Thread.currentThread().getName() + ": Checkpoint is:" + currentCheckPoint);
                     }
@@ -153,7 +158,42 @@ public class HCatMapper extends MapReduceBase implements Mapper<LongWritable, Te
         }
     }
 
-    public static class StopWatches extends ArrayList<StopWatch> {
+    public static class ArrayStopWatchWritable extends ArrayWritable {
+        public ArrayStopWatchWritable() {
+            super(StopWatchWritable.class);
+        }
+
+        public ArrayStopWatchWritable(StopWatchWritable[] values) {
+            super(StopWatchWritable.class, values);
+        }
+    }
+
+    public static class StopWatchWritable implements Writable {
+        private StopWatch stopWatch;
+
+        @Override
+        public void write(DataOutput dataOutput) throws IOException {
+            dataOutput.writeLong(stopWatch.getStartTime());
+            dataOutput.writeLong(stopWatch.getElapsedTime());
+            dataOutput.writeUTF(stopWatch.getTag());
+        }
+
+        @Override
+        public void readFields(DataInput dataInput) throws IOException {
+            long startTime = dataInput.readLong();
+            long elapsedTime = dataInput.readLong();
+            String tag = dataInput.readUTF();
+            stopWatch = new StopWatch(startTime, elapsedTime, tag, null);
+        }
+
+
+        public StopWatchWritable(StopWatch stopWatch) {
+            this.stopWatch = stopWatch;
+        }
+
+        public StopWatchWritable fromStopWatch(StopWatch stopWatch) {
+            return new StopWatchWritable(stopWatch);
+        }
 
     }
 
@@ -161,11 +201,11 @@ public class HCatMapper extends MapReduceBase implements Mapper<LongWritable, Te
         private int threadCount;
         private final long expiryTimeInMillis;
         private final List<Task> tasks;
-        private final List<Future<SortedMap<Long, StopWatches>>> futures;
+        private final List<Future<SortedMap<Long, ArrayStopWatchWritable>>> futures;
         private final Reporter reporter;
         enum COUNTERS { NUM_THREADS};
 
-        public ThreadCreatorTimer(final long expiryTimeInMillis, List<Task> tasks, List<Future<SortedMap<Long, StopWatches>>> futures, Reporter reporter) {
+        public ThreadCreatorTimer(final long expiryTimeInMillis, List<Task> tasks, List<Future<SortedMap<Long, ArrayStopWatchWritable>>> futures, Reporter reporter) {
             this.expiryTimeInMillis = expiryTimeInMillis;
             this.tasks = tasks;
             this.futures = futures;
