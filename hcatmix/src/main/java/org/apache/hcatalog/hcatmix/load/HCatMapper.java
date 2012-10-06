@@ -118,7 +118,7 @@ public class HCatMapper extends MapReduceBase implements Mapper<LongWritable, Te
         public SortedMap<Long, ArrayStopWatchWritable> call() throws Exception {
             SortedMap<Long, ArrayStopWatchWritable> timeSeriesStopWatches = new TreeMap<Long, ArrayStopWatchWritable>();
 
-            List<StopWatch> stopWatches = new ArrayList<StopWatch>();
+            List<StopWatchWritable> stopWatches = new ArrayList<StopWatchWritable>();
             long currentCheckPoint = 0;
             metastoreCalls: while(true) {
                 for (Task task : tasks) {
@@ -127,7 +127,7 @@ public class HCatMapper extends MapReduceBase implements Mapper<LongWritable, Te
                             ArrayStopWatchWritable arrayStopWatchWritable = new ArrayStopWatchWritable(stopWatches.toArray(new StopWatchWritable[0]));
                             timeSeriesStopWatches.put(currentCheckPoint, arrayStopWatchWritable);
                         }
-                        stopWatches = new ArrayList<StopWatch>();
+                        stopWatches = new ArrayList<StopWatchWritable>();
                         currentCheckPoint = nextCheckpoint();
                         LOG.info(Thread.currentThread().getName() + ": Checkpoint is:" + currentCheckPoint);
                     }
@@ -135,7 +135,7 @@ public class HCatMapper extends MapReduceBase implements Mapper<LongWritable, Te
                     StopWatch stopWatch = new StopWatch(task.getName());
                     task.doTask();
                     stopWatch.stop();
-                    stopWatches.add(stopWatch);
+                    stopWatches.add(StopWatchWritable.fromStopWatch(stopWatch));
                     if(System.currentTimeMillis() > expiryTime) {
                         LOG.info(Thread.currentThread().getName() + ": Stopped doing work as thread expired");
                         break metastoreCalls;
@@ -186,13 +186,16 @@ public class HCatMapper extends MapReduceBase implements Mapper<LongWritable, Te
             stopWatch = new StopWatch(startTime, elapsedTime, tag, null);
         }
 
-
         public StopWatchWritable(StopWatch stopWatch) {
             this.stopWatch = stopWatch;
         }
 
-        public StopWatchWritable fromStopWatch(StopWatch stopWatch) {
+        public static StopWatchWritable fromStopWatch(StopWatch stopWatch) {
             return new StopWatchWritable(stopWatch);
+        }
+
+        public StopWatch getStopWatch() {
+            return  stopWatch;
         }
 
     }

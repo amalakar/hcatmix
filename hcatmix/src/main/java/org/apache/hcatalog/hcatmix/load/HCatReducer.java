@@ -24,30 +24,28 @@ import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.Reducer;
 import org.apache.hadoop.mapred.Reporter;
 import org.perf4j.GroupedTimingStatistics;
-import org.perf4j.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Iterator;
-import java.util.List;
 
-/**
- * Author: malakar
- */
-public class HCatReducer extends MapReduceBase implements Reducer<LongWritable, List<StopWatch>, LongWritable, GroupedTimingStatistics> {
+public class HCatReducer extends MapReduceBase implements Reducer<LongWritable, HCatMapper.ArrayStopWatchWritable, LongWritable, GroupedTimingStatistics> {
     private static final Logger LOG = LoggerFactory.getLogger(HCatReducer.class);
 
     @Override
-    public void reduce(LongWritable time, Iterator<List<StopWatch>> stats, OutputCollector<LongWritable, GroupedTimingStatistics> collector, Reporter reporter) throws IOException {
+    public void reduce(LongWritable timeStamp, Iterator<HCatMapper.ArrayStopWatchWritable> stopWatchArrayList, OutputCollector<LongWritable, GroupedTimingStatistics> collector, Reporter reporter) throws IOException {
         GroupedTimingStatistics statistics = new GroupedTimingStatistics();
-        LOG.info("Going through statistics for time: " + time);
-        while (stats.hasNext()) {
-            List<StopWatch> stat = stats.next();
-            statistics.addStopWatches(stat);
-            LOG.info("Stats:" + stat);
+        LOG.info("Going through statistics for time: " + timeStamp);
+        while (stopWatchArrayList.hasNext()) {
+            HCatMapper.ArrayStopWatchWritable stopWatchArray = stopWatchArrayList.next();
+            HCatMapper.StopWatchWritable[] stopWatches = (HCatMapper.StopWatchWritable[]) stopWatchArray.toArray();
+            for (HCatMapper.StopWatchWritable stopWatch : stopWatches) {
+                statistics.addStopWatch(stopWatch.getStopWatch());
+            }
+            LOG.info("Stats:" + stopWatchArray);
         }
-        LOG.info("Final statistics for " + time + " " + statistics);
-        collector.collect(null, statistics);
+        LOG.info("Final statistics for " + timeStamp + " " + statistics);
+        collector.collect(timeStamp, statistics);
     }
 }
