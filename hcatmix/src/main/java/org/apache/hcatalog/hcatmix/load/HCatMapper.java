@@ -105,6 +105,15 @@ public class HCatMapper extends MapReduceBase implements
                 new TreeMap<Long, List<StopWatchWritable>>();
         for (Future<SortedMap<Long, List<StopWatchWritable>>> future : futures) {
             try {
+                SortedMap<Long, List<StopWatchWritable>> threadTimeSeries = future.get();
+                for (Long timeStamp : threadTimeSeries.keySet()) {
+                    if(stopWatchTimeSeries.containsKey(timeStamp)) {
+                        stopWatchTimeSeries.get(timeStamp).addAll(threadTimeSeries.get(timeStamp));
+                    } else {
+                        stopWatchTimeSeries.put(timeStamp, threadTimeSeries.get(timeStamp));
+                    }
+                }
+
                 stopWatchTimeSeries.putAll(future.get());
                 if(LOG.isDebugEnabled()) {
                     LOG.debug("Collected stopwatches: " + stopWatchTimeSeries.size());
