@@ -31,17 +31,18 @@ import java.text.MessageFormat;
 import java.util.*;
 import java.util.concurrent.*;
 
+import static org.apache.hcatalog.hcatmix.load.HadoopLoadGenerator.Conf;
+
 /**
 * Author: malakar
 */
 public class HCatMapper extends MapReduceBase implements
         Mapper<LongWritable, Text, LongWritable, StopWatchWritable.MapResult> {
-    public static final int THREAD_INCREMENT_COUNT = 5;
-    public static final long THREAD_INCREMENT_INTERVAL = 1 * 60 * 1000;
-    private static final int MAP_TIMEOUT_MINUTES = 3;
-    private static final int MAP_TIMEOUT_BUFFER_IN_MINUTES = 1;
-    private static final int TIME_SERIES_INTERVAL_IN_MINUTES = 1;
     private static final Logger LOG = LoggerFactory.getLogger(HCatMapper.class);
+
+    private int threadIncrementCount;
+    private long threadIncrementInterval;
+    private JobConf jobConf;
 
     private TimeKeeper timeKeeper;
     private Token token;
@@ -52,8 +53,17 @@ public class HCatMapper extends MapReduceBase implements
     @Override
     public void configure(JobConf jobConf) {
         super.configure(jobConf);
-        timeKeeper = new TimeKeeper(MAP_TIMEOUT_MINUTES, MAP_TIMEOUT_BUFFER_IN_MINUTES,
-                TIME_SERIES_INTERVAL_IN_MINUTES);
+        this.jobConf = jobConf;
+
+        final int mapRunTime = getFromJobConf(Conf.MAP_RUN_TIME);
+        final int timeSeriesIntervalInMinutes = getFromJobConf(Conf.STAT_COLLECTION_INTERVAL_MINUTE);
+        final int mapRuntimeExtraBuffer = getFromJobConf(Conf.THREAD_COMPLETION_BUFFER);
+
+        threadIncrementCount = getFromJobConf(Conf.THREAD_INCREMENT_COUNT);
+        threadIncrementInterval = getFromJobConf(Conf.THREAD_INCREMENT_INTERVAL_MINUTES);
+
+        timeKeeper = new TimeKeeper(mapRunTime, mapRuntimeExtraBuffer,
+                timeSeriesIntervalInMinutes);
         token = jobConf.getCredentials().getToken(new Text(HadoopLoadGenerator.METASTORE_TOKEN_KEY));
 
         try {
@@ -61,6 +71,12 @@ public class HCatMapper extends MapReduceBase implements
         } catch (IOException e) {
             LOG.info("Error adding token to user", e);
         }
+    }
+
+    private int getFromJobConf(Conf conf) {
+        int value = jobConf.getInt(conf.getJobConfKey(), conf.defaultValue);
+        LOG.info(conf.getJobConfKey() + " value is: " + conf.defaultValue);
+        return value;
     }
 
     @Override
@@ -74,10 +90,10 @@ public class HCatMapper extends MapReduceBase implements
         tasks.add(new HCatLoadTask.HCatReadLoadTask(token));
 
         ThreadCreatorTimer createNewThreads =
-                new ThreadCreatorTimer(new TimeKeeper(timeKeeper), tasks, futures, reporter);
+                new ThreadCreatorTimer(new TimeKeeper(timeKeeper), tasks, threadIncrementCount, futures, reporter);
 
         Timer newThreadCreator = new Timer(true);
-        newThreadCreator.scheduleAtFixedRate(createNewThreads, 0, THREAD_INCREMENT_INTERVAL);
+        newThreadCreator.scheduleAtFixedRate(createNewThreads, 0, threadIncrementInterval);
         try {
             Thread.sleep(timeKeeper.getRemainingTimeIncludingBuffer());
         } catch (InterruptedException e) {
@@ -110,5 +126,4 @@ public class HCatMapper extends MapReduceBase implements
                     new StopWatchWritable.MapResult(threadCount, stopWatchList));
         }
     }
-
 }

@@ -39,12 +39,14 @@ public class ThreadCreatorTimer extends TimerTask {
     private final List<Future<SortedMap<Long, List<StopWatchWritable>>>> futures;
     private final Reporter reporter;
     private final SortedMap<Long, Integer> threadCountTimeSeries = new TreeMap<Long, Integer>();
+    private final int threadIncrementCount;
     enum COUNTERS { NUM_THREADS}
 
-    public ThreadCreatorTimer(TimeKeeper timeKeeper, List<Task> tasks,
+    public ThreadCreatorTimer(TimeKeeper timeKeeper, List<Task> tasks, final int threadIncrementCount,
                               List<Future<SortedMap<Long, List<StopWatchWritable>>>> futures, Reporter reporter) {
         this.timeKeeper = timeKeeper;
         this.tasks = tasks;
+        this.threadIncrementCount = threadIncrementCount;
         this.futures = futures;
         this.reporter = reporter;
         threadCount = 0;
@@ -52,17 +54,17 @@ public class ThreadCreatorTimer extends TimerTask {
     }
 
     public void run() {
-        LOG.info("About to create " + HCatMapper.THREAD_INCREMENT_COUNT + " threads.");
-        final ExecutorService executorPool = Executors.newFixedThreadPool(HCatMapper.THREAD_INCREMENT_COUNT);
-        Collection<Worker> workers = new ArrayList<Worker>(HCatMapper.THREAD_INCREMENT_COUNT);
-        for (int i = 0; i < HCatMapper.THREAD_INCREMENT_COUNT; i++) {
+        LOG.info("About to create " + threadIncrementCount + " threads.");
+        final ExecutorService executorPool = Executors.newFixedThreadPool(threadIncrementCount);
+        Collection<Worker> workers = new ArrayList<Worker>(threadIncrementCount);
+        for (int i = 0; i < threadIncrementCount; i++) {
             workers.add(new Worker(new TimeKeeper(timeKeeper), tasks));
         }
 
         for (Worker worker : workers) {
             futures.add(executorPool.submit(worker));
         }
-        threadCount += HCatMapper.THREAD_INCREMENT_COUNT;
+        threadCount += threadIncrementCount;
 
         // Reporting
         LOG.info("Current number of threads: " + threadCount);
@@ -71,7 +73,7 @@ public class ThreadCreatorTimer extends TimerTask {
                 threadCount, timeKeeper.getPercentageProgress());
         LOG.info(msg);
         reporter.setStatus(msg);
-        reporter.incrCounter(COUNTERS.NUM_THREADS, HCatMapper.THREAD_INCREMENT_COUNT);
+        reporter.incrCounter(COUNTERS.NUM_THREADS, threadIncrementCount);
 
         // Update time series
         if(timeKeeper.hasNextCheckpointArrived()) {

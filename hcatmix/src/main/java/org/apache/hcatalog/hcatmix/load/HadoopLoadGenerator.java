@@ -35,17 +35,18 @@ import org.apache.hadoop.security.token.delegation.AbstractDelegationTokenIdenti
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.thrift.TException;
-import org.perf4j.GroupedTimingStatistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.util.Properties;
 
 public class HadoopLoadGenerator extends Configured implements Tool {
+    public static final String CONF_FILE = "hcat_load_test.properties";
     public final String JOB_NAME = "hcat-load-generator";
-    public final int NUM_MAPPERS = 30;
     public final Path OUTPUT_DIR = new Path("/tmp/hcatmix/load/output");
     public final String INPUT_DIR = "/tmp/hcatmix/load/input";
 
@@ -55,6 +56,28 @@ public class HadoopLoadGenerator extends Configured implements Tool {
     private FileSystem fs;
 
     private static final Logger LOG = LoggerFactory.getLogger(HadoopLoadGenerator.class);
+
+    public enum Conf {
+        NUM_MAPPERS("num.mappers", 30),
+        THREAD_INCREMENT_COUNT("thread.increment.count", 5),
+        THREAD_INCREMENT_INTERVAL_MINUTES("thread.increment.interval.minutes", 1),
+        MAP_RUN_TIME("thread.increment.count", 3),
+        THREAD_COMPLETION_BUFFER("thread.completion.buffer.minutes", 1),
+        STAT_COLLECTION_INTERVAL_MINUTE("stat.collection.interval.minutes", 2);
+
+        public final String propName;
+        public final int defaultValue;
+
+        Conf(final String propName, final int defaultVale) {
+            this.propName = propName;
+            this.defaultValue = defaultVale;
+
+        }
+
+        public String getJobConfKey() {
+            return "hcatmix." + propName;
+        }
+    }
 
     public HadoopLoadGenerator() {
     }
@@ -77,10 +100,28 @@ public class HadoopLoadGenerator extends Configured implements Tool {
         } else {
             jobConf = new JobConf();
         }
+        InputStream confFile = HCatMapper.class.getResourceAsStream(CONF_FILE);
+        int numMappers = Conf.NUM_MAPPERS.defaultValue;
+        if(confFile != null) {
+            Properties props = new Properties();
+            try {
+                props.load(confFile);
+            } catch (IOException e) {
+                LOG.error("[Ignored] Couldn't load properties file: " + CONF_FILE, e);
+            }
 
+            numMappers = Integer.parseInt(props.getProperty(Conf.NUM_MAPPERS.propName, "" + Conf.NUM_MAPPERS.defaultValue));
+            addToJobConf(jobConf, props, Conf.MAP_RUN_TIME);
+            addToJobConf(jobConf, props, Conf.STAT_COLLECTION_INTERVAL_MINUTE);
+            addToJobConf(jobConf, props, Conf.THREAD_INCREMENT_COUNT);
+            addToJobConf(jobConf, props, Conf.THREAD_INCREMENT_INTERVAL_MINUTES);
+            addToJobConf(jobConf, props, Conf.THREAD_COMPLETION_BUFFER);
+        } else {
+            LOG.error("Couldn't find config file in classpath: " + CONF_FILE + " ignored and proceeding");
+        }
 
         jobConf.setJobName(JOB_NAME);
-        jobConf.setNumMapTasks(NUM_MAPPERS);
+        jobConf.setNumMapTasks(numMappers);
         jobConf.setMapperClass(HCatMapper.class);
         jobConf.setJarByClass(HCatMapper.class);
         jobConf.setReducerClass(HCatReducer.class);
@@ -90,7 +131,7 @@ public class HadoopLoadGenerator extends Configured implements Tool {
         jobConf.setOutputValueClass(Text.class);
         fs = FileSystem.get(jobConf);
 
-        FileInputFormat.setInputPaths(jobConf, createInputFiles(INPUT_DIR, NUM_MAPPERS));
+        FileInputFormat.setInputPaths(jobConf, createInputFiles(INPUT_DIR, numMappers));
         if(fs.exists(OUTPUT_DIR)) {
             fs.delete(OUTPUT_DIR, true);
         }
@@ -113,6 +154,10 @@ public class HadoopLoadGenerator extends Configured implements Tool {
             throw new IOException("Job failed");
         }
         return 0;
+    }
+
+    private static void addToJobConf(JobConf jobConf, Properties props, Conf conf) {
+        jobConf.set(conf.getJobConfKey(), props.getProperty(conf.propName, "" + conf.defaultValue));
     }
 
     private Path[] createInputFiles(final String inputDirName, final int numMappers) throws IOException {
