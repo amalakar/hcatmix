@@ -85,9 +85,9 @@ public class HadoopLoadGenerator extends Configured implements Tool {
         jobConf.setJarByClass(HCatMapper.class);
         jobConf.setReducerClass(HCatReducer.class);
         jobConf.setMapOutputKeyClass(LongWritable.class);
-        jobConf.setMapOutputValueClass(StopWatchWritable.ArrayStopWatchWritable.class);
+        jobConf.setMapOutputValueClass(StopWatchWritable.MapResult.class);
         jobConf.setOutputKeyClass(LongWritable.class);
-        jobConf.setOutputValueClass(GroupedTimingStatistics.class);
+        jobConf.setOutputValueClass(Text.class);
         fs = FileSystem.get(jobConf);
 
         FileInputFormat.setInputPaths(jobConf, createInputFiles(INPUT_DIR, NUM_MAPPERS));

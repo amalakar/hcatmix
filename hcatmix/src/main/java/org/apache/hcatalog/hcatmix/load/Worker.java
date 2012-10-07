@@ -28,7 +28,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.Callable;
 
-public class Worker implements Callable<SortedMap<Long, StopWatchWritable.ArrayStopWatchWritable>> {
+public class Worker implements Callable<SortedMap<Long, List<StopWatchWritable>>> {
     private final TimeKeeper timeKeeper;
     private final List<Task> tasks;
     private static final Logger LOG = LoggerFactory.getLogger(Worker.class);
@@ -39,18 +39,15 @@ public class Worker implements Callable<SortedMap<Long, StopWatchWritable.ArrayS
     }
 
     @Override
-    public SortedMap<Long, StopWatchWritable.ArrayStopWatchWritable> call() throws Exception {
-        SortedMap<Long, StopWatchWritable.ArrayStopWatchWritable> timeSeriesStopWatches = new TreeMap<Long, StopWatchWritable.ArrayStopWatchWritable>();
+    public SortedMap<Long, List<StopWatchWritable>> call() throws Exception {
+        SortedMap<Long, List<StopWatchWritable>> timeSeriesStopWatches = new TreeMap<Long, List<StopWatchWritable>>();
 
         List<StopWatchWritable> stopWatches = new ArrayList<StopWatchWritable>();
-        TimeKeeper timeSeriesKeeper = new TimeKeeper(timeKeeper);
-        timeSeriesKeeper.updateCheckpoint();
-        metastoreCalls: while(true) {
+        timeKeeper.updateCheckpoint();
+        workLoop: while(true) {
             for (Task task : tasks) {
                 if(timeKeeper.hasNextCheckpointArrived()) {
-                    StopWatchWritable.ArrayStopWatchWritable arrayStopWatchWritable =
-                            new StopWatchWritable.ArrayStopWatchWritable(stopWatches.toArray(new StopWatchWritable[0]));
-                    timeSeriesStopWatches.put(timeSeriesKeeper.getCurrentCheckPoint(), arrayStopWatchWritable);
+                    timeSeriesStopWatches.put(timeKeeper.getCurrentCheckPoint(), stopWatches);
                     stopWatches = new ArrayList<StopWatchWritable>();
                     timeKeeper.updateCheckpoint();
                 }
@@ -62,7 +59,7 @@ public class Worker implements Callable<SortedMap<Long, StopWatchWritable.ArrayS
 
                 if(timeKeeper.hasExpired()) {
                     LOG.info(Thread.currentThread().getName() + ": Stopped doing work as thread expired");
-                    break metastoreCalls;
+                    break workLoop;
                 }
             }
         }

@@ -36,17 +36,19 @@ public class ThreadCreatorTimer extends TimerTask {
     private int threadCount;
     private final TimeKeeper timeKeeper;
     private final List<Task> tasks;
-    private final List<Future<SortedMap<Long, StopWatchWritable.ArrayStopWatchWritable>>> futures;
+    private final List<Future<SortedMap<Long, List<StopWatchWritable>>>> futures;
     private final Reporter reporter;
+    private final SortedMap<Long, Integer> threadCountTimeSeries = new TreeMap<Long, Integer>();
     enum COUNTERS { NUM_THREADS}
 
     public ThreadCreatorTimer(TimeKeeper timeKeeper, List<Task> tasks,
-                              List<Future<SortedMap<Long, StopWatchWritable.ArrayStopWatchWritable>>> futures, Reporter reporter) {
+                              List<Future<SortedMap<Long, List<StopWatchWritable>>>> futures, Reporter reporter) {
         this.timeKeeper = timeKeeper;
         this.tasks = tasks;
         this.futures = futures;
         this.reporter = reporter;
         threadCount = 0;
+        timeKeeper.updateCheckpoint();
     }
 
     public void run() {
@@ -54,20 +56,35 @@ public class ThreadCreatorTimer extends TimerTask {
         final ExecutorService executorPool = Executors.newFixedThreadPool(HCatMapper.THREAD_INCREMENT_COUNT);
         Collection<Worker> workers = new ArrayList<Worker>(HCatMapper.THREAD_INCREMENT_COUNT);
         for (int i = 0; i < HCatMapper.THREAD_INCREMENT_COUNT; i++) {
-            workers.add(new Worker(timeKeeper, tasks));
+            workers.add(new Worker(new TimeKeeper(timeKeeper), tasks));
         }
 
         for (Worker worker : workers) {
             futures.add(executorPool.submit(worker));
         }
         threadCount += HCatMapper.THREAD_INCREMENT_COUNT;
+
+        // Reporting
         LOG.info("Current number of threads: " + threadCount);
         reporter.progress();
-        reporter.setStatus(MessageFormat.format("#Threads: {0}, Progress: {1}%", threadCount, timeKeeper.getPercentageProgress()));
+        final String msg = MessageFormat.format("#Threads: {0}, Progress: {1}%",
+                threadCount, timeKeeper.getPercentageProgress());
+        LOG.info(msg);
+        reporter.setStatus(msg);
         reporter.incrCounter(COUNTERS.NUM_THREADS, HCatMapper.THREAD_INCREMENT_COUNT);
+
+        // Update time series
+        if(timeKeeper.hasNextCheckpointArrived()) {
+            threadCountTimeSeries.put(timeKeeper.getCurrentCheckPoint(), getThreadCount());
+            timeKeeper.updateCheckpoint();
+        }
     }
 
     public int getThreadCount() {
         return threadCount;
+    }
+
+    public SortedMap<Long, Integer> getThreadCountTimeSeries() {
+        return threadCountTimeSeries;
     }
 }

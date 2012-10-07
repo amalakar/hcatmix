@@ -25,10 +25,9 @@ import org.perf4j.StopWatch;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
-/**
-* Author: malakar
-*/
 public class StopWatchWritable implements Writable {
     private StopWatch stopWatch;
 
@@ -62,13 +61,47 @@ public class StopWatchWritable implements Writable {
         return  stopWatch;
     }
 
-    public static class ArrayStopWatchWritable extends ArrayWritable {
-        public ArrayStopWatchWritable() {
-            super(StopWatchWritable.class);
+    public static class MapResult implements Writable {
+        int threadCount;
+        List<StopWatchWritable> stopWatchList = new ArrayList<StopWatchWritable>();
+        int errors;
+
+        public MapResult() {
         }
 
-        public ArrayStopWatchWritable(StopWatchWritable[] values) {
-            super(StopWatchWritable.class, values);
+        public MapResult(int threadCount, List<StopWatchWritable> stopWatchList) {
+            this.threadCount = threadCount;
+            this.stopWatchList = stopWatchList;
+        }
+
+        @Override
+        public void write(DataOutput dataOutput) throws IOException {
+            dataOutput.writeInt(stopWatchList.size());
+            for (StopWatchWritable stopWatchWritable : stopWatchList) {
+                stopWatchWritable.write(dataOutput);
+            }
+            dataOutput.writeInt(threadCount);
+        }
+
+        @Override
+        public void readFields(DataInput dataInput) throws IOException {
+            int size = dataInput.readInt();
+
+            for (int i = 0; i < size; i++) {
+                StopWatchWritable stopWatch = new StopWatchWritable();
+                stopWatch.readFields(dataInput);
+                stopWatchList.add(stopWatch);
+            }
+
+            threadCount = dataInput.readInt();
+        }
+
+        public int getThreadCount() {
+            return threadCount;
+        }
+
+        public List<StopWatchWritable> getStopWatchList() {
+            return stopWatchList;
         }
     }
 }

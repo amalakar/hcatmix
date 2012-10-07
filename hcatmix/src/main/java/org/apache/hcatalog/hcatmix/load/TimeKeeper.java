@@ -32,7 +32,7 @@ public class TimeKeeper {
 
     private final long expiryTimeInMillis;
     private final long expiryTimeWithBufferInMillis;
-    private long currentCheckPoint;
+    private long currentCheckPoint = 0;
 
     public TimeKeeper(final long timeoutInMinutes, final long timeoutBufferInMinutes, final long timeInterval) {
         this(System.currentTimeMillis(), timeoutInMinutes, timeoutBufferInMinutes, timeInterval);

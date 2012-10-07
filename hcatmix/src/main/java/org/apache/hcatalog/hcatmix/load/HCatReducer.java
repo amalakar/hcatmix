@@ -19,6 +19,7 @@
 package org.apache.hcatalog.hcatmix.load;
 
 import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.MapReduceBase;
 import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.Reducer;
@@ -28,27 +29,36 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.Iterator;
+import java.util.List;
 
-public class HCatReducer extends MapReduceBase implements Reducer<LongWritable, StopWatchWritable.ArrayStopWatchWritable, LongWritable, GroupedTimingStatistics> {
+public class HCatReducer extends MapReduceBase implements
+        Reducer<LongWritable, StopWatchWritable.MapResult,
+        LongWritable, Text> {
     private static final Logger LOG = LoggerFactory.getLogger(HCatReducer.class);
 
     public HCatReducer() {
     }
 
     @Override
-    public void reduce(LongWritable timeStamp, Iterator<StopWatchWritable.ArrayStopWatchWritable> stopWatchArrayList, OutputCollector<LongWritable, GroupedTimingStatistics> collector, Reporter reporter) throws IOException {
+    public void reduce(LongWritable timeStamp, Iterator<StopWatchWritable.MapResult> mapResultIterator,
+                       OutputCollector<LongWritable, Text> collector, Reporter reporter)
+            throws IOException {
         GroupedTimingStatistics statistics = new GroupedTimingStatistics();
         LOG.info("Going through statistics for time: " + timeStamp + " ");
-        while (stopWatchArrayList.hasNext()) {
-            StopWatchWritable.ArrayStopWatchWritable stopWatchArray = stopWatchArrayList.next();
-            StopWatchWritable[] stopWatches = (StopWatchWritable[]) stopWatchArray.toArray();
+        int threadCount = 0;
+        while (mapResultIterator.hasNext()) {
+            StopWatchWritable.MapResult mapResult = mapResultIterator.next();
+            List<StopWatchWritable> stopWatches = mapResult.getStopWatchList();
             for (StopWatchWritable stopWatch : stopWatches) {
                 statistics.addStopWatch(stopWatch.getStopWatch());
             }
-            LOG.info("Stats:" + stopWatchArray);
+            LOG.info("Stats:" + mapResult);
+            threadCount += mapResult.getThreadCount();
         }
-        LOG.info("Final statistics for " + timeStamp + " " + statistics);
-        collector.collect(timeStamp, statistics);
+        LOG.info(MessageFormat.format("Final statistics for {0}: Threads: {1}, Statistics: {2}",
+                timeStamp, threadCount, statistics));
+        collector.collect(timeStamp, new Text(statistics.toString() + "\n threadCount " + threadCount));
     }
 }
