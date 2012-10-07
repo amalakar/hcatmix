@@ -37,7 +37,10 @@ import java.util.Random;
 public abstract class Task {
     public abstract String getName();
     public abstract void doTask() throws MetaException;
-    protected HiveMetaStoreClient hiveClient;
+    // Needs to be ThreadLocal hiveMetaStoreClient fails if used in multiple threads
+    private static ThreadLocal<HiveMetaStoreClient> hiveClient;
+
+
     private static final Logger LOG = LoggerFactory.getLogger(Task.class);
     public static final String HIVE_CONF_TOKEN_KEY = "hive.metastore.token.signature";
 
@@ -46,18 +49,23 @@ public abstract class Task {
             throw new IllegalArgumentException("Delegation token needs to be set");
         }
 
-        try {
-            HiveConf hiveConf = new HiveConf(Task.class);
-            hiveConf.set(HIVE_CONF_TOKEN_KEY, HadoopLoadGenerator.METASTORE_TOKEN_SIGNATURE);
-            hiveClient = new HiveMetaStoreClient(hiveConf);
-        } catch (MetaException e) {
-            throw new RuntimeException("Couldn't create HiveMetaStoreClient", e);
-        }
+        final HiveConf hiveConf = new HiveConf(Task.class);
+        hiveConf.set(HIVE_CONF_TOKEN_KEY, HadoopLoadGenerator.METASTORE_TOKEN_SIGNATURE);
+        hiveClient = new ThreadLocal<HiveMetaStoreClient>() {
+            @Override
+            protected HiveMetaStoreClient initialValue() {
+                try {
+                    return new HiveMetaStoreClient(hiveConf);
+                } catch (MetaException e) {
+                    throw new RuntimeException("Couldn't create HiveMetaStoreClient", e);
+                }
+            }
+        };
     }
 
     public void close() {
         try {
-            hiveClient.close();
+            hiveClient.get().close();
         } catch (Exception e) {
             LOG.error("Couldn't close hiveClient, ignored error", e);
         }
@@ -79,7 +87,7 @@ public abstract class Task {
         public void doTask() throws MetaException {
             try {
                 LOG.info("Doing work in Task");
-                final Database db = hiveClient.getDatabase("default");
+                final Database db = hiveClient.get().getDatabase("default");
                 LOG.info("Got database successfully!");
             } catch (Exception e) {
                 // TODO count failures too
@@ -87,7 +95,7 @@ public abstract class Task {
                 try {
                     Thread.sleep(10000 + rand.nextInt(10000));
                 } catch (InterruptedException e1) {
-                    LOG.info("interupted, ignored");
+                    LOG.info("interrupted, ignored");
                 }
             }
         }
