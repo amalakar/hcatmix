@@ -20,6 +20,7 @@ package org.apache.hcatalog.hcatmix.load;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
+import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.security.token.Token;
@@ -76,10 +77,12 @@ public abstract class Task {
 
         @Override
         public void doTask() throws MetaException {
-            LOG.info("Doing work in Task");
             try {
-                hiveClient.getDatabase("default");
+                LOG.info("Doing work in Task");
+                final Database db = hiveClient.getDatabase("default");
+                LOG.info("Got database successfully!");
             } catch (Exception e) {
+                // TODO count failures too
                 LOG.info("Error reading database: default", e);
                 try {
                     Thread.sleep(10000 + rand.nextInt(10000));

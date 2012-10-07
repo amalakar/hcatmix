@@ -33,6 +33,9 @@ import java.util.Iterator;
 public class HCatReducer extends MapReduceBase implements Reducer<LongWritable, HCatMapper.ArrayStopWatchWritable, LongWritable, GroupedTimingStatistics> {
     private static final Logger LOG = LoggerFactory.getLogger(HCatReducer.class);
 
+    public HCatReducer() {
+    }
+
     @Override
     public void reduce(LongWritable timeStamp, Iterator<HCatMapper.ArrayStopWatchWritable> stopWatchArrayList, OutputCollector<LongWritable, GroupedTimingStatistics> collector, Reporter reporter) throws IOException {
         GroupedTimingStatistics statistics = new GroupedTimingStatistics();

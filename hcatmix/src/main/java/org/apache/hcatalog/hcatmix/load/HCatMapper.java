@@ -51,6 +51,9 @@ public class HCatMapper extends MapReduceBase implements Mapper<LongWritable, Te
     private long expiryTimeWithBufferInMillis;
     private Token token;
 
+    public HCatMapper() {
+    }
+
     @Override
     public void configure(JobConf jobConf) {
         super.configure(jobConf);
@@ -170,6 +173,9 @@ public class HCatMapper extends MapReduceBase implements Mapper<LongWritable, Te
 
     public static class StopWatchWritable implements Writable {
         private StopWatch stopWatch;
+
+        public StopWatchWritable() {
+        }
 
         @Override
         public void write(DataOutput dataOutput) throws IOException {
