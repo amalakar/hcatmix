@@ -18,19 +18,14 @@
 
 package org.apache.hcatalog.hcatmix.load;
 
-import org.apache.hadoop.io.ArrayWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapred.*;
 import org.apache.hadoop.security.UserGroupInformation;
-import org.perf4j.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.apache.hadoop.security.token.Token;
 
-import java.io.DataInput;
-import java.io.DataOutput;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.*;
@@ -39,16 +34,15 @@ import java.util.concurrent.*;
 /**
 * Author: malakar
 */
-public class HCatMapper extends MapReduceBase implements Mapper<LongWritable, Text, LongWritable, HCatMapper.ArrayStopWatchWritable> {
+public class HCatMapper extends MapReduceBase implements Mapper<LongWritable, Text, LongWritable, StopWatchWritable.ArrayStopWatchWritable> {
     public static final int THREAD_INCREMENT_COUNT = 5;
     public static final long THREAD_INCREMENT_INTERVAL = 5 * 60 * 1000;
-    public static final int MAP_TIMEOUT_MINUTES = 3;
-    public static final int MAP_TIMEOUT_BUFFER_IN_MINUTES = 1;
-    public static final int TIME_SERIES_INTERVAL_IN_MINUTES = 1;
+    private static final int MAP_TIMEOUT_MINUTES = 3;
+    private static final int MAP_TIMEOUT_BUFFER_IN_MINUTES = 1;
+    private static final int TIME_SERIES_INTERVAL_IN_MINUTES = 1;
     private static final Logger LOG = LoggerFactory.getLogger(HCatMapper.class);
 
-    private long expiryTimeInMillis;
-    private long expiryTimeWithBufferInMillis;
+    private TimeKeeper timeKeeper;
     private Token token;
 
     public HCatMapper() {
@@ -57,10 +51,7 @@ public class HCatMapper extends MapReduceBase implements Mapper<LongWritable, Te
     @Override
     public void configure(JobConf jobConf) {
         super.configure(jobConf);
-        long startTime = System.currentTimeMillis();
-        expiryTimeInMillis = startTime + MAP_TIMEOUT_MINUTES * 60 * 1000;
-        expiryTimeWithBufferInMillis = System.currentTimeMillis() + MAP_TIMEOUT_MINUTES * 60 * 1000
-                            + MAP_TIMEOUT_BUFFER_IN_MINUTES * 60 * 1000;
+        timeKeeper = new TimeKeeper(MAP_TIMEOUT_MINUTES, MAP_TIMEOUT_BUFFER_IN_MINUTES, TIME_SERIES_INTERVAL_IN_MINUTES);
         token = jobConf.getCredentials().getToken(new Text(HadoopLoadGenerator.METASTORE_TOKEN_KEY));
         try {
             LOG.info("Kerberos token received from job launcher: " + token.encodeToUrlString());
@@ -72,29 +63,28 @@ public class HCatMapper extends MapReduceBase implements Mapper<LongWritable, Te
         } catch (IOException e) {
             LOG.info("Error adding token to user", e);
         }
-
     }
 
     @Override
-    public void map(LongWritable longWritable, Text text, OutputCollector<LongWritable, ArrayStopWatchWritable> collector, final Reporter reporter) throws IOException {
+    public void map(LongWritable longWritable, Text text, OutputCollector<LongWritable, StopWatchWritable.ArrayStopWatchWritable> collector, final Reporter reporter) throws IOException {
         LOG.info(MessageFormat.format("Input: {0}={1}", longWritable, text));
-        final List<Future<SortedMap<Long, ArrayStopWatchWritable>>> futures = new ArrayList<Future<SortedMap<Long, ArrayStopWatchWritable>>>();
+        final List<Future<SortedMap<Long, StopWatchWritable.ArrayStopWatchWritable>>> futures = new ArrayList<Future<SortedMap<Long, StopWatchWritable.ArrayStopWatchWritable>>>();
         final List<Task> tasks = new ArrayList<Task>();
-        tasks.add(new Task.ReadTask(token));
+        tasks.add(new HCatLoadTask.HCatReadLoadTask(token));
 
-        ThreadCreatorTimer createNewThreads = new ThreadCreatorTimer(expiryTimeInMillis, tasks, futures, reporter);
+        ThreadCreatorTimer createNewThreads = new ThreadCreatorTimer(timeKeeper, tasks, futures, reporter);
 
         Timer newThreadCreator = new Timer(true);
         newThreadCreator.scheduleAtFixedRate(createNewThreads, 0, THREAD_INCREMENT_INTERVAL);
         try {
-            Thread.sleep(expiryTimeWithBufferInMillis - System.currentTimeMillis());
+            Thread.sleep(timeKeeper.getRemainingTimeIncludingBuffer());
         } catch (InterruptedException e) {
             LOG.error("Got interrupted while sleeping for timer thread to finish");
         }
         newThreadCreator.cancel();
         LOG.info("Time is over, will collect the futures now");
-        SortedMap<Long, ArrayStopWatchWritable> stopWatches = new TreeMap<Long, ArrayStopWatchWritable>();
-        for (Future<SortedMap<Long, ArrayStopWatchWritable>> future : futures) {
+        SortedMap<Long, StopWatchWritable.ArrayStopWatchWritable> stopWatches = new TreeMap<Long, StopWatchWritable.ArrayStopWatchWritable>();
+        for (Future<SortedMap<Long, StopWatchWritable.ArrayStopWatchWritable>> future : futures) {
             try {
                 stopWatches.putAll(future.get());
             } catch (Exception e) {
@@ -102,150 +92,9 @@ public class HCatMapper extends MapReduceBase implements Mapper<LongWritable, Te
             }
         }
         LOG.info("Collected all the statistics for #threads: " + createNewThreads.getThreadCount());
-        for (Map.Entry<Long, ArrayStopWatchWritable> entry : stopWatches.entrySet()) {
+        for (Map.Entry<Long, StopWatchWritable.ArrayStopWatchWritable> entry : stopWatches.entrySet()) {
             collector.collect(new LongWritable(entry.getKey()), entry.getValue());
         }
     }
 
-    public static class MetaStoreWorker implements Callable<SortedMap<Long, ArrayStopWatchWritable>> {
-        private final long expiryTime;
-        private final List<Task> tasks;
-
-        public MetaStoreWorker(final long expiryTime, List<Task> tasks) {
-            this.tasks = tasks;
-
-            this.expiryTime = expiryTime;
-        }
-
-        @Override
-        public SortedMap<Long, ArrayStopWatchWritable> call() throws Exception {
-            SortedMap<Long, ArrayStopWatchWritable> timeSeriesStopWatches = new TreeMap<Long, ArrayStopWatchWritable>();
-
-            List<StopWatchWritable> stopWatches = new ArrayList<StopWatchWritable>();
-            long currentCheckPoint = 0;
-            metastoreCalls: while(true) {
-                for (Task task : tasks) {
-                    if(currentTimeInMinutes() >= currentCheckPoint + TIME_SERIES_INTERVAL_IN_MINUTES) {
-                        if(currentCheckPoint != 0) { // Not first time
-                            ArrayStopWatchWritable arrayStopWatchWritable = new ArrayStopWatchWritable(stopWatches.toArray(new StopWatchWritable[0]));
-                            timeSeriesStopWatches.put(currentCheckPoint, arrayStopWatchWritable);
-                        }
-                        stopWatches = new ArrayList<StopWatchWritable>();
-                        currentCheckPoint = nextCheckpoint();
-                        LOG.info(Thread.currentThread().getName() + ": Checkpoint is:" + currentCheckPoint);
-                    }
-
-                    StopWatch stopWatch = new StopWatch(task.getName());
-                    task.doTask();
-                    stopWatch.stop();
-                    stopWatches.add(StopWatchWritable.fromStopWatch(stopWatch));
-                    if(System.currentTimeMillis() > expiryTime) {
-                        LOG.info(Thread.currentThread().getName() + ": Stopped doing work as thread expired");
-                        break metastoreCalls;
-                    }
-                }
-            }
-            for (Task task : tasks) {
-                task.close();
-            }
-            return timeSeriesStopWatches;
-        }
-
-        private static long nextCheckpoint() {
-            long checkPoint = currentTimeInMinutes();
-            return checkPoint - (checkPoint % TIME_SERIES_INTERVAL_IN_MINUTES);
-        }
-
-        private static long currentTimeInMinutes() {
-            return TimeUnit.MILLISECONDS.toMinutes(System.currentTimeMillis());
-        }
-    }
-
-    public static class ArrayStopWatchWritable extends ArrayWritable {
-        public ArrayStopWatchWritable() {
-            super(StopWatchWritable.class);
-        }
-
-        public ArrayStopWatchWritable(StopWatchWritable[] values) {
-            super(StopWatchWritable.class, values);
-        }
-    }
-
-    public static class StopWatchWritable implements Writable {
-        private StopWatch stopWatch;
-
-        public StopWatchWritable() {
-        }
-
-        @Override
-        public void write(DataOutput dataOutput) throws IOException {
-            dataOutput.writeLong(stopWatch.getStartTime());
-            dataOutput.writeLong(stopWatch.getElapsedTime());
-            dataOutput.writeUTF(stopWatch.getTag());
-        }
-
-        @Override
-        public void readFields(DataInput dataInput) throws IOException {
-            long startTime = dataInput.readLong();
-            long elapsedTime = dataInput.readLong();
-            String tag = dataInput.readUTF();
-            stopWatch = new StopWatch(startTime, elapsedTime, tag, null);
-        }
-
-        public StopWatchWritable(StopWatch stopWatch) {
-            this.stopWatch = stopWatch;
-        }
-
-        public static StopWatchWritable fromStopWatch(StopWatch stopWatch) {
-            return new StopWatchWritable(stopWatch);
-        }
-
-        public StopWatch getStopWatch() {
-            return  stopWatch;
-        }
-
-    }
-
-    public static class ThreadCreatorTimer extends TimerTask {
-        private int threadCount;
-        private final long expiryTimeInMillis;
-        private final List<Task> tasks;
-        private final List<Future<SortedMap<Long, ArrayStopWatchWritable>>> futures;
-        private final Reporter reporter;
-        enum COUNTERS { NUM_THREADS};
-
-        public ThreadCreatorTimer(final long expiryTimeInMillis, List<Task> tasks, List<Future<SortedMap<Long, ArrayStopWatchWritable>>> futures, Reporter reporter) {
-            this.expiryTimeInMillis = expiryTimeInMillis;
-            this.tasks = tasks;
-            this.futures = futures;
-            this.reporter = reporter;
-            threadCount = 0;
-        }
-
-        public void run() {
-            LOG.info("About to create " + THREAD_INCREMENT_COUNT + " threads.");
-            final ExecutorService executorPool = Executors.newFixedThreadPool(THREAD_INCREMENT_COUNT);
-            Collection<MetaStoreWorker> workers = new ArrayList<MetaStoreWorker>(THREAD_INCREMENT_COUNT);
-            for (int i = 0; i < THREAD_INCREMENT_COUNT; i++) {
-                workers.add(new MetaStoreWorker(expiryTimeInMillis, tasks));
-            }
-
-            for (MetaStoreWorker worker : workers) {
-                futures.add(executorPool.submit(worker));
-            }
-            threadCount += THREAD_INCREMENT_COUNT;
-            LOG.info("Current number of threads: " + threadCount);
-            reporter.progress();
-            reporter.setStatus(MessageFormat.format("#Threads: {0}, Progress: {1}%", threadCount, getProgress()));
-            reporter.incrCounter(COUNTERS.NUM_THREADS, THREAD_INCREMENT_COUNT);
-        }
-
-        public long getProgress() {
-            final long startTime = expiryTimeInMillis - MAP_TIMEOUT_MINUTES * 60 * 1000;
-            return (System.currentTimeMillis() - startTime) / (expiryTimeInMillis -startTime);
-        }
-        public int getThreadCount() {
-            return threadCount;
-        }
-    }
 }

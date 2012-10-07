@@ -30,20 +30,20 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.Iterator;
 
-public class HCatReducer extends MapReduceBase implements Reducer<LongWritable, HCatMapper.ArrayStopWatchWritable, LongWritable, GroupedTimingStatistics> {
+public class HCatReducer extends MapReduceBase implements Reducer<LongWritable, StopWatchWritable.ArrayStopWatchWritable, LongWritable, GroupedTimingStatistics> {
     private static final Logger LOG = LoggerFactory.getLogger(HCatReducer.class);
 
     public HCatReducer() {
     }
 
     @Override
-    public void reduce(LongWritable timeStamp, Iterator<HCatMapper.ArrayStopWatchWritable> stopWatchArrayList, OutputCollector<LongWritable, GroupedTimingStatistics> collector, Reporter reporter) throws IOException {
+    public void reduce(LongWritable timeStamp, Iterator<StopWatchWritable.ArrayStopWatchWritable> stopWatchArrayList, OutputCollector<LongWritable, GroupedTimingStatistics> collector, Reporter reporter) throws IOException {
         GroupedTimingStatistics statistics = new GroupedTimingStatistics();
         LOG.info("Going through statistics for time: " + timeStamp);
         while (stopWatchArrayList.hasNext()) {
-            HCatMapper.ArrayStopWatchWritable stopWatchArray = stopWatchArrayList.next();
-            HCatMapper.StopWatchWritable[] stopWatches = (HCatMapper.StopWatchWritable[]) stopWatchArray.toArray();
-            for (HCatMapper.StopWatchWritable stopWatch : stopWatches) {
+            StopWatchWritable.ArrayStopWatchWritable stopWatchArray = stopWatchArrayList.next();
+            StopWatchWritable[] stopWatches = (StopWatchWritable[]) stopWatchArray.toArray();
+            for (StopWatchWritable stopWatch : stopWatches) {
                 statistics.addStopWatch(stopWatch.getStopWatch());
             }
             LOG.info("Stats:" + stopWatchArray);
