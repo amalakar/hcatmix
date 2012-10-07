@@ -41,7 +41,7 @@ public class HCatMapper extends MapReduceBase implements
     private static final Logger LOG = LoggerFactory.getLogger(HCatMapper.class);
 
     private int threadIncrementCount;
-    private long threadIncrementInterval;
+    private long threadIncrementIntervalInMillis;
     private JobConf jobConf;
 
     private TimeKeeper timeKeeper;
@@ -55,14 +55,14 @@ public class HCatMapper extends MapReduceBase implements
         super.configure(jobConf);
         this.jobConf = jobConf;
 
-        final int mapRunTime = getFromJobConf(Conf.MAP_RUN_TIME);
+        final int mapRunTime = getFromJobConf(Conf.MAP_RUN_TIME_MINUTES);
         final int timeSeriesIntervalInMinutes = getFromJobConf(Conf.STAT_COLLECTION_INTERVAL_MINUTE);
-        final int mapRuntimeExtraBuffer = getFromJobConf(Conf.THREAD_COMPLETION_BUFFER);
+        final int mapRuntimeExtraBufferInMinutes = getFromJobConf(Conf.THREAD_COMPLETION_BUFFER_MINUTES);
 
         threadIncrementCount = getFromJobConf(Conf.THREAD_INCREMENT_COUNT);
-        threadIncrementInterval = getFromJobConf(Conf.THREAD_INCREMENT_INTERVAL_MINUTES);
+        threadIncrementIntervalInMillis = getFromJobConf(Conf.THREAD_INCREMENT_INTERVAL_MINUTES) * 60 * 1000;
 
-        timeKeeper = new TimeKeeper(mapRunTime, mapRuntimeExtraBuffer,
+        timeKeeper = new TimeKeeper(mapRunTime, mapRuntimeExtraBufferInMinutes,
                 timeSeriesIntervalInMinutes);
         token = jobConf.getCredentials().getToken(new Text(HadoopLoadGenerator.METASTORE_TOKEN_KEY));
 
@@ -93,7 +93,7 @@ public class HCatMapper extends MapReduceBase implements
                 new ThreadCreatorTimer(new TimeKeeper(timeKeeper), tasks, threadIncrementCount, futures, reporter);
 
         Timer newThreadCreator = new Timer(true);
-        newThreadCreator.scheduleAtFixedRate(createNewThreads, 0, threadIncrementInterval);
+        newThreadCreator.scheduleAtFixedRate(createNewThreads, 0, threadIncrementIntervalInMillis);
         try {
             Thread.sleep(timeKeeper.getRemainingTimeIncludingBuffer());
         } catch (InterruptedException e) {

@@ -61,8 +61,8 @@ public class HadoopLoadGenerator extends Configured implements Tool {
         NUM_MAPPERS("num.mappers", 30),
         THREAD_INCREMENT_COUNT("thread.increment.count", 5),
         THREAD_INCREMENT_INTERVAL_MINUTES("thread.increment.interval.minutes", 1),
-        MAP_RUN_TIME("thread.increment.count", 3),
-        THREAD_COMPLETION_BUFFER("thread.completion.buffer.minutes", 1),
+        THREAD_COMPLETION_BUFFER_MINUTES("thread.completion.buffer.minutes", 1),
+        MAP_RUN_TIME_MINUTES("map.runtime.minutes", 3),
         STAT_COLLECTION_INTERVAL_MINUTE("stat.collection.interval.minutes", 2);
 
         public final String propName;
@@ -100,7 +100,7 @@ public class HadoopLoadGenerator extends Configured implements Tool {
         } else {
             jobConf = new JobConf();
         }
-        InputStream confFile = HCatMapper.class.getResourceAsStream(CONF_FILE);
+        InputStream confFile = Thread.currentThread().getContextClassLoader().getResourceAsStream(CONF_FILE);
         int numMappers = Conf.NUM_MAPPERS.defaultValue;
         if(confFile != null) {
             Properties props = new Properties();
@@ -110,12 +110,13 @@ public class HadoopLoadGenerator extends Configured implements Tool {
                 LOG.error("[Ignored] Couldn't load properties file: " + CONF_FILE, e);
             }
 
+            LOG.info("Loading configuration file: " + CONF_FILE);
             numMappers = Integer.parseInt(props.getProperty(Conf.NUM_MAPPERS.propName, "" + Conf.NUM_MAPPERS.defaultValue));
-            addToJobConf(jobConf, props, Conf.MAP_RUN_TIME);
+            addToJobConf(jobConf, props, Conf.MAP_RUN_TIME_MINUTES);
             addToJobConf(jobConf, props, Conf.STAT_COLLECTION_INTERVAL_MINUTE);
             addToJobConf(jobConf, props, Conf.THREAD_INCREMENT_COUNT);
             addToJobConf(jobConf, props, Conf.THREAD_INCREMENT_INTERVAL_MINUTES);
-            addToJobConf(jobConf, props, Conf.THREAD_COMPLETION_BUFFER);
+            addToJobConf(jobConf, props, Conf.THREAD_COMPLETION_BUFFER_MINUTES);
         } else {
             LOG.error("Couldn't find config file in classpath: " + CONF_FILE + " ignored and proceeding");
         }

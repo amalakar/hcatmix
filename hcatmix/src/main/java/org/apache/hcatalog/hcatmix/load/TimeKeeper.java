@@ -44,7 +44,7 @@ public class TimeKeeper {
         this.timeInterval = timeInterval;
         this.startTime = startTime;
 
-        expiryTimeInMillis = startTime + timeoutInMinutes * 60 * 1000;
+        expiryTimeInMillis = startTime + this.timeoutInMinutes * 60 * 1000;
         expiryTimeWithBufferInMillis = expiryTimeInMillis + timeoutBufferInMinutes * 60 * 1000;
     }
 
