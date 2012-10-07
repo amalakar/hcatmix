@@ -28,9 +28,6 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.Callable;
 
-/**
-* Author: malakar
-*/
 public class MetaStoreWorker implements Callable<SortedMap<Long, StopWatchWritable.ArrayStopWatchWritable>> {
     private final TimeKeeper timeKeeper;
     private final List<Task> tasks;

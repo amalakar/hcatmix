@@ -36,7 +36,7 @@ import java.util.concurrent.*;
 */
 public class HCatMapper extends MapReduceBase implements Mapper<LongWritable, Text, LongWritable, StopWatchWritable.ArrayStopWatchWritable> {
     public static final int THREAD_INCREMENT_COUNT = 5;
-    public static final long THREAD_INCREMENT_INTERVAL = 5 * 60 * 1000;
+    public static final long THREAD_INCREMENT_INTERVAL = 1 * 60 * 1000;
     private static final int MAP_TIMEOUT_MINUTES = 3;
     private static final int MAP_TIMEOUT_BUFFER_IN_MINUTES = 1;
     private static final int TIME_SERIES_INTERVAL_IN_MINUTES = 1;
@@ -53,11 +53,7 @@ public class HCatMapper extends MapReduceBase implements Mapper<LongWritable, Te
         super.configure(jobConf);
         timeKeeper = new TimeKeeper(MAP_TIMEOUT_MINUTES, MAP_TIMEOUT_BUFFER_IN_MINUTES, TIME_SERIES_INTERVAL_IN_MINUTES);
         token = jobConf.getCredentials().getToken(new Text(HadoopLoadGenerator.METASTORE_TOKEN_KEY));
-        try {
-            LOG.info("Kerberos token received from job launcher: " + token.encodeToUrlString());
-        } catch (IOException e) {
-            LOG.error("Couldn't encode token to URL string");
-        }
+
         try {
             UserGroupInformation.getCurrentUser().addToken(token);
         } catch (IOException e) {
@@ -87,6 +83,9 @@ public class HCatMapper extends MapReduceBase implements Mapper<LongWritable, Te
         for (Future<SortedMap<Long, StopWatchWritable.ArrayStopWatchWritable>> future : futures) {
             try {
                 stopWatches.putAll(future.get());
+                if(LOG.isDebugEnabled()) {
+                    LOG.debug("Collected stopwatches: " + stopWatches.size());
+                }
             } catch (Exception e) {
                 LOG.error("Error while getting thread results", e);
             }
