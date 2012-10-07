@@ -101,23 +101,22 @@ public class HCatMapper extends MapReduceBase implements
         }
         newThreadCreator.cancel();
         LOG.info("Time is over, will collect the futures now");
-        SortedMap<Long, List<StopWatchWritable>> stopWatchTimeSeries =
+        SortedMap<Long, List<StopWatchWritable>> stopWatchAggregatedTimeSeries =
                 new TreeMap<Long, List<StopWatchWritable>>();
         for (Future<SortedMap<Long, List<StopWatchWritable>>> future : futures) {
             try {
                 SortedMap<Long, List<StopWatchWritable>> threadTimeSeries = future.get();
-                for (Long timeStamp : threadTimeSeries.keySet()) {
-                    if(stopWatchTimeSeries.containsKey(timeStamp)) {
-                        stopWatchTimeSeries.get(timeStamp).addAll(threadTimeSeries.get(timeStamp));
+                for (Map.Entry<Long, List<StopWatchWritable>> entry : threadTimeSeries.entrySet()) {
+                    Long timeStamp = entry.getKey();
+                    List<StopWatchWritable> threadStopWatches = entry.getValue();
+
+                    if(stopWatchAggregatedTimeSeries.containsKey(timeStamp)) {
+                        stopWatchAggregatedTimeSeries.get(timeStamp).addAll(threadStopWatches);
                     } else {
-                        stopWatchTimeSeries.put(timeStamp, threadTimeSeries.get(timeStamp));
+                        stopWatchAggregatedTimeSeries.put(timeStamp, threadStopWatches);
                     }
                 }
-
-                stopWatchTimeSeries.putAll(future.get());
-                if(LOG.isDebugEnabled()) {
-                    LOG.debug("Collected stopwatches: " + stopWatchTimeSeries.size());
-                }
+                LOG.info("Processed thread stopWatch series length: " + threadTimeSeries.size());
             } catch (Exception e) {
                 LOG.error("Error while getting thread results", e);
             }
@@ -125,7 +124,7 @@ public class HCatMapper extends MapReduceBase implements
         LOG.info("Collected all the statistics for #threads: " + createNewThreads.getThreadCount());
         SortedMap<Long, Integer> threadCountTimeSeries = createNewThreads.getThreadCountTimeSeries();
         int threadCount = 0;
-        for (Map.Entry<Long, List<StopWatchWritable>> entry : stopWatchTimeSeries.entrySet()) {
+        for (Map.Entry<Long, List<StopWatchWritable>> entry : stopWatchAggregatedTimeSeries.entrySet()) {
             long timeStamp = entry.getKey();
             List<StopWatchWritable> stopWatchList = entry.getValue();
             if(threadCountTimeSeries.containsKey(timeStamp)) {
