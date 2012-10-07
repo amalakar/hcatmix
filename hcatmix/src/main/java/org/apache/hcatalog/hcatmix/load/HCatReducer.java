@@ -39,7 +39,7 @@ public class HCatReducer extends MapReduceBase implements Reducer<LongWritable, 
     @Override
     public void reduce(LongWritable timeStamp, Iterator<StopWatchWritable.ArrayStopWatchWritable> stopWatchArrayList, OutputCollector<LongWritable, GroupedTimingStatistics> collector, Reporter reporter) throws IOException {
         GroupedTimingStatistics statistics = new GroupedTimingStatistics();
-        LOG.info("Going through statistics for time: " + timeStamp);
+        LOG.info("Going through statistics for time: " + timeStamp + " ");
         while (stopWatchArrayList.hasNext()) {
             StopWatchWritable.ArrayStopWatchWritable stopWatchArray = stopWatchArrayList.next();
             StopWatchWritable[] stopWatches = (StopWatchWritable[]) stopWatchArray.toArray();

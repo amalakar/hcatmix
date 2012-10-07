@@ -52,12 +52,12 @@ public class ThreadCreatorTimer extends TimerTask {
     public void run() {
         LOG.info("About to create " + HCatMapper.THREAD_INCREMENT_COUNT + " threads.");
         final ExecutorService executorPool = Executors.newFixedThreadPool(HCatMapper.THREAD_INCREMENT_COUNT);
-        Collection<MetaStoreWorker> workers = new ArrayList<MetaStoreWorker>(HCatMapper.THREAD_INCREMENT_COUNT);
+        Collection<Worker> workers = new ArrayList<Worker>(HCatMapper.THREAD_INCREMENT_COUNT);
         for (int i = 0; i < HCatMapper.THREAD_INCREMENT_COUNT; i++) {
-            workers.add(new MetaStoreWorker(timeKeeper, tasks));
+            workers.add(new Worker(timeKeeper, tasks));
         }
 
-        for (MetaStoreWorker worker : workers) {
+        for (Worker worker : workers) {
             futures.add(executorPool.submit(worker));
         }
         threadCount += HCatMapper.THREAD_INCREMENT_COUNT;
