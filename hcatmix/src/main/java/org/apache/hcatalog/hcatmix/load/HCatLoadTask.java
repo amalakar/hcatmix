@@ -57,7 +57,12 @@ public abstract class HCatLoadTask implements Task {
             }
         };
 
-        numErrors = new ThreadLocal<Integer>();
+        numErrors = new ThreadLocal<Integer>(){
+            @Override
+            protected Integer initialValue() {
+                return 0;
+            }
+        };
     }
 
     public void close() {

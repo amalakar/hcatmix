@@ -100,7 +100,7 @@ public class HCatMapper extends MapReduceBase implements
             LOG.error("Got interrupted while sleeping for timer thread to finish");
         }
         newThreadCreator.cancel();
-        LOG.info("Time is over, will collect the futures now. Total number if threads: " + futures.size());
+        LOG.info("Time is over, will collect the futures now. Total number of threads: " + futures.size());
         SortedMap<Long, List<StopWatchWritable>> stopWatchAggregatedTimeSeries =
                 new TreeMap<Long, List<StopWatchWritable>>();
         for (Future<SortedMap<Long, List<StopWatchWritable>>> future : futures) {
