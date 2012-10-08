@@ -100,7 +100,7 @@ public class HCatMapper extends MapReduceBase implements
             LOG.error("Got interrupted while sleeping for timer thread to finish");
         }
         newThreadCreator.cancel();
-        LOG.info("Time is over, will collect the futures now");
+        LOG.info("Time is over, will collect the futures now. Total number if threads: " + futures.size());
         SortedMap<Long, List<StopWatchWritable>> stopWatchAggregatedTimeSeries =
                 new TreeMap<Long, List<StopWatchWritable>>();
         for (Future<SortedMap<Long, List<StopWatchWritable>>> future : futures) {
@@ -115,8 +115,9 @@ public class HCatMapper extends MapReduceBase implements
                     } else {
                         stopWatchAggregatedTimeSeries.put(timeStamp, threadStopWatches);
                     }
+                    LOG.info(MessageFormat.format("{0}: Added {1} stopwatches. Current stopwatch number: {2}",
+                            timeStamp, threadStopWatches.size(), stopWatchAggregatedTimeSeries.get(timeStamp).size()));
                 }
-                LOG.info("Processed thread stopWatch series length: " + threadTimeSeries.size());
             } catch (Exception e) {
                 LOG.error("Error while getting thread results", e);
             }
