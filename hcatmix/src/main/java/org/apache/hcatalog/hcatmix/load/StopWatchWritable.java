@@ -63,7 +63,7 @@ public class StopWatchWritable implements Writable {
 
     public static class MapResult implements Writable {
         int threadCount;
-        List<StopWatchWritable> stopWatchList = new ArrayList<StopWatchWritable>();
+        List<StopWatchWritable> stopWatchList;
         int errors;
 
         public MapResult() {
@@ -86,7 +86,7 @@ public class StopWatchWritable implements Writable {
         @Override
         public void readFields(DataInput dataInput) throws IOException {
             int size = dataInput.readInt();
-
+            stopWatchList = new ArrayList<StopWatchWritable>();
             for (int i = 0; i < size; i++) {
                 StopWatchWritable stopWatch = new StopWatchWritable();
                 stopWatch.readFields(dataInput);

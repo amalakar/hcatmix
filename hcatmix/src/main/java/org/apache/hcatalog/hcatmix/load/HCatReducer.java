@@ -46,7 +46,7 @@ public class HCatReducer extends MapReduceBase implements
                        OutputCollector<LongWritable, Text> collector, Reporter reporter)
             throws IOException {
         GroupedTimingStatistics statistics = new GroupedTimingStatistics();
-        LOG.info("Going through statistics for time: " + timeStamp + " ");
+        LOG.info(MessageFormat.format("Going through statistics for time: {0}", timeStamp));
         int threadCount = 0;
         while (mapResultIterator.hasNext()) {
             StopWatchWritable.MapResult mapResult = mapResultIterator.next();
@@ -54,7 +54,9 @@ public class HCatReducer extends MapReduceBase implements
             for (StopWatchWritable stopWatch : stopWatches) {
                 statistics.addStopWatch(stopWatch.getStopWatch());
             }
-            LOG.info("Stats:" + mapResult);
+            LOG.info(MessageFormat.format("Reducing for {0} Stopwatch count: {1}", timeStamp,
+                    mapResult.getStopWatchList().size()));
+            LOG.info("Current statistics: " + statistics);
             threadCount += mapResult.getThreadCount();
         }
         LOG.info(MessageFormat.format("Final statistics for {0}: Threads: {1}, Statistics: {2}",
