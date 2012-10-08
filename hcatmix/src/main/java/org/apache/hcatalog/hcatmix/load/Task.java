@@ -22,4 +22,5 @@ public interface Task {
     public String getName();
     public void doTask() throws Exception;
     public void close();
+    public int getNumErrors();
 }

@@ -35,7 +35,7 @@ import java.util.List;
 
 public class HCatReducer extends MapReduceBase implements
         Reducer<LongWritable, StopWatchWritable.MapResult,
-        LongWritable, Text> {
+        LongWritable, StopWatchWritable.ReduceResult> {
     private static final Logger LOG = LoggerFactory.getLogger(HCatReducer.class);
 
     public HCatReducer() {
@@ -43,7 +43,7 @@ public class HCatReducer extends MapReduceBase implements
 
     @Override
     public void reduce(LongWritable timeStamp, Iterator<StopWatchWritable.MapResult> mapResultIterator,
-                       OutputCollector<LongWritable, Text> collector, Reporter reporter)
+                       OutputCollector<LongWritable, StopWatchWritable.ReduceResult> collector, Reporter reporter)
             throws IOException {
         GroupedTimingStatistics statistics = new GroupedTimingStatistics();
         LOG.info(MessageFormat.format("Going through statistics for time: {0}", timeStamp));
@@ -61,6 +61,6 @@ public class HCatReducer extends MapReduceBase implements
         }
         LOG.info(MessageFormat.format("Final statistics for {0}: Threads: {1}, Statistics: {2}",
                 timeStamp, threadCount, statistics));
-        collector.collect(timeStamp, new Text(statistics.toString() + "\n threadCount " + threadCount));
+        collector.collect(timeStamp, new StopWatchWritable.ReduceResult(statistics,  threadCount));
     }
 }

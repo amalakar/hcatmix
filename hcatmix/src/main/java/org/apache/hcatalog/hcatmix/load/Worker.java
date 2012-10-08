@@ -53,7 +53,11 @@ public class Worker implements Callable<SortedMap<Long, List<StopWatchWritable>>
                 }
 
                 StopWatch stopWatch = new StopWatch(task.getName());
-                task.doTask();
+                try {
+                    task.doTask();
+                } catch (Exception e) {
+                    LOG.info("Error encountered while doing task", e);
+                }
                 stopWatch.stop();
                 stopWatches.add(StopWatchWritable.fromStopWatch(stopWatch));
 
@@ -64,6 +68,7 @@ public class Worker implements Callable<SortedMap<Long, List<StopWatchWritable>>
             }
         }
         for (Task task : tasks) {
+            LOG.info("Errors for the task " + task.getName() + " is: " + task.getNumErrors()); // TODO incorporate this in final stats
             task.close();
         }
         return timeSeriesStopWatches;

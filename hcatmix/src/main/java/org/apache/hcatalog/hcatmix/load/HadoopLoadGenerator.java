@@ -20,13 +20,16 @@ package org.apache.hcatalog.hcatmix.load;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.PathFilter;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.thrift.DelegationTokenIdentifier;
 import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.*;
 import org.apache.hadoop.security.UserGroupInformation;
@@ -139,7 +142,7 @@ public class HadoopLoadGenerator extends Configured implements Tool {
         jobConf.setMapOutputKeyClass(LongWritable.class);
         jobConf.setMapOutputValueClass(StopWatchWritable.MapResult.class);
         jobConf.setOutputKeyClass(LongWritable.class);
-        jobConf.setOutputValueClass(Text.class);
+        jobConf.setOutputValueClass(StopWatchWritable.ReduceResult.class);
         fs = FileSystem.get(jobConf);
 
         FileInputFormat.setInputPaths(jobConf, createInputFiles(inputDir, numMappers));
@@ -164,7 +167,30 @@ public class HadoopLoadGenerator extends Configured implements Tool {
         if (!j.isSuccessful()) {
             throw new IOException("Job failed");
         }
+
+        readResult(outputDir, jobConf);
         return 0;
+    }
+
+    public void readResult(Path outputDir, JobConf jobConf) throws IOException {
+        FileStatus[] files = fs.listStatus(outputDir, new PathFilter() {
+            @Override
+            public boolean accept(Path path) {
+                return path.getName().startsWith("part");
+            }
+        });
+        for (FileStatus status : files) {
+            Path path = status.getPath();
+            SequenceFile.Reader reader = new SequenceFile.Reader(fs, path, jobConf);
+            LongWritable timeStamp = new LongWritable();
+            StopWatchWritable.ReduceResult result = new StopWatchWritable.ReduceResult();
+            while (reader.next(timeStamp, result)) {
+                LOG.info("Timestamp: " + timeStamp);
+                LOG.info("ThreadCount: " +result.getThreadCount());
+                LOG.info("Stats:\n" + result.getStatistics());
+            }
+            reader.close();
+        }
     }
 
     private static void addToJobConf(JobConf jobConf, Properties props, Conf conf) {

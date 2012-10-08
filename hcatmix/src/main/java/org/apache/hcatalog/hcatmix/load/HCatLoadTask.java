@@ -35,6 +35,7 @@ import java.util.Random;
 public abstract class HCatLoadTask implements Task {
     // Needs to be ThreadLocal, hiveMetaStoreClient fails if used in multiple threads
     private static ThreadLocal<HiveMetaStoreClient> hiveClient;
+    private static ThreadLocal<Integer> numErrors;
     private static final Logger LOG = LoggerFactory.getLogger(Task.class);
     public static final String HIVE_CONF_TOKEN_KEY = "hive.metastore.token.signature";
 
@@ -55,6 +56,8 @@ public abstract class HCatLoadTask implements Task {
                 }
             }
         };
+
+        numErrors = new ThreadLocal<Integer>();
     }
 
     public void close() {
@@ -63,6 +66,10 @@ public abstract class HCatLoadTask implements Task {
         } catch (Exception e) {
             LOG.error("Couldn't close hiveClient, ignored error", e);
         }
+    }
+
+    public int getNumErrors() {
+        return numErrors.get();
     }
 
     public static class HCatReadLoadTask extends HCatLoadTask {
@@ -78,19 +85,15 @@ public abstract class HCatLoadTask implements Task {
         }
 
         @Override
-        public void doTask() throws MetaException {
+        public void doTask() throws Exception {
             try {
                 LOG.info("Doing work in Task");
                 final Database db = hiveClient.get().getDatabase("default");
                 LOG.info("Got database successfully!");
             } catch (Exception e) {
-                // TODO count failures too
-                LOG.info("Error reading database: default", e);
-                try {
-                    Thread.sleep(10000 + rand.nextInt(10000));
-                } catch (InterruptedException e1) {
-                    LOG.info("interrupted, ignored");
-                }
+               LOG.info("Error reading database: default", e);
+                numErrors.set(numErrors.get() + 1);
+               throw e;
             }
         }
     }

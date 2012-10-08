@@ -18,15 +18,15 @@
 
 package org.apache.hcatalog.hcatmix.load;
 
-import org.apache.hadoop.io.ArrayWritable;
 import org.apache.hadoop.io.Writable;
+import org.perf4j.GroupedTimingStatistics;
 import org.perf4j.StopWatch;
+import org.perf4j.TimingStatistics;
 
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class StopWatchWritable implements Writable {
     private StopWatch stopWatch;
@@ -102,6 +102,61 @@ public class StopWatchWritable implements Writable {
 
         public List<StopWatchWritable> getStopWatchList() {
             return stopWatchList;
+        }
+    }
+
+    public static class ReduceResult implements Writable {
+        private GroupedTimingStatistics statistics;
+        private int threadCount;
+
+        public ReduceResult() {
+        }
+
+        public ReduceResult(GroupedTimingStatistics statistics, int threadCount) {
+            this.statistics = statistics;
+            this.threadCount = threadCount;
+        }
+
+        @Override
+        public void write(DataOutput dataOutput) throws IOException {
+            dataOutput.writeInt(threadCount);
+            dataOutput.writeInt(statistics.getStatisticsByTag().size());
+            for (Map.Entry<String, TimingStatistics> entry : statistics.getStatisticsByTag().entrySet()) {
+                dataOutput.writeUTF(entry.getKey());
+                TimingStatistics timingStatistics = entry.getValue();
+                dataOutput.writeDouble(timingStatistics.getMean());
+                dataOutput.writeLong(timingStatistics.getMin());
+                dataOutput.writeLong(timingStatistics.getMax());
+                dataOutput.writeDouble(timingStatistics.getStandardDeviation());
+                dataOutput.writeInt(timingStatistics.getCount());
+            }
+        }
+
+        @Override
+        public void readFields(DataInput dataInput) throws IOException {
+            statistics = new GroupedTimingStatistics();
+            SortedMap<String, TimingStatistics> statisticsByTag = new TreeMap<String, TimingStatistics>();
+            threadCount = dataInput.readInt();
+            int size = dataInput.readInt();
+            for (int i = 0; i < size; i++) {
+                String taskName = dataInput.readUTF();
+                double mean = dataInput.readLong();
+                long min = dataInput.readLong();
+                long max = dataInput.readLong();
+                double stdDev = dataInput.readDouble();
+                int count = dataInput.readInt();
+                TimingStatistics timingStatistics = new TimingStatistics(mean, stdDev, max, min, count);
+                statisticsByTag.put(taskName, timingStatistics);
+            }
+            statistics.setStatisticsByTag(statisticsByTag);
+        }
+
+        public GroupedTimingStatistics getStatistics() {
+            return statistics;
+        }
+
+        public int getThreadCount() {
+            return threadCount;
         }
     }
 }
