@@ -47,8 +47,6 @@ import java.util.Properties;
 public class HadoopLoadGenerator extends Configured implements Tool {
     public static final String CONF_FILE = "hcat_load_test.properties";
     public final String JOB_NAME = "hcat-load-generator";
-    public final Path OUTPUT_DIR = new Path("/tmp/hcatmix/load/output");
-    public final String INPUT_DIR = "/tmp/hcatmix/load/input";
 
     public static final String METASTORE_TOKEN_KEY = "metaStoreToken";
     public static final String METASTORE_TOKEN_SIGNATURE = "metaStoreTokenSig";
@@ -63,15 +61,24 @@ public class HadoopLoadGenerator extends Configured implements Tool {
         THREAD_INCREMENT_INTERVAL_MINUTES("thread.increment.interval.minutes", 1),
         THREAD_COMPLETION_BUFFER_MINUTES("thread.completion.buffer.minutes", 1),
         MAP_RUN_TIME_MINUTES("map.runtime.minutes", 3),
-        STAT_COLLECTION_INTERVAL_MINUTE("stat.collection.interval.minutes", 2);
+        STAT_COLLECTION_INTERVAL_MINUTE("stat.collection.interval.minutes", 2),
+        INPUT_DIR("input.dir", "/tmp/hcatmix/loadtest/input"),
+        OUTPUT_DIR("output.dir", "/tmp/hcatmix/loadtest/input");
 
         public final String propName;
         public final int defaultValue;
+        public final String defaultValueStr;
 
         Conf(final String propName, final int defaultVale) {
             this.propName = propName;
             this.defaultValue = defaultVale;
+            this.defaultValueStr = null;
+        }
 
+        Conf(final String propName, final String defaultValue) {
+            this.propName = propName;
+            this.defaultValue = -1;
+            this.defaultValueStr = defaultValue;
         }
 
         public String getJobConfKey() {
@@ -101,9 +108,9 @@ public class HadoopLoadGenerator extends Configured implements Tool {
             jobConf = new JobConf();
         }
         InputStream confFile = Thread.currentThread().getContextClassLoader().getResourceAsStream(CONF_FILE);
-        int numMappers = Conf.NUM_MAPPERS.defaultValue;
+
+        Properties props = new Properties();
         if(confFile != null) {
-            Properties props = new Properties();
             try {
                 props.load(confFile);
             } catch (IOException e) {
@@ -111,7 +118,6 @@ public class HadoopLoadGenerator extends Configured implements Tool {
             }
 
             LOG.info("Loading configuration file: " + CONF_FILE);
-            numMappers = Integer.parseInt(props.getProperty(Conf.NUM_MAPPERS.propName, "" + Conf.NUM_MAPPERS.defaultValue));
             addToJobConf(jobConf, props, Conf.MAP_RUN_TIME_MINUTES);
             addToJobConf(jobConf, props, Conf.STAT_COLLECTION_INTERVAL_MINUTE);
             addToJobConf(jobConf, props, Conf.THREAD_INCREMENT_COUNT);
@@ -120,6 +126,10 @@ public class HadoopLoadGenerator extends Configured implements Tool {
         } else {
             LOG.error("Couldn't find config file in classpath: " + CONF_FILE + " ignored and proceeding");
         }
+
+        int numMappers = Integer.parseInt(props.getProperty(Conf.NUM_MAPPERS.propName, "" + Conf.NUM_MAPPERS.defaultValue));
+        Path inputDir = new Path(props.getProperty(Conf.INPUT_DIR.propName, Conf.INPUT_DIR.defaultValueStr));
+        Path outputDir = new Path(props.getProperty(Conf.OUTPUT_DIR.propName, Conf.OUTPUT_DIR.defaultValueStr));
 
         jobConf.setJobName(JOB_NAME);
         jobConf.setNumMapTasks(numMappers);
@@ -132,11 +142,11 @@ public class HadoopLoadGenerator extends Configured implements Tool {
         jobConf.setOutputValueClass(Text.class);
         fs = FileSystem.get(jobConf);
 
-        FileInputFormat.setInputPaths(jobConf, createInputFiles(INPUT_DIR, numMappers));
-        if(fs.exists(OUTPUT_DIR)) {
-            fs.delete(OUTPUT_DIR, true);
+        FileInputFormat.setInputPaths(jobConf, createInputFiles(inputDir, numMappers));
+        if(fs.exists(outputDir)) {
+            fs.delete(outputDir, true);
         }
-        FileOutputFormat.setOutputPath(jobConf, OUTPUT_DIR);
+        FileOutputFormat.setOutputPath(jobConf, outputDir);
 
         // Set up delegation token required for hiveMetaStoreClient in map task
         HiveConf hiveConf = new HiveConf(Task.class);
@@ -161,14 +171,13 @@ public class HadoopLoadGenerator extends Configured implements Tool {
         jobConf.set(conf.getJobConfKey(), props.getProperty(conf.propName, "" + conf.defaultValue));
     }
 
-    private Path[] createInputFiles(final String inputDirName, final int numMappers) throws IOException {
-        Path inputDir = new Path(inputDirName);
+    private Path[] createInputFiles(final Path inputDir, final int numMappers) throws IOException {
         Path[] paths = new Path[numMappers];
         if (!fs.exists(inputDir)) {
-            LOG.info("Directory doesn't exist will create input dir: " + inputDirName);
+            LOG.info("Directory doesn't exist will create input dir: " + inputDir);
             fs.mkdirs(inputDir);
         } else {
-            LOG.info("Input directory already exists, skipping creation : " + inputDirName);
+            LOG.info("Input directory already exists, skipping creation : " + inputDir);
         }
 
         for (int i = 0; i < numMappers; i++) {
