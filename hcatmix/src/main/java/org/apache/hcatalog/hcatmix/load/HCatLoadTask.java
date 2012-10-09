@@ -30,6 +30,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -91,23 +93,24 @@ public abstract class HCatLoadTask implements Task {
     }
 
     public static class HCatReadLoadTask extends HCatLoadTask {
+        List<String> partitions = new ArrayList<String>();
         HCatReadLoadTask() throws IOException {
             super();
+            partitions.add("1");
+            partitions.add("2");
         }
 
         @Override
         public String getName() {
-            return "getDatabase";
+            return "getPartitionsByNames";
         }
 
         @Override
         public void doTask() throws Exception {
             try {
-                LOG.info("Doing work in Task");
-                final Database db = hiveClient.get().getDatabase("default");
-                LOG.info("Got database successfully!");
+                hiveClient.get().listPartitions("default", "load_test_table_0_1", (short)-1);
             } catch (Exception e) {
-                LOG.info("Error reading database: default", e);
+                LOG.info("Error listing partitions", e);
                 numErrors.set(numErrors.get() + 1);
                 throw e;
             }

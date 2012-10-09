@@ -1,0 +1,73 @@
+<database>
+    <tables>
+        <table>
+            <namePrefix>load_test_table</namePrefix>
+            <dbName>default</dbName>
+            <columns>
+                <column>
+                    <name>user</name>
+                    <type>string</type>
+                    <avgLength>10</avgLength>
+                    <distribution>uniform</distribution>
+                    <cardinality>10000</cardinality>
+                    <percentageNull>10</percentageNull>
+                </column>
+                <column>
+                    <name>timespent</name>
+                    <type>int</type>
+                    <distribution>uniform</distribution>
+                    <cardinality>100000</cardinality>
+                    <percentageNull>10</percentageNull>
+                </column>
+                <column>
+                    <name>query_term</name>
+                    <type>string</type>
+                    <avgLength>10</avgLength>
+                    <distribution>uniform</distribution>
+                    <cardinality>10000</cardinality>
+                    <percentageNull>10</percentageNull>
+                </column>
+                <column>
+                    <name>ip_addr</name>
+                    <type>int</type>
+                    <distribution>uniform</distribution>
+                    <cardinality>100000</cardinality>
+                    <percentageNull>10</percentageNull>
+                </column>
+
+                <column>
+                    <name>estimated_revenue</name>
+                    <type>int</type>
+                    <distribution>uniform</distribution>
+                    <cardinality>10000000</cardinality>
+                    <percentageNull>10</percentageNull>
+                </column>
+                <column>
+                    <name>page_info</name>
+                    <type>string</type>
+                    <avgLength>10</avgLength>
+                    <distribution>uniform</distribution>
+                    <cardinality>10000</cardinality>
+                    <percentageNull>10</percentageNull>
+                </column>
+            </columns>
+            <partitions>
+                <partition>
+                    <name>partition</name>
+                    <type>string</type>
+                    <distribution>uniform</distribution>
+                    <cardinality>100</cardinality>
+                </partition>
+            </partitions>
+            <instances>
+                <instance>
+                    <size>1</size>
+                    <count>1</count>
+                </instance>
+            </instances>
+        </table>
+
+    </tables>
+</database>
+
+

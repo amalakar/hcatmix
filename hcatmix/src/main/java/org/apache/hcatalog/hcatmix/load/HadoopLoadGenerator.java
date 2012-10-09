@@ -39,6 +39,7 @@ import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.hcatalog.hcatmix.load.hadoop.MapResult;
 import org.apache.hcatalog.hcatmix.load.hadoop.ReduceResult;
+import org.apache.pig.tools.cmdline.CmdLineParser;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,6 +48,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.text.ParseException;
 import java.util.Properties;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -58,7 +60,6 @@ public class HadoopLoadGenerator extends Configured implements Tool {
     public static final String METASTORE_TOKEN_KEY = "metaStoreToken";
     public static final String METASTORE_TOKEN_SIGNATURE = "metaStoreTokenSig";
 
-    public static final String TASK_CLASS_NAME = HCatLoadTask.HCatReadLoadTask.class.getName();
     private FileSystem fs;
 
     private static final Logger LOG = LoggerFactory.getLogger(HadoopLoadGenerator.class);
@@ -103,13 +104,36 @@ public class HadoopLoadGenerator extends Configured implements Tool {
     }
 
     @Override
-    public int run(String[] strings) throws Exception {
-        return run();
+    public int run(String[] args) throws Exception {
+        CmdLineParser opts = new CmdLineParser(args);
+        String classNames = null;
+
+        opts.registerOpt('c', "classnames", CmdLineParser.ValueExpected.REQUIRED);
+
+        char opt;
+        try {
+            while ((opt = opts.getNextOpt()) != CmdLineParser.EndOfOpts) {
+                switch (opt) {
+                    case 'c':
+                        classNames = opts.getValStr();
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Unrecognized option");
+                }
+            }
+        } catch (ParseException pe) {
+            System.err.println("Couldn't parse the command line arguments, " +
+                    pe.getMessage());
+            usage();
+        }
+        return run(classNames);
     }
 
-    public int run() throws IOException, MetaException, TException {
+    public void usage() {
+        System.out.println("TODO");
+    }
 
-        // Create a JobConf using the processed conf
+    public int run(String taskClassName) throws IOException, MetaException, TException {
         JobConf jobConf;
         if(getConf() != null) {
             jobConf = new JobConf(getConf());
@@ -150,7 +174,7 @@ public class HadoopLoadGenerator extends Configured implements Tool {
         jobConf.setOutputKeyClass(LongWritable.class);
         jobConf.setOutputValueClass(ReduceResult.class);
         jobConf.setOutputFormat(SequenceFileOutputFormat.class);
-        jobConf.set(Conf.TASK_CLASS_NAMES.getJobConfKey(), TASK_CLASS_NAME);
+        jobConf.set(Conf.TASK_CLASS_NAMES.getJobConfKey(), taskClassName);
 
         fs = FileSystem.get(jobConf);
 
@@ -214,7 +238,7 @@ public class HadoopLoadGenerator extends Configured implements Tool {
     private Path[] createInputFiles(final Path inputDir, final int numMappers) throws IOException {
         Path[] paths = new Path[numMappers];
         if (!fs.exists(inputDir)) {
-            LOG.info("Directory doesn't exist will create input dir: " + inputDir);
+            LOG.info("Input Directory doesn't exist will create input dir: " + inputDir);
             fs.mkdirs(inputDir);
         } else {
             LOG.info("Input directory already exists, skipping creation : " + inputDir);

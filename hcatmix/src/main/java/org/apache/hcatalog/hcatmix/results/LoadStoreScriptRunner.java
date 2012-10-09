@@ -224,6 +224,10 @@ public class LoadStoreScriptRunner {
         return timedStats;
     }
 
+    public HiveTableSchema getHiveTableSchema() {
+        return hiveTableSchema;
+    }
+
     public static class PigProgressListener implements PigProgressNotificationListener {
         private final int expectedNumRecords;
         int numJobsSubmitted;

@@ -39,42 +39,4 @@ public class LoadStoreStopWatch extends Slf4JStopWatch {
         this.hcatSchemaFile = hcatSchemaFile;
         this.type = type;
     }
-
-//    public static class Key {
-//        private String hcatSchemaFile;
-//        private String type;
-//
-//        public Key(String hcatSchemaFile, String type) {
-//            this.hcatSchemaFile = hcatSchemaFile;
-//            this.type = type;
-//        }
-//
-//        public Key(String tagName) {
-//            hcatSchemaFile = getFileNameFromTag(tagName);
-//            type = getTypeFromTag(tagName);
-//        }
-//
-//        @Override
-//        public String toString() {
-//            return hcatSchemaFile + "-" + type;
-//        }
-//
-//        public static String getTypeFromTag(String tagName) {
-//            String[] parts = tagName.split("-");
-//            return parts[1];
-//        }
-//
-//        public static String getFileNameFromTag(String tagName) {
-//            String[] parts = tagName.split("-");
-//            return parts[0];
-//        }
-//
-//        public String getHcatSchemaFile() {
-//            return hcatSchemaFile;
-//        }
-//
-//        public String getType() {
-//            return type;
-//        }
-//    }
 }
