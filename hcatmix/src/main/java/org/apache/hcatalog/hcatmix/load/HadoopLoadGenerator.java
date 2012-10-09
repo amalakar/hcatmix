@@ -46,6 +46,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.Properties;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 public class HadoopLoadGenerator extends Configured implements Tool {
     public static final String CONF_FILE = "hcat_load_test.properties";
@@ -172,7 +174,8 @@ public class HadoopLoadGenerator extends Configured implements Tool {
         return 0;
     }
 
-    public void readResult(Path outputDir, JobConf jobConf) throws IOException {
+    public SortedMap<Long, StopWatchWritable.ReduceResult> readResult(Path outputDir, JobConf jobConf) throws IOException {
+        SortedMap<Long, StopWatchWritable.ReduceResult> timeseriesResults = new TreeMap<Long, StopWatchWritable.ReduceResult>();
         FileStatus[] files = fs.listStatus(outputDir, new PathFilter() {
             @Override
             public boolean accept(Path path) {
@@ -184,6 +187,7 @@ public class HadoopLoadGenerator extends Configured implements Tool {
             SequenceFile.Reader reader = new SequenceFile.Reader(fs, path, jobConf);
             LongWritable timeStamp = new LongWritable();
             StopWatchWritable.ReduceResult result = new StopWatchWritable.ReduceResult();
+            timeseriesResults.put(timeStamp.get(), result);
             while (reader.next(timeStamp, result)) {
                 LOG.info("Timestamp: " + timeStamp);
                 LOG.info("ThreadCount: " +result.getThreadCount());
@@ -191,6 +195,7 @@ public class HadoopLoadGenerator extends Configured implements Tool {
             }
             reader.close();
         }
+        return timeseriesResults;
     }
 
     private static void addToJobConf(JobConf jobConf, Properties props, Conf conf) {

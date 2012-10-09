@@ -41,21 +41,21 @@ public class HCatStats {
     public HCatStats(String fileName, GroupedTimingStatistics timedStats) {
         this.fileName = fileName;
         this.timedStats = timedStats;
-        chartUrl = generateChart(); //TODO remove this
+        chartUrl = getChartURL(); //TODO remove this
     }
 
     public String getChartUrl() {
         return chartUrl;
     }
 
-    protected String generateChart() {
+    protected String getChartURL() {
         List<Double> minsList = new ArrayList<Double>();
         List<Double> avgList = new ArrayList<Double>();
         List<Double> maxList = new ArrayList<Double>();
 
         List<String> labelsReverse = new ArrayList<String>();
         List<String> labels = new ArrayList<String>();
-        Double max = 0.0;
+        double max = 0.0;
         for (Map.Entry<String, TimingStatistics> statEntry : timedStats.getStatisticsByTag().entrySet()) {
             labels.add(statEntry.getKey());
             TimingStatistics stat = statEntry.getValue();
@@ -63,7 +63,7 @@ public class HCatStats {
             avgList.add(stat.getMean());
             maxList.add((double) stat.getMax());
             if (stat.getMax() > max) {
-                max = (double) stat.getMax();
+                max = stat.getMax();
             }
             LOG.info(statEntry.getKey() + " " + stat);
         }
