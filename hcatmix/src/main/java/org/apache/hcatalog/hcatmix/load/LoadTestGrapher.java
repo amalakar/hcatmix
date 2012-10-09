@@ -19,6 +19,7 @@
 package org.apache.hcatalog.hcatmix.load;
 
 import com.googlecode.charts4j.*;
+import org.apache.hcatalog.hcatmix.load.hadoop.ReduceResult;
 import org.perf4j.TimingStatistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,39 +34,45 @@ import static com.googlecode.charts4j.Color.*;
 public class LoadTestGrapher {
     private static final Logger LOG = LoggerFactory.getLogger(LoadTestGrapher.class);
 
-    public static String getURL(SortedMap<Long, StopWatchWritable.ReduceResult> results) {
+    public static String getURL(SortedMap<Long, ReduceResult> results) {
         // Defining lines
-        final int NUM_POINTS = results.size();
-        final double[] avg = new double[NUM_POINTS];
+        Map<String, List<Double>> timeSeries = new HashMap<String, List<Double>>();
 
         final List<String> xAxisTimeLabels = new ArrayList<String>();
         final List<String> xAxisThreadCountLabels = new ArrayList<String>();
 
-        int i=0;
         double max = 0;
-        for (Map.Entry<Long, StopWatchWritable.ReduceResult> entry : results.entrySet()) {
+        for (Map.Entry<Long, ReduceResult> entry : results.entrySet()) {
             Long timeStamp = entry.getKey();
-            StopWatchWritable.ReduceResult result = entry.getValue();
+            ReduceResult result = entry.getValue();
             for (Map.Entry<String, TimingStatistics> statisticsByTag : result.getStatistics().getStatisticsByTag().entrySet()) {
-                System.out.println(statisticsByTag.getValue());
-                if("getDatabase" == statisticsByTag.getKey()) {
-                    avg[i] = statisticsByTag.getValue().getMean();
-                    max = avg[i] > max ? avg[i] : max;
+                String taskName = statisticsByTag.getKey();
+                Double avg = statisticsByTag.getValue().getMean();
+                if(timeSeries.containsKey(taskName)) {
+                    timeSeries.get(taskName).add(avg);
+                } else {
+                    List<Double> avgs = new ArrayList<Double>();
+                    avgs.add(avg);
+                    timeSeries.put(taskName, avgs);
                 }
+                max = avg > max ? avg : max;
             }
             xAxisTimeLabels.add(timeStamp.toString());
             xAxisThreadCountLabels.add(String.valueOf(result.getThreadCount()));
-            i++;
         }
         final double MAX_LIMIT = max + 0.1 * max;
-        System.out.println(Arrays.toString(avg));
-        Line avgTime = Plots.newLine(DataUtil.scaleWithinRange(0, MAX_LIMIT, avg), Color.newColor("CA3D05"), "Avg Time");
-        avgTime.setLineStyle(LineStyle.newLineStyle(3, 1, 0));
-        avgTime.addShapeMarkers(Shape.DIAMOND, Color.newColor("CA3D05"), 12);
-        avgTime.addShapeMarkers(Shape.DIAMOND, Color.WHITE, 8);
+
+        List<Line> lines = new ArrayList<Line>();
+        for (Map.Entry<String, List<Double>> taskTimeSeries : timeSeries.entrySet()) {
+            Line avgTime = Plots.newLine(DataUtil.scaleWithinRange(0, MAX_LIMIT, taskTimeSeries.getValue()), Color.newColor("CA3D05"), taskTimeSeries.getKey());
+            avgTime.setLineStyle(LineStyle.newLineStyle(3, 1, 0));
+            avgTime.addShapeMarkers(Shape.DIAMOND, Color.newColor("CA3D05"), 12);
+            avgTime.addShapeMarkers(Shape.DIAMOND, Color.WHITE, 8);
+            lines.add(avgTime);
+        }
 
         // Defining chart.
-        LineChart chart = GCharts.newLineChart(avgTime);
+        LineChart chart = GCharts.newLineChart(lines);
         chart.setSize(600, 450);
         chart.setTitle("Response Time VS Response Time (in Milliseconds)", WHITE, 14);
         chart.setGrid(25, 25, 3, 2);

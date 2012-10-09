@@ -22,6 +22,8 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.*;
 import org.apache.hadoop.security.UserGroupInformation;
+import org.apache.hcatalog.hcatmix.load.hadoop.MapResult;
+import org.apache.hcatalog.hcatmix.load.hadoop.StopWatchWritable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.apache.hadoop.security.token.Token;
@@ -37,7 +39,7 @@ import static org.apache.hcatalog.hcatmix.load.HadoopLoadGenerator.Conf;
 * Author: malakar
 */
 public class HCatMapper extends MapReduceBase implements
-        Mapper<LongWritable, Text, LongWritable, StopWatchWritable.MapResult> {
+        Mapper<LongWritable, Text, LongWritable, MapResult> {
     private static final Logger LOG = LoggerFactory.getLogger(HCatMapper.class);
 
     private int threadIncrementCount;
@@ -81,7 +83,7 @@ public class HCatMapper extends MapReduceBase implements
 
     @Override
     public void map(LongWritable longWritable, Text text,
-                    OutputCollector<LongWritable, StopWatchWritable.MapResult> collector,
+                    OutputCollector<LongWritable, MapResult> collector,
                     final Reporter reporter) throws IOException {
         LOG.info(MessageFormat.format("Input: {0}={1}", longWritable, text));
         final List<Future<SortedMap<Long, List<StopWatchWritable>>>> futures =
@@ -132,7 +134,7 @@ public class HCatMapper extends MapReduceBase implements
                 threadCount = threadCountTimeSeries.get(timeStamp);
             }
             collector.collect(new LongWritable(timeStamp),
-                    new StopWatchWritable.MapResult(threadCount, stopWatchList));
+                    new MapResult(threadCount, stopWatchList));
         }
     }
 }

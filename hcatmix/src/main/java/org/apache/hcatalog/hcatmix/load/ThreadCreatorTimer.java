@@ -19,6 +19,7 @@
 package org.apache.hcatalog.hcatmix.load;
 
 import org.apache.hadoop.mapred.Reporter;
+import org.apache.hcatalog.hcatmix.load.hadoop.StopWatchWritable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,9 +29,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-/**
-* Author: malakar
-*/
 public class ThreadCreatorTimer extends TimerTask {
     private static final Logger LOG = LoggerFactory.getLogger(ThreadCreatorTimer.class);
     private int threadCount;
@@ -56,13 +54,13 @@ public class ThreadCreatorTimer extends TimerTask {
     public void run() {
         LOG.info("About to create " + threadIncrementCount + " threads.");
         final ExecutorService executorPool = Executors.newFixedThreadPool(threadIncrementCount);
-        Collection<Worker> workers = new ArrayList<Worker>(threadIncrementCount);
+        Collection<TaskExecutor> taskExecutors = new ArrayList<TaskExecutor>(threadIncrementCount);
         for (int i = 0; i < threadIncrementCount; i++) {
-            workers.add(new Worker(new TimeKeeper(timeKeeper), tasks));
+            taskExecutors.add(new TaskExecutor(new TimeKeeper(timeKeeper), tasks));
         }
 
-        for (Worker worker : workers) {
-            futures.add(executorPool.submit(worker));
+        for (TaskExecutor taskExecutor : taskExecutors) {
+            futures.add(executorPool.submit(taskExecutor));
         }
         threadCount += threadIncrementCount;
 

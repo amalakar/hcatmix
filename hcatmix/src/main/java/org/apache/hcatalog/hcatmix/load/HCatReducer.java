@@ -19,11 +19,13 @@
 package org.apache.hcatalog.hcatmix.load;
 
 import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.MapReduceBase;
 import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.Reducer;
 import org.apache.hadoop.mapred.Reporter;
+import org.apache.hcatalog.hcatmix.load.hadoop.MapResult;
+import org.apache.hcatalog.hcatmix.load.hadoop.ReduceResult;
+import org.apache.hcatalog.hcatmix.load.hadoop.StopWatchWritable;
 import org.perf4j.GroupedTimingStatistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,22 +36,22 @@ import java.util.Iterator;
 import java.util.List;
 
 public class HCatReducer extends MapReduceBase implements
-        Reducer<LongWritable, StopWatchWritable.MapResult,
-        LongWritable, StopWatchWritable.ReduceResult> {
+        Reducer<LongWritable, MapResult,
+        LongWritable, ReduceResult> {
     private static final Logger LOG = LoggerFactory.getLogger(HCatReducer.class);
 
     public HCatReducer() {
     }
 
     @Override
-    public void reduce(LongWritable timeStamp, Iterator<StopWatchWritable.MapResult> mapResultIterator,
-                       OutputCollector<LongWritable, StopWatchWritable.ReduceResult> collector, Reporter reporter)
+    public void reduce(LongWritable timeStamp, Iterator<MapResult> mapResultIterator,
+                       OutputCollector<LongWritable, ReduceResult> collector, Reporter reporter)
             throws IOException {
         GroupedTimingStatistics statistics = new GroupedTimingStatistics();
         LOG.info(MessageFormat.format("Going through statistics for time: {0}", timeStamp));
         int threadCount = 0;
         while (mapResultIterator.hasNext()) {
-            StopWatchWritable.MapResult mapResult = mapResultIterator.next();
+            MapResult mapResult = mapResultIterator.next();
             List<StopWatchWritable> stopWatches = mapResult.getStopWatchList();
             for (StopWatchWritable stopWatch : stopWatches) {
                 statistics.addStopWatch(stopWatch.getStopWatch());
@@ -61,6 +63,6 @@ public class HCatReducer extends MapReduceBase implements
         }
         LOG.info(MessageFormat.format("Final statistics for {0}: Threads: {1}, Statistics: {2}",
                 timeStamp, threadCount, statistics));
-        collector.collect(timeStamp, new StopWatchWritable.ReduceResult(statistics,  threadCount));
+        collector.collect(timeStamp, new ReduceResult(statistics,  threadCount));
     }
 }

@@ -37,6 +37,8 @@ import org.apache.hadoop.security.token.Token;
 import org.apache.hadoop.security.token.delegation.AbstractDelegationTokenIdentifier;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
+import org.apache.hcatalog.hcatmix.load.hadoop.MapResult;
+import org.apache.hcatalog.hcatmix.load.hadoop.ReduceResult;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -142,9 +144,10 @@ public class HadoopLoadGenerator extends Configured implements Tool {
         jobConf.setJarByClass(HCatMapper.class);
         jobConf.setReducerClass(HCatReducer.class);
         jobConf.setMapOutputKeyClass(LongWritable.class);
-        jobConf.setMapOutputValueClass(StopWatchWritable.MapResult.class);
+        jobConf.setMapOutputValueClass(MapResult.class);
         jobConf.setOutputKeyClass(LongWritable.class);
-        jobConf.setOutputValueClass(StopWatchWritable.ReduceResult.class);
+        jobConf.setOutputValueClass(ReduceResult.class);
+        jobConf.setOutputFormat(SequenceFileOutputFormat.class);
         fs = FileSystem.get(jobConf);
 
         FileInputFormat.setInputPaths(jobConf, createInputFiles(inputDir, numMappers));
@@ -170,12 +173,12 @@ public class HadoopLoadGenerator extends Configured implements Tool {
             throw new IOException("Job failed");
         }
 
-        readResult(outputDir, jobConf);
+        LOG.info("Graph URL:" + LoadTestGrapher.getURL(readResult(outputDir, jobConf)));
         return 0;
     }
 
-    public SortedMap<Long, StopWatchWritable.ReduceResult> readResult(Path outputDir, JobConf jobConf) throws IOException {
-        SortedMap<Long, StopWatchWritable.ReduceResult> timeseriesResults = new TreeMap<Long, StopWatchWritable.ReduceResult>();
+    public SortedMap<Long, ReduceResult> readResult(Path outputDir, JobConf jobConf) throws IOException {
+        SortedMap<Long, ReduceResult> timeseriesResults = new TreeMap<Long, ReduceResult>();
         FileStatus[] files = fs.listStatus(outputDir, new PathFilter() {
             @Override
             public boolean accept(Path path) {
@@ -186,12 +189,12 @@ public class HadoopLoadGenerator extends Configured implements Tool {
             Path path = status.getPath();
             SequenceFile.Reader reader = new SequenceFile.Reader(fs, path, jobConf);
             LongWritable timeStamp = new LongWritable();
-            StopWatchWritable.ReduceResult result = new StopWatchWritable.ReduceResult();
-            timeseriesResults.put(timeStamp.get(), result);
+            ReduceResult result = new ReduceResult();
             while (reader.next(timeStamp, result)) {
                 LOG.info("Timestamp: " + timeStamp);
-                LOG.info("ThreadCount: " +result.getThreadCount());
+                LOG.info("ThreadCount: " + result.getThreadCount());
                 LOG.info("Stats:\n" + result.getStatistics());
+                timeseriesResults.put(timeStamp.get(), result);
             }
             reader.close();
         }

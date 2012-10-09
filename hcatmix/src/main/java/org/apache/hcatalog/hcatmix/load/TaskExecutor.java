@@ -18,6 +18,7 @@
 
 package org.apache.hcatalog.hcatmix.load;
 
+import org.apache.hcatalog.hcatmix.load.hadoop.StopWatchWritable;
 import org.perf4j.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,12 +29,12 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.Callable;
 
-public class Worker implements Callable<SortedMap<Long, List<StopWatchWritable>>> {
+public class TaskExecutor implements Callable<SortedMap<Long, List<StopWatchWritable>>> {
     private final TimeKeeper timeKeeper;
     private final List<Task> tasks;
-    private static final Logger LOG = LoggerFactory.getLogger(Worker.class);
+    private static final Logger LOG = LoggerFactory.getLogger(TaskExecutor.class);
 
-    public Worker(final TimeKeeper timeKeeper, List<Task> tasks) {
+    public TaskExecutor(final TimeKeeper timeKeeper, List<Task> tasks) {
         this.timeKeeper = timeKeeper;
         this.tasks = tasks;
     }
