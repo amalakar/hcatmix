@@ -55,13 +55,14 @@
                 <partition>
                     <name>partition</name>
                     <type>string</type>
+                    <avgLength>10</avgLength>
                     <distribution>uniform</distribution>
                     <cardinality>100</cardinality>
                 </partition>
             </partitions>
             <instances>
                 <instance>
-                    <size>1</size>
+                    <size>20000</size>
                     <count>1</count>
                 </instance>
             </instances>

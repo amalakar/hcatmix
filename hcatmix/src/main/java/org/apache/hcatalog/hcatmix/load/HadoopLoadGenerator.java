@@ -37,6 +37,7 @@ import org.apache.hadoop.security.token.Token;
 import org.apache.hadoop.security.token.delegation.AbstractDelegationTokenIdentifier;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
+import org.apache.hcatalog.hcatmix.HCatMixUtils;
 import org.apache.hcatalog.hcatmix.load.hadoop.MapResult;
 import org.apache.hcatalog.hcatmix.load.hadoop.ReduceResult;
 import org.apache.pig.tools.cmdline.CmdLineParser;
@@ -72,7 +73,7 @@ public class HadoopLoadGenerator extends Configured implements Tool {
         MAP_RUN_TIME_MINUTES("map.runtime.minutes", 3),
         STAT_COLLECTION_INTERVAL_MINUTE("stat.collection.interval.minutes", 2),
         INPUT_DIR("input.dir", "/tmp/hcatmix/loadtest/input"),
-        OUTPUT_DIR("output.dir", "/tmp/hcatmix/loadtest/input"),
+        OUTPUT_DIR("output.dir", "/tmp/hcatmix/loadtest/output"),
         TASK_CLASS_NAMES("task.class.names", null);
 
         public final String propName;
@@ -239,7 +240,9 @@ public class HadoopLoadGenerator extends Configured implements Tool {
         Path[] paths = new Path[numMappers];
         if (!fs.exists(inputDir)) {
             LOG.info("Input Directory doesn't exist will create input dir: " + inputDir);
-            fs.mkdirs(inputDir);
+            if(!fs.mkdirs(inputDir)) {
+                HCatMixUtils.logAndThrow(new RuntimeException("Couldn't create input directory: " + inputDir));
+            }
         } else {
             LOG.info("Input directory already exists, skipping creation : " + inputDir);
         }
@@ -247,7 +250,9 @@ public class HadoopLoadGenerator extends Configured implements Tool {
         for (int i = 0; i < numMappers; i++) {
             Path childDir = new Path(inputDir, "input_" + i);
             if(!fs.exists(childDir)) {
-                fs.mkdirs(childDir);
+                if(!fs.mkdirs(childDir)) {
+                    HCatMixUtils.logAndThrow(new RuntimeException("Couldn't create input child directory: " + childDir));
+                }
             }
             Path childFile = new Path(childDir, "input");
             if(!fs.exists(childFile)) {

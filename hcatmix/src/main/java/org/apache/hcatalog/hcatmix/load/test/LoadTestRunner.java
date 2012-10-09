@@ -19,11 +19,13 @@
 package org.apache.hcatalog.hcatmix.load.test;
 
 import junit.framework.Assert;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.util.Tool;
+import org.apache.hadoop.util.ToolRunner;
 import org.apache.hcatalog.hcatmix.HCatMixSetup;
 import org.apache.hcatalog.hcatmix.HCatMixSetupConf;
 import org.apache.hcatalog.hcatmix.conf.HiveTableSchema;
@@ -40,17 +42,16 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.net.URL;
-import java.text.ParseException;
-import java.util.List;
 
-/**
- * Author: malakar
- */
 public class LoadTestRunner extends Configured implements Tool {
     private HCatMixSetup hCatMixSetup;
     private HiveTableSchema tableSchema;
     private static final Logger LOG = LoggerFactory.getLogger(LoadTestRunner.class);
     private final String HCAT_SPEC_FILE = "load_test_table.xml";
+
+    public static void main(String[] args) throws Exception {
+        ToolRunner.run(new Configuration(), new LoadTestRunner(), args);
+    }
 
     @Override
     public int run(String[] args) throws Exception {
@@ -59,7 +60,6 @@ public class LoadTestRunner extends Configured implements Tool {
         tearDown();
         return 0;
     }
-
 
     public void testReadTask() throws IOException, TException, MetaException {
         HadoopLoadGenerator loadGenerator = new HadoopLoadGenerator();

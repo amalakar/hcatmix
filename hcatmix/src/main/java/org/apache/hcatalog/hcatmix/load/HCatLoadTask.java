@@ -20,8 +20,7 @@ package org.apache.hcatalog.hcatmix.load;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
-import org.apache.hadoop.hive.metastore.api.Database;
-import org.apache.hadoop.hive.metastore.api.MetaException;
+import org.apache.hadoop.hive.metastore.api.*;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.security.UserGroupInformation;
@@ -30,9 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
 
 /**
  * Author: malakar
@@ -93,22 +89,72 @@ public abstract class HCatLoadTask implements Task {
     }
 
     public static class HCatReadLoadTask extends HCatLoadTask {
-        List<String> partitions = new ArrayList<String>();
         HCatReadLoadTask() throws IOException {
             super();
-            partitions.add("1");
-            partitions.add("2");
         }
 
         @Override
         public String getName() {
-            return "getPartitionsByNames";
+            return "listPartitions";
         }
 
         @Override
         public void doTask() throws Exception {
             try {
-                hiveClient.get().listPartitions("default", "load_test_table_0_1", (short)-1);
+                hiveClient.get().listPartitions("default", "load_test_table_0_1", (short) -1);
+            } catch (Exception e) {
+                LOG.info("Error listing partitions", e);
+                numErrors.set(numErrors.get() + 1);
+                throw e;
+            }
+        }
+    }
+
+    public static class HCatWriteLoadTask extends HCatLoadTask {
+
+        HCatWriteLoadTask() throws IOException {
+//            super();
+//
+//            LOG.info("About to create table: " + hiveTableSchema.getName());
+//            Table table = new Table();
+//            table.setDbName(hiveTableSchema.getDatabaseName());
+//            table.setTableName(hiveTableSchema.getName());
+//            try {
+//                table.setOwner(UserGroupInformation.getCurrentUser().getUserName());
+//            } catch (IOException e) {
+//                throw new IOException("Couldn't get user information. Cannot create table", e);
+//            }
+//            table.setOwnerIsSet(true);
+//            StorageDescriptor sd = new StorageDescriptor();
+//            sd.setCols(hiveTableSchema.getColumnFieldSchemas());
+//            table.setSd(sd);
+//            sd.setParameters(new HashMap<String, String>());
+//            sd.setSerdeInfo(new SerDeInfo());
+//            sd.getSerdeInfo().setName(table.getTableName());
+//            sd.getSerdeInfo().setParameters(new HashMap<String, String>());
+//
+//            sd.setInputFormat(org.apache.hadoop.hive.ql.io.RCFileInputFormat.class.getName());
+//            sd.setOutputFormat(org.apache.hadoop.hive.ql.io.RCFileOutputFormat.class.getName());
+//            sd.getSerdeInfo().getParameters().put(
+//                    org.apache.hadoop.hive.serde.Constants.SERIALIZATION_FORMAT, "1");
+//            sd.getSerdeInfo().setSerializationLib(
+//                    org.apache.hadoop.hive.serde2.columnar.ColumnarSerDe.class.getName());
+//            table.setPartitionKeys(hiveTableSchema.getPartitionFieldSchemas());
+//
+//            hiveClient.createTable(table);
+//
+//            Partition partition = new Partition(values, dbName, tableName, creatTime, lastAccessTime, sd, params);
+        }
+
+        @Override
+        public String getName() {
+            return "addPartition";
+        }
+
+        @Override
+        public void doTask() throws Exception {
+            try {
+                hiveClient.get().add_partition(null);
             } catch (Exception e) {
                 LOG.info("Error listing partitions", e);
                 numErrors.set(numErrors.get() + 1);

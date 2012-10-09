@@ -20,11 +20,15 @@ package org.apache.hcatalog.hcatmix;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.hcatalog.hcatmix.conf.HiveTableSchema;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
 public class HCatMixUtils {
     public static final String COPY_TABLE_NAME_SUFFIX = "_copy";
+    private static final Logger LOG = LoggerFactory.getLogger(HCatMixUtils.class);
+
     /**
      * The returned location would be a directory in case of map reduce mode, otherwise a file in case of
      * local mode
@@ -116,5 +120,10 @@ public class HCatMixUtils {
         if(!directory.isDirectory()) {
             throw new IllegalStateException("The directory name: " + dirName + " is not a directory");
         }
+    }
+
+    public static void logAndThrow(RuntimeException e) {
+        LOG.error(e.getMessage(), e);
+        throw e;
     }
 }
