@@ -152,7 +152,7 @@ public class HCatMapper extends MapReduceBase implements
                 task.configure(jobConf);
                 tasks.add(task);
             } catch (Exception e) {
-                LOG.info("Couldn't instantiate class: aClass", e);
+                LOG.info("Couldn't instantiate class:" + aClass, e);
                 throw e;
             }
         }

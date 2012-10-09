@@ -42,9 +42,7 @@ public abstract class HCatLoadTask implements Task {
     private static final Logger LOG = LoggerFactory.getLogger(Task.class);
     public static final String HIVE_CONF_TOKEN_KEY = "hive.metastore.token.signature";
 
-    HCatLoadTask(Token token) throws IOException {
-
-
+    HCatLoadTask() throws IOException {
         numErrors = new ThreadLocal<Integer>(){
             @Override
             protected Integer initialValue() {
@@ -93,10 +91,8 @@ public abstract class HCatLoadTask implements Task {
     }
 
     public static class HCatReadLoadTask extends HCatLoadTask {
-        Random rand = new Random();
-
-        HCatReadLoadTask(Token token) throws IOException {
-            super(token);
+        HCatReadLoadTask() throws IOException {
+            super();
         }
 
         @Override
@@ -111,9 +107,9 @@ public abstract class HCatLoadTask implements Task {
                 final Database db = hiveClient.get().getDatabase("default");
                 LOG.info("Got database successfully!");
             } catch (Exception e) {
-               LOG.info("Error reading database: default", e);
+                LOG.info("Error reading database: default", e);
                 numErrors.set(numErrors.get() + 1);
-               throw e;
+                throw e;
             }
         }
     }
