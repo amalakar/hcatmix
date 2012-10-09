@@ -22,6 +22,9 @@ import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.MetaException;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapred.JobConf;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.security.token.Token;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +43,25 @@ public abstract class HCatLoadTask implements Task {
     public static final String HIVE_CONF_TOKEN_KEY = "hive.metastore.token.signature";
 
     HCatLoadTask(Token token) throws IOException {
+
+
+        numErrors = new ThreadLocal<Integer>(){
+            @Override
+            protected Integer initialValue() {
+                return 0;
+            }
+        };
+    }
+
+    @Override
+    public void configure(JobConf jobConf) {
+        Token token = jobConf.getCredentials().getToken(new Text(HadoopLoadGenerator.METASTORE_TOKEN_KEY));
+
+        try {
+            UserGroupInformation.getCurrentUser().addToken(token);
+        } catch (IOException e) {
+            LOG.info("Error adding token to user", e);
+        }
         if (token == null) {
             throw new IllegalArgumentException("Delegation token needs to be set");
         }
@@ -54,13 +76,6 @@ public abstract class HCatLoadTask implements Task {
                 } catch (MetaException e) {
                     throw new RuntimeException("Couldn't create HiveMetaStoreClient", e);
                 }
-            }
-        };
-
-        numErrors = new ThreadLocal<Integer>(){
-            @Override
-            protected Integer initialValue() {
-                return 0;
             }
         };
     }

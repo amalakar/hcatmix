@@ -18,7 +18,6 @@
 
 package org.apache.hcatalog.hcatmix.load;
 
-import junit.framework.TestCase;
 import org.apache.hcatalog.hcatmix.load.hadoop.ReduceResult;
 import org.perf4j.GroupedTimingStatistics;
 import org.perf4j.TimingStatistics;
@@ -30,10 +29,7 @@ import java.util.Random;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-/**
- * Author: malakar
- */
-public class TestLoadTestGrapher extends TestCase {
+public class TestLoadTestGrapher {
     private static final Logger LOG = LoggerFactory.getLogger(TestLoadTestGrapher.class);
 
 

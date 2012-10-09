@@ -18,9 +18,40 @@
 
 package org.apache.hcatalog.hcatmix.load;
 
+import org.apache.hadoop.mapred.JobConf;
+
+/**
+ * This interface represents the task that would be benchmarked, by the benchmarking framework
+ * It would execute in parallel threads by multiple maps which are launched parallelly. The number
+ * of threads per map would keep at a fixed interval of time, to see the effect of time taken to
+ * execute the task against increase number of parallel clients
+ *
+ * The same task is executed by different threads simultaneously, so any local state must be stored in
+ * ThreadLocal variables.
+ */
 public interface Task {
+    /**
+     * Return the name of the task, that shows up in statistics graphs etc
+     * @return
+     */
     public String getName();
+
+    public void configure(JobConf jobConf);
+
+    /**
+     * Do the actual task, would be called repeatedly by different threads
+     * @throws Exception
+     */
     public void doTask() throws Exception;
+
+    /**
+     * Cleanup code goes here
+     */
     public void close();
+
+    /**
+     * Return the number of times errors occurred which doing the task since inception
+     * @return
+     */
     public int getNumErrors();
 }

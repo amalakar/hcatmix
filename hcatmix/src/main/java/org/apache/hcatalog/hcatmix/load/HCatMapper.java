@@ -18,6 +18,7 @@
 
 package org.apache.hcatalog.hcatmix.load;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.*;
@@ -35,9 +36,6 @@ import java.util.concurrent.*;
 
 import static org.apache.hcatalog.hcatmix.load.HadoopLoadGenerator.Conf;
 
-/**
-* Author: malakar
-*/
 public class HCatMapper extends MapReduceBase implements
         Mapper<LongWritable, Text, LongWritable, MapResult> {
     private static final Logger LOG = LoggerFactory.getLogger(HCatMapper.class);
@@ -47,7 +45,6 @@ public class HCatMapper extends MapReduceBase implements
     private JobConf jobConf;
 
     private TimeKeeper timeKeeper;
-    private Token token;
 
     public HCatMapper() {
     }
@@ -66,13 +63,7 @@ public class HCatMapper extends MapReduceBase implements
 
         timeKeeper = new TimeKeeper(mapRunTime, mapRuntimeExtraBufferInMinutes,
                 timeSeriesIntervalInMinutes);
-        token = jobConf.getCredentials().getToken(new Text(HadoopLoadGenerator.METASTORE_TOKEN_KEY));
 
-        try {
-            UserGroupInformation.getCurrentUser().addToken(token);
-        } catch (IOException e) {
-            LOG.info("Error adding token to user", e);
-        }
     }
 
     private int getFromJobConf(Conf conf) {
@@ -88,8 +79,13 @@ public class HCatMapper extends MapReduceBase implements
         LOG.info(MessageFormat.format("Input: {0}={1}", longWritable, text));
         final List<Future<SortedMap<Long, List<StopWatchWritable>>>> futures =
                 new ArrayList<Future<SortedMap<Long, List<StopWatchWritable>>>>();
-        final List<Task> tasks = new ArrayList<Task>();
-        tasks.add(new HCatLoadTask.HCatReadLoadTask(token));
+
+        List<Task> tasks;
+        try {
+            tasks = initializeTasks(jobConf);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
         ThreadCreatorTimer createNewThreads =
                 new ThreadCreatorTimer(new TimeKeeper(timeKeeper), tasks, threadIncrementCount, futures, reporter);
@@ -136,5 +132,30 @@ public class HCatMapper extends MapReduceBase implements
             collector.collect(new LongWritable(timeStamp),
                     new MapResult(threadCount, stopWatchList));
         }
+    }
+
+    private List<Task> initializeTasks(JobConf jobConf) throws Exception {
+        String classNames = jobConf.get(Conf.TASK_CLASS_NAMES.getJobConfKey());
+        if(StringUtils.isEmpty(classNames)) {
+            String msg = MessageFormat.format("{0} setting is found to be null/empty", Conf.TASK_CLASS_NAMES);
+            LOG.error(msg);
+            throw new IllegalArgumentException(msg);
+        }
+
+        List<Task> tasks = new ArrayList<Task>();
+
+        String[] classes = classNames.split(",");
+        for (String aClass : classes) {
+            Class clazz = Class.forName(aClass);
+            try {
+                Task task = (Task) clazz.newInstance();
+                task.configure(jobConf);
+                tasks.add(task);
+            } catch (Exception e) {
+                LOG.info("Couldn't instantiate class: aClass", e);
+                throw e;
+            }
+        }
+        return tasks;
     }
 }

@@ -58,6 +58,7 @@ public class HadoopLoadGenerator extends Configured implements Tool {
     public static final String METASTORE_TOKEN_KEY = "metaStoreToken";
     public static final String METASTORE_TOKEN_SIGNATURE = "metaStoreTokenSig";
 
+    public static final String TASK_CLASS_NAME = HCatLoadTask.HCatReadLoadTask.class.getName();
     private FileSystem fs;
 
     private static final Logger LOG = LoggerFactory.getLogger(HadoopLoadGenerator.class);
@@ -70,7 +71,8 @@ public class HadoopLoadGenerator extends Configured implements Tool {
         MAP_RUN_TIME_MINUTES("map.runtime.minutes", 3),
         STAT_COLLECTION_INTERVAL_MINUTE("stat.collection.interval.minutes", 2),
         INPUT_DIR("input.dir", "/tmp/hcatmix/loadtest/input"),
-        OUTPUT_DIR("output.dir", "/tmp/hcatmix/loadtest/input");
+        OUTPUT_DIR("output.dir", "/tmp/hcatmix/loadtest/input"),
+        TASK_CLASS_NAMES("task.class.names", null);
 
         public final String propName;
         public final int defaultValue;
@@ -148,6 +150,8 @@ public class HadoopLoadGenerator extends Configured implements Tool {
         jobConf.setOutputKeyClass(LongWritable.class);
         jobConf.setOutputValueClass(ReduceResult.class);
         jobConf.setOutputFormat(SequenceFileOutputFormat.class);
+        jobConf.set(Conf.TASK_CLASS_NAMES.getJobConfKey(), TASK_CLASS_NAME);
+
         fs = FileSystem.get(jobConf);
 
         FileInputFormat.setInputPaths(jobConf, createInputFiles(inputDir, numMappers));
@@ -195,6 +199,8 @@ public class HadoopLoadGenerator extends Configured implements Tool {
                 LOG.info("ThreadCount: " + result.getThreadCount());
                 LOG.info("Stats:\n" + result.getStatistics());
                 timeseriesResults.put(timeStamp.get(), result);
+                timeStamp = new LongWritable(); // initialize, so as to use new objects for next round reading
+                result = new ReduceResult();
             }
             reader.close();
         }
