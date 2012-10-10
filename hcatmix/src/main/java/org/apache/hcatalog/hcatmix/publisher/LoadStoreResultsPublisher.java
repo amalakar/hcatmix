@@ -28,9 +28,9 @@ import java.util.List;
  * Author: malakar
  */
 public class LoadStoreResultsPublisher extends ResultsPublisher {
-    private static final String HTML_TEMPLATE = "loadstore_html_template.vm";
+    private static final String HTML_TEMPLATE = "templates/loadstore_html_template.vm";
     private static final String HTML_FILE = "hcatmix_loadstore_results.html";
-    private static final String JSON_TEMPLATE = "loadstore_json_template.vm";
+    private static final String JSON_TEMPLATE = "templates/loadstore_json_template.vm";
     private static final String JSON_FILE = "hcatmix_loadstore_results.json";
 
     public LoadStoreResultsPublisher(List<LoadStoreStats> stats) throws Exception {

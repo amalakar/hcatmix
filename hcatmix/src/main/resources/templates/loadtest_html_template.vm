@@ -1,0 +1,61 @@
+<html>
+    <head>
+        <title>HCatMix Load Test Graphs</title>
+        <link href="http://twitter.github.com/bootstrap/assets/css/bootstrap.css" rel="stylesheet"/>
+    </head>
+    <body>
+
+    <div class="container">
+    <h1>Response time of various hcatalog calls as the number of clients are increased</h1>
+
+    <img src="$chartURL" alt="HCatMix Chart"  class="img-polaroid" />
+
+    #set ($testMethods = $loadTestResults.values().iterator().next().getStatistics().getStatisticsByTag().keySet())
+
+    #foreach($method in $testMethods)
+        <p>
+            <h4>$method</h4>
+            <table class="table">
+                <thead>
+                    <caption>Graph</caption>
+                    <tr>
+                        <th>Thread Count</th>
+                        <th>Avg</th>
+                        <th>Min</th>
+                        <th>Max</th>
+                        <th>Std Dev</th>
+                        <th>Number of runs</th>
+                    </tr>
+                </thead>
+                <tbody>
+        #foreach( $entry in $loadTestResults.entrySet() )
+            #set ($time  = $entry.Key )
+            #set ($loadTestResult = $entry.Value )
+            #set ($map = $loadTestResult.Statistics.statisticsByTag )
+            #set ($statistics = $map.get($method))
+
+                    <tr>
+                        <td>$loadTestResult.ThreadCount</td>
+                        <td>$numberTool.format("###,###.##", $statistics.Mean) </td>
+                        <td>$numberTool.format("###,###.##", $statistics.Min)</td>
+                        <td>$numberTool.format("###,###.##", $statistics.Max)</td>
+                        <td>$numberTool.format("###,###.##", $statistics.StandardDeviation)</td>
+                        <td>$numberTool.format("###,###.##", $statistics.Count)</td>
+                    </tr>
+
+        #end
+                </tbody>
+            </table>
+            </p>
+            <br/><br/>
+                <p>
+                  <small>The time is in milliseconds.</small>
+                </p>
+            <br/><br/>
+
+    #end
+
+
+        </div>
+    </body>
+</html>

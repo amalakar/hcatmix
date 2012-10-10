@@ -29,7 +29,7 @@ import java.util.SortedMap;
  * Author: malakar
  */
 public class LoadTestResultsPublisher extends  ResultsPublisher {
-    private static final String HTML_TEMPLATE = "loadtest_html_template.vm";
+    private static final String HTML_TEMPLATE = "templates/loadtest_html_template.vm";
     private static final String HTML_FILE = "hcatmix_loadtest_results.html";
 //    private static final String JSON_TEMPLATE = "loadtest_json_template.vm";
 //    private static final String JSON_FILE = "hcatmix_laodtest_results.json";
