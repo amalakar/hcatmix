@@ -76,7 +76,12 @@ public class LoadStoreTestRunner extends Configured implements Tool {
                         userHCatSpecFiles = opts.getValStr();
                         break;
                     case 'n':
-                        numRuns = Integer.valueOf(opts.getValStr());
+                        try {
+                            numRuns = Integer.valueOf(opts.getValStr());
+                        } catch (NumberFormatException e) {
+                            LOG.error("numRuns should be integer, found " + opts.getValStr());
+                            usage();
+                        }
                         break;
                     default:
                         throw new IllegalArgumentException("Unrecognized option");

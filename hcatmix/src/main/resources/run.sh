@@ -33,14 +33,14 @@ case $action in
         ;;
     loadstoretest)
         echo "Running HCatMixSetup load store tests"
-        if [ -z "$2" ]; then
+        if [ -n "$2" ]; then
             hcatSpecFile=$2
         fi
 
-        if [ -z "$3" ]; then
+        if [ -n "$3" ]; then
             numTimes=$3
         fi
-        hadoop  --config $conf_dir jar $hcatmixjar org.apache.hcatalog.hcatmix.loadstore.test.LoadStoreTestRunner -libjars $JAR_LIST
+        hadoop  --config $conf_dir jar $hcatmixjar org.apache.hcatalog.hcatmix.loadstore.test.LoadStoreTestRunner -libjars $JAR_LIST -h $hcatSpecFile -n $numTimes
 #        hadoop  org.apache.hcatalog.hcatmix.HCatMixSetup -f scripts/hcat_table_specification.xml -m 0 -o /tmp/hcatmix/
         ;;
     *)

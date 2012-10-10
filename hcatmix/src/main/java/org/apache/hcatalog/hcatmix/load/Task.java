@@ -36,7 +36,7 @@ public interface Task {
      */
     public String getName();
 
-    public void configure(JobConf jobConf);
+    public void configure(JobConf jobConf) throws Exception;
 
     /**
      * Do the actual task, would be called repeatedly by different threads

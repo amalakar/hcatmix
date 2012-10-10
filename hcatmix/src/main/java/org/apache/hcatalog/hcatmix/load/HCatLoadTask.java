@@ -60,7 +60,7 @@ public abstract class HCatLoadTask implements Task {
     }
 
     @Override
-    public void configure(JobConf jobConf) {
+    public void configure(JobConf jobConf) throws Exception {
         Token token = jobConf.getCredentials().getToken(new Text(HadoopLoadGenerator.METASTORE_TOKEN_KEY));
 
         try {
@@ -121,11 +121,15 @@ public abstract class HCatLoadTask implements Task {
     }
 
     public static class HCatAddPartitionTask extends HCatLoadTask {
-        final Partition partition;
+        Partition partition;
 
         HCatAddPartitionTask() throws IOException, NoSuchObjectException, TException, MetaException {
             super();
+        }
 
+        @Override
+        public void configure(JobConf jobConf) throws Exception {
+            super.configure(jobConf);
             Table hiveTable = hiveClient.get().getTable(DB_NAME, TABLE_NAME);
             partition = new Partition();
             partition.setDbName(DB_NAME);
