@@ -16,9 +16,8 @@
  * limitations under the License.
  */
 
-package org.apache.hcatalog.hcatmix.load.test;
+package org.apache.hcatalog.hcatmix.load;
 
-import junit.framework.Assert;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
@@ -27,13 +26,8 @@ import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.hcatalog.hcatmix.HCatMixSetup;
-import org.apache.hcatalog.hcatmix.HCatMixSetupConf;
 import org.apache.hcatalog.hcatmix.conf.HiveTableSchema;
-import org.apache.hcatalog.hcatmix.conf.TableSchemaXMLParser;
-import org.apache.hcatalog.hcatmix.load.HCatLoadTask;
-import org.apache.hcatalog.hcatmix.load.HadoopLoadGenerator;
 import org.apache.hcatalog.hcatmix.results.LoadStoreScriptRunner;
-import org.apache.pig.tools.cmdline.CmdLineParser;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,14 +37,14 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.net.URL;
 
-public class LoadTestRunner extends Configured implements Tool {
+public class LoadRunner extends Configured implements Tool {
     private HCatMixSetup hCatMixSetup;
     private HiveTableSchema tableSchema;
-    private static final Logger LOG = LoggerFactory.getLogger(LoadTestRunner.class);
+    private static final Logger LOG = LoggerFactory.getLogger(LoadRunner.class);
     private final String HCAT_SPEC_FILE = "load_test_table.xml";
 
     public static void main(String[] args) throws Exception {
-        ToolRunner.run(new Configuration(), new LoadTestRunner(), args);
+        ToolRunner.run(new Configuration(), new LoadRunner(), args);
     }
 
     @Override
@@ -63,7 +57,7 @@ public class LoadTestRunner extends Configured implements Tool {
 
     public void testReadTask() throws IOException, TException, MetaException {
         HadoopLoadGenerator loadGenerator = new HadoopLoadGenerator();
-        loadGenerator.run( HCatLoadTask.HCatReadLoadTask.class.getName());
+        loadGenerator.run(HCatLoadTask.HCatListPartitionTask.class.getName());
     }
 
     public void setUp() throws MetaException, IOException, TException, NoSuchObjectException, SAXException, InvalidObjectException, ParserConfigurationException {

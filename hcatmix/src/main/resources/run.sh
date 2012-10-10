@@ -1,6 +1,5 @@
 #! /bin/sh
 
-
 function get_jar_list {
     SEPARATOR=$1
     export CLASSPATH=
@@ -17,6 +16,23 @@ hcatmixjar=$scripts/target/hcatmix-1.0-SNAPSHOT-jar-with-dependencies.jar
 
 export HADOOP_CLASSPATH=`get_jar_list :`
 export JAR_LIST=`get_jar_list ,`
-#hadoop  --config $conf_dir jar $hcatmixjar org.apache.hcatalog.hcatmix.load.HadoopLoadGenerator -libjars $JAR_LIST
-hadoop  --config $conf_dir jar $hcatmixjar org.apache.hcatalog.hcatmix.load.test.LoadStoreScriptRunner -libjars $JAR_LIST
-#hadoop  org.apache.hcatalog.hcatmix.HCatMixSetup -f scripts/hcat_table_specification.xml -m 0 -o /tmp/hcatmix/
+
+export action=$1
+case $action in
+    listPartition)
+        echo "Executing HCatListPartitionTask"
+        hadoop  --config $conf_dir jar $hcatmixjar org.apache.hcatalog.hcatmix.load.HadoopLoadGenerator -libjars $JAR_LIST --classnames 'org.apache.hcatalog.hcatmix.load.HCatLoadTask$HCatListPartitionTask'
+        ;;
+    addPartition)
+        echo "Executing HCatListPartitionTask"
+        hadoop  --config $conf_dir jar $hcatmixjar org.apache.hcatalog.hcatmix.load.HadoopLoadGenerator -libjars $JAR_LIST --classnames 'org.apache.hcatalog.hcatmix.load.HCatLoadTask$HCatAddPartitionTask'
+        ;;
+    loadtest)
+        echo "Executing LoadTestRunner"
+        hadoop  --config $conf_dir jar $hcatmixjar org.apache.hcatalog.hcatmix.load.LoadRunner -libjars $JAR_LIST
+        ;;
+    loadstoretest)
+        echo "Running HCatMixSetup"
+        hadoop  org.apache.hcatalog.hcatmix.HCatMixSetup -f scripts/hcat_table_specification.xml -m 0 -o /tmp/hcatmix/
+        ;;
+esac

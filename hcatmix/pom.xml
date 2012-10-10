@@ -78,7 +78,7 @@
             <groupId>org.apache.hive</groupId>
             <artifactId>hive-metastore</artifactId>
             <version>0.9.0</version>
-            <scope>provided</scope>
+            <scope>compile</scope>
             <exclusions>
                 <!-- antlr dependencies clash with antlr required by pig -->
                 <exclusion>
@@ -107,7 +107,7 @@
             <groupId>org.apache.hive</groupId>
             <artifactId>hive-exec</artifactId>
             <version>0.9.0</version>
-            <scope>provided</scope>
+            <scope>compile</scope>
             <exclusions>
                 <!-- antlr dependencies clash with antlr required by pig -->
                 <exclusion>

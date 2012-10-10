@@ -132,6 +132,7 @@ public class HadoopLoadGenerator extends Configured implements Tool {
 
     public void usage() {
         System.out.println("TODO");
+        System.exit(1);
     }
 
     public int run(String taskClassName) throws IOException, MetaException, TException {
