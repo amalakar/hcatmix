@@ -30,7 +30,8 @@ import org.apache.hcatalog.hcatmix.conf.HiveTableSchema;
 import org.apache.hcatalog.hcatmix.load.HCatLoadTask;
 import org.apache.hcatalog.hcatmix.load.HadoopLoadGenerator;
 import org.apache.hcatalog.hcatmix.load.hadoop.ReduceResult;
-import org.apache.hcatalog.hcatmix.results.LoadStoreScriptRunner;
+import org.apache.hcatalog.hcatmix.loadstore.LoadStoreScriptRunner;
+import org.apache.hcatalog.hcatmix.publisher.LoadTestResultsPublisher;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,14 +42,14 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.SortedMap;
 
-public class LoadRunner extends Configured implements Tool {
+public class LoadTestRunner extends Configured implements Tool {
     private HCatMixSetup hCatMixSetup;
     private HiveTableSchema tableSchema;
-    private static final Logger LOG = LoggerFactory.getLogger(LoadRunner.class);
+    private static final Logger LOG = LoggerFactory.getLogger(LoadTestRunner.class);
     private final String HCAT_SPEC_FILE = "load_test_table.xml";
 
     public static void main(String[] args) throws Exception {
-        ToolRunner.run(new Configuration(), new LoadRunner(), args);
+        ToolRunner.run(new Configuration(), new LoadTestRunner(), args);
     }
 
     @Override
@@ -59,10 +60,11 @@ public class LoadRunner extends Configured implements Tool {
         return 0;
     }
 
-    public void testReadTask() throws IOException, TException, MetaException {
+    public void testReadTask() throws Exception, MetaException {
         HadoopLoadGenerator loadGenerator = new HadoopLoadGenerator();
         SortedMap<Long, ReduceResult> results =  loadGenerator.run(HCatLoadTask.HCatListPartitionTask.class.getName(), getConf());
-        String graphURL = LoadTestGrapher.getURL(results);
+        LoadTestResultsPublisher publisher = new LoadTestResultsPublisher(results);
+        publisher.publishAll();
     }
 
     public void setUp() throws MetaException, IOException, TException, NoSuchObjectException, SAXException, InvalidObjectException, ParserConfigurationException {

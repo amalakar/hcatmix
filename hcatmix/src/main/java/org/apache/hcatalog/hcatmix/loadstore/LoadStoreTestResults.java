@@ -16,8 +16,10 @@
  * limitations under the License.
  */
 
-package org.apache.hcatalog.hcatmix.results;
+package org.apache.hcatalog.hcatmix.loadstore;
 
+import org.apache.hcatalog.hcatmix.publisher.LoadStoreResultsPublisher;
+import org.apache.hcatalog.hcatmix.publisher.ResultsPublisher;
 import org.perf4j.GroupedTimingStatistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,32 +32,31 @@ import java.util.Map;
 /**
  * Author: malakar
  */
-public class TestResults {
-    private Map<String, HCatStats> results;
-    private static final Logger LOG = LoggerFactory.getLogger(HCatStats.class);
+public class LoadStoreTestResults {
+    private Map<String, LoadStoreStats> results;
+    private static final Logger LOG = LoggerFactory.getLogger(LoadStoreStats.class);
 
-    public TestResults() {
-        results = new HashMap<String, HCatStats>();
+    public LoadStoreTestResults() {
+        results = new HashMap<String, LoadStoreStats>();
     }
 
     public void addResult(String fileName, GroupedTimingStatistics stats) {
         LOG.info(fileName + " Statistics:\n" + stats.toString());
-        results.put(fileName, new HCatStats(new File(fileName).getName(), stats));
+        results.put(fileName, new LoadStoreStats(new File(fileName).getName(), stats));
     }
 
     public void publish() throws Exception {
-        for (Map.Entry<String, HCatStats> hCatStatsEntry : results.entrySet()) {
+        for (Map.Entry<String, LoadStoreStats> hCatStatsEntry : results.entrySet()) {
             String fileName = hCatStatsEntry.getKey();
-            HCatStats stats = hCatStatsEntry.getValue();
+            LoadStoreStats stats = hCatStatsEntry.getValue();
             LOG.info(fileName + " Statistics:\n" + stats.toString());
             LOG.info("Chart URL: " + stats.getChartUrl());
         }
-        ResultsPublisher publisher = new ResultsPublisher(new ArrayList<HCatStats>(results.values()));
+        ResultsPublisher publisher = new LoadStoreResultsPublisher(new ArrayList<LoadStoreStats>(results.values()));
         publisher.publishAll();
     }
 
-    public Map<String, HCatStats> getResults() {
+    public Map<String, LoadStoreStats> getResults() {
         return results;
     }
-
 }

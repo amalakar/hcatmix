@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.hcatalog.hcatmix.results;
+package org.apache.hcatalog.hcatmix.loadstore;
 
 import junit.framework.Assert;
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;

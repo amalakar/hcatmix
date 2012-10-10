@@ -16,35 +16,30 @@
  * limitations under the License.
  */
 
-package org.apache.hcatalog.hcatmix.results;
+package org.apache.hcatalog.hcatmix.publisher;
 
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import org.apache.velocity.exception.ParseErrorException;
 import org.apache.velocity.exception.ResourceNotFoundException;
-import org.apache.velocity.tools.generic.NumberTool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
-import java.util.List;
 import java.util.Properties;
 
-class ResultsPublisher {
+/**
+ * Abstract class for initializing velocity templating engine. The context needs to be
+ * set in order to publish results.
+ */
+public abstract class ResultsPublisher {
 
     private static final Logger LOG = LoggerFactory.getLogger(ResultsPublisher.class);
-    private static final String HTML_TEMPLATE = "html_template.vm";
-    private static final String HTML_FILE = "hcatmix_results.html";
-    private static final String JSON_TEMPLATE = "json_template.vm";
-    private static final String JSON_FILE = "hcatmix_results.json";
-    private final VelocityContext context;
+    private VelocityContext context;
 
-    ResultsPublisher(List<HCatStats> stats) throws Exception {
-        context = new VelocityContext();
-        context.put("hcatStats", stats);
-        context.put("numberTool", new NumberTool());
+    ResultsPublisher() throws Exception {
         Properties props = new Properties();
         props.setProperty("resource.loader", "file, class, jar");
         props.setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
@@ -57,11 +52,11 @@ class ResultsPublisher {
         }
     }
 
-    public void publishAll() throws Exception {
-        publishUsingTemplate(HTML_TEMPLATE, HTML_FILE);
-        publishUsingTemplate(JSON_TEMPLATE, JSON_FILE);
-
+    public void setContext(VelocityContext context) {
+        this.context = context;
     }
+
+    public abstract void publishAll() throws Exception;
 
     public void publishUsingTemplate(final String templateFile, final String outputFile) throws Exception {
         try {

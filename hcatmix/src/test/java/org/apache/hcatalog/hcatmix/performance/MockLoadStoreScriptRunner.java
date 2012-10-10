@@ -21,7 +21,7 @@ package org.apache.hcatalog.hcatmix.performance;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
-import org.apache.hcatalog.hcatmix.results.LoadStoreScriptRunner;
+import org.apache.hcatalog.hcatmix.loadstore.LoadStoreScriptRunner;
 import org.apache.thrift.TException;
 import org.perf4j.GroupedTimingStatistics;
 import org.slf4j.Logger;

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.hcatalog.hcatmix.results;
+package org.apache.hcatalog.hcatmix.loadstore;
 
 import com.googlecode.charts4j.*;
 
@@ -31,14 +31,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class HCatStats {
+public class LoadStoreStats {
 
-    private static final Logger LOG = LoggerFactory.getLogger(HCatStats.class);
+    private static final Logger LOG = LoggerFactory.getLogger(LoadStoreStats.class);
     private String fileName;
     private GroupedTimingStatistics timedStats;
     private String chartUrl;
 
-    public HCatStats(String fileName, GroupedTimingStatistics timedStats) {
+    public LoadStoreStats(String fileName, GroupedTimingStatistics timedStats) {
         this.fileName = fileName;
         this.timedStats = timedStats;
         chartUrl = getChartURL(); //TODO remove this

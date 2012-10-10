@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.hcatalog.hcatmix.results;
+package org.apache.hcatalog.hcatmix.loadstore;
 import org.perf4j.slf4j.Slf4JStopWatch;
 
 

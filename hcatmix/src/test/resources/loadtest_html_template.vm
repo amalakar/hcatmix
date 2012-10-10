@@ -1,0 +1,51 @@
+<html>
+    <head>
+        <title>HCatMix Load Test Graphs</title>
+        <link href="http://twitter.github.com/bootstrap/assets/css/bootstrap.css" rel="stylesheet"/>
+    </head>
+    <body>
+
+    <div class="container">
+    <h1>Response time of various hcatalog calls as the number of clients are increased</h1>
+
+#foreach( $loadTestResult in $loadTestResults.valueSet() )
+    <img src="$chartUrl" alt="HCatMix Chart"  class="img-polaroid" />
+    #set ($map = $loadTestResults.Statistics.timedStats.statisticsByTag )
+    <p>
+    <table class="table">
+        <thead>
+            <caption>Load and Store times in milliseconds for $loadTestResults.FileName</caption>
+            <tr>
+                <th>Thread Count</th>
+                <th>Avg</th>
+                <th>Min</th>
+                <th>Max</th>
+                <th>Std Dev</th>
+                <th>Number of runs</th>
+            </tr>
+        </thead>
+        <tbody>
+    #foreach ($result in $map.entrySet())
+        #set ($statistics = $result.value)
+            <tr>
+                <td>$result.key</td>
+                <td>$numberTool.format("###,###.##", $statistics.Mean) </td>
+                <td>$numberTool.format("###,###.##", $statistics.Min)</td>
+                <td>$numberTool.format("###,###.##", $statistics.Max)</td>
+                <td>$numberTool.format("###,###.##", $statistics.StandardDeviation)</td>
+                <td>$numberTool.format("###,###.##", $statistics.Count)</td>
+            </tr>
+    #end
+        </tbody>
+    </table>
+    </p>
+    <br/><br/>
+        <p>
+          <small>The time is in milliseconds.</small>
+        </p>
+    <br/><br/>
+#end
+
+        </div>
+    </body>
+</html>
