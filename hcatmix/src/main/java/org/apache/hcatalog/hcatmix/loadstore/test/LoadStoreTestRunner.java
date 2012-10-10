@@ -28,6 +28,7 @@ import org.apache.hadoop.util.ToolRunner;
 import org.apache.hcatalog.hcatmix.HCatMixUtils;
 import org.apache.hcatalog.hcatmix.loadstore.LoadStoreScriptRunner;
 import org.apache.hcatalog.hcatmix.loadstore.LoadStoreTestResults;
+import org.apache.pig.tools.cmdline.CmdLineParser;
 import org.apache.thrift.TException;
 import org.perf4j.GroupedTimingStatistics;
 import org.slf4j.Logger;
@@ -39,6 +40,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.text.MessageFormat;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -60,7 +62,29 @@ public class LoadStoreTestRunner extends Configured implements Tool {
 
     @Override
     public int run(String[] args) throws Exception {
-        List<String> specFiles = hcatSpecFileNames();
+        CmdLineParser opts = new CmdLineParser(args);
+        String userHCatSpecFiles = null;
+
+        opts.registerOpt('h', HCAT_SPEC_FILES, CmdLineParser.ValueExpected.OPTIONAL);
+
+        char opt;
+        try {
+            while ((opt = opts.getNextOpt()) != CmdLineParser.EndOfOpts) {
+                switch (opt) {
+                    case 'c':
+                        userHCatSpecFiles = opts.getValStr();
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Unrecognized option");
+                }
+            }
+        } catch (ParseException pe) {
+            System.err.println("Couldn't parse the command line arguments, " +
+                    pe.getMessage());
+            usage();
+        }
+
+        List<String> specFiles = hcatSpecFileNames(userHCatSpecFiles);
         for (String specFile : specFiles) {
             testAllLoadStoreScripts(specFile);
         }
@@ -68,11 +92,14 @@ public class LoadStoreTestRunner extends Configured implements Tool {
         return 0;
     }
 
-    public List<String> hcatSpecFileNames() {
-        final String hcatSpecFile = System.getProperty(HCAT_SPEC_FILES);
+    private void usage() {
+        throw new RuntimeException("Unknwon option");
+    }
+
+    public List<String> hcatSpecFileNames(String userHCatSpecFiles) {
         final List<String> specFiles = new ArrayList<String>();
 
-        if (hcatSpecFile == null) {
+        if (userHCatSpecFiles == null) {
             ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
             final String hcatTableSpecFileDir = classLoader.getResource("performance").getPath();
             LOG.info("Will look in directory:" + hcatTableSpecFileDir + " for hcatalog table specification files");
@@ -91,8 +118,8 @@ public class LoadStoreTestRunner extends Configured implements Tool {
                 specFiles.add(file.getAbsolutePath());
             }
         } else {
-            LOG.info(MessageFormat.format("Honouring command line option: -D{0}={1}", HCAT_SPEC_FILES, hcatSpecFile));
-            specFiles.addAll(Arrays.asList(hcatSpecFile.split(",")));
+            LOG.info(MessageFormat.format("Honouring command line option: -D{0}={1}", HCAT_SPEC_FILES, userHCatSpecFiles));
+            specFiles.addAll(Arrays.asList(userHCatSpecFiles.split(",")));
         }
         return specFiles;
     }
@@ -103,7 +130,7 @@ public class LoadStoreTestRunner extends Configured implements Tool {
         LOG.info("HCatalog spec file name: " + hcatSpecFileName);
         LoadStoreScriptRunner runner = new LoadStoreScriptRunner(hcatSpecFileName);
 
-        int numRuns = 10;
+        int numRuns = 1;
         for (int i = 0; i < numRuns; i++) {
             LOG.info(MessageFormat.format("{0}: Run - {1}/{2}", hcatSpecFileName, i, numRuns));
             try {
