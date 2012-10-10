@@ -71,7 +71,7 @@ public class LoadStoreTestRunner extends Configured implements Tool {
         try {
             while ((opt = opts.getNextOpt()) != CmdLineParser.EndOfOpts) {
                 switch (opt) {
-                    case 'c':
+                    case 'h':
                         userHCatSpecFiles = opts.getValStr();
                         break;
                     default:
