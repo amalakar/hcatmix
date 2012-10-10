@@ -42,7 +42,7 @@ public class HCatAddPartitionTask extends HCatLoadTask {
     List<FieldSchema> partitionKeys;
     String location;
 
-    HCatAddPartitionTask() throws IOException, NoSuchObjectException, TException, MetaException {
+    public HCatAddPartitionTask() throws IOException, NoSuchObjectException, TException, MetaException {
         super();
     }
 

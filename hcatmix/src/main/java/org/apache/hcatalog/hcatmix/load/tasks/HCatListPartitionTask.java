@@ -26,7 +26,7 @@ import java.io.IOException;
 * Task to list partitions of an hcatalog table
 */
 public class HCatListPartitionTask extends HCatLoadTask {
-    HCatListPartitionTask() throws IOException {
+    public HCatListPartitionTask() throws IOException {
         super();
     }
 

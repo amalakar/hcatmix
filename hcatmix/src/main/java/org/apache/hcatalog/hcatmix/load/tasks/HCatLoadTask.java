@@ -47,7 +47,7 @@ public abstract class HCatLoadTask implements Task {
     protected static final String DB_NAME = "default";
     protected static final String TABLE_NAME = "load_test_table_0_1";
 
-    HCatLoadTask() throws IOException {
+    protected HCatLoadTask() throws IOException {
         numErrors = new ThreadLocal<Integer>(){
             @Override
             protected Integer initialValue() {
