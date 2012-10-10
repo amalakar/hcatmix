@@ -24,7 +24,7 @@ case $action in
         hadoop  --config $conf_dir jar $hcatmixjar org.apache.hcatalog.hcatmix.load.HadoopLoadGenerator -libjars $JAR_LIST --classnames 'org.apache.hcatalog.hcatmix.load.HCatLoadTask$HCatListPartitionTask'
         ;;
     addPartition)
-        echo "Executing HCatListPartitionTask"
+        echo "Executing HCatAddPartitionTask"
         hadoop  --config $conf_dir jar $hcatmixjar org.apache.hcatalog.hcatmix.load.HadoopLoadGenerator -libjars $JAR_LIST --classnames 'org.apache.hcatalog.hcatmix.load.HCatLoadTask$HCatAddPartitionTask'
         ;;
     loadtest)
@@ -33,7 +33,16 @@ case $action in
         ;;
     loadstoretest)
         echo "Running HCatMixSetup load store tests"
+        if [ -z "$2" ]; then
+            hcatSpecFile=$2
+        fi
+
+        if [ -z "$3" ]; then
+            numTimes=$3
+        fi
         hadoop  --config $conf_dir jar $hcatmixjar org.apache.hcatalog.hcatmix.loadstore.test.LoadStoreTestRunner -libjars $JAR_LIST
 #        hadoop  org.apache.hcatalog.hcatmix.HCatMixSetup -f scripts/hcat_table_specification.xml -m 0 -o /tmp/hcatmix/
         ;;
+    *)
+        echo "Please provide one of the options"
 esac

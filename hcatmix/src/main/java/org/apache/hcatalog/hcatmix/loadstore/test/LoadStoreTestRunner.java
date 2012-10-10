@@ -64,8 +64,9 @@ public class LoadStoreTestRunner extends Configured implements Tool {
     public int run(String[] args) throws Exception {
         CmdLineParser opts = new CmdLineParser(args);
         String userHCatSpecFiles = null;
-
+        int numRuns = 3;
         opts.registerOpt('h', HCAT_SPEC_FILES, CmdLineParser.ValueExpected.OPTIONAL);
+        opts.registerOpt('n', "numRuns", CmdLineParser.ValueExpected.OPTIONAL);
 
         char opt;
         try {
@@ -73,6 +74,9 @@ public class LoadStoreTestRunner extends Configured implements Tool {
                 switch (opt) {
                     case 'h':
                         userHCatSpecFiles = opts.getValStr();
+                        break;
+                    case 'n':
+                        numRuns = Integer.valueOf(opts.getValStr());
                         break;
                     default:
                         throw new IllegalArgumentException("Unrecognized option");
@@ -86,7 +90,7 @@ public class LoadStoreTestRunner extends Configured implements Tool {
 
         List<String> specFiles = hcatSpecFileNames(userHCatSpecFiles);
         for (String specFile : specFiles) {
-            testAllLoadStoreScripts(specFile);
+            testAllLoadStoreScripts(specFile, numRuns);
         }
         publishResults();
         return 0;
@@ -118,19 +122,17 @@ public class LoadStoreTestRunner extends Configured implements Tool {
                 specFiles.add(file.getAbsolutePath());
             }
         } else {
-            LOG.info(MessageFormat.format("Honouring command line option: -D{0}={1}", HCAT_SPEC_FILES, userHCatSpecFiles));
+            LOG.info(MessageFormat.format("Honouring command line option: -h {0}={1}", HCAT_SPEC_FILES, userHCatSpecFiles));
             specFiles.addAll(Arrays.asList(userHCatSpecFiles.split(",")));
         }
         return specFiles;
     }
 
-
-    public void testAllLoadStoreScripts(String hcatSpecFileName) throws IOException, TException, NoSuchObjectException,
+    public void testAllLoadStoreScripts(String hcatSpecFileName, final int numRuns) throws IOException, TException, NoSuchObjectException,
             MetaException, SAXException, InvalidObjectException, ParserConfigurationException {
         LOG.info("HCatalog spec file name: " + hcatSpecFileName);
         LoadStoreScriptRunner runner = new LoadStoreScriptRunner(hcatSpecFileName);
 
-        int numRuns = 1;
         for (int i = 0; i < numRuns; i++) {
             LOG.info(MessageFormat.format("{0}: Run - {1}/{2}", hcatSpecFileName, i, numRuns));
             try {
