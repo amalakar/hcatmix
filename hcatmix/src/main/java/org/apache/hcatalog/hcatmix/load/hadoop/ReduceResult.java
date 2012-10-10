@@ -30,8 +30,10 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 /**
-* Author: malakar
-*/
+ * The result of the map-reduce job. It holds only statistics and thread count for a period of time.
+ * These objects against time gives a complete picture of how the task performs under increasing number
+ * of threads.
+ */
 public class ReduceResult implements Writable {
     private GroupedTimingStatistics statistics;
     private int threadCount;

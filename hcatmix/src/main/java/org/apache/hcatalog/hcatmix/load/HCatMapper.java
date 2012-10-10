@@ -22,12 +22,10 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.*;
-import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hcatalog.hcatmix.load.hadoop.MapResult;
 import org.apache.hcatalog.hcatmix.load.hadoop.StopWatchWritable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.hadoop.security.token.Token;
 
 import java.io.IOException;
 import java.text.MessageFormat;
@@ -36,6 +34,13 @@ import java.util.concurrent.*;
 
 import static org.apache.hcatalog.hcatmix.load.HadoopLoadGenerator.Conf;
 
+/**
+ * The mapper task that runs multples threads in parallel and executes the {@link org.apache.hcatalog.hcatmix.load.tasks.Task} provided in
+ * JobConf. It records time taken in milliseconds for each task and emits them against timestamp.
+ * The output of the mapper is <br/>
+ *          Key: Timestamp in minutes <br/>
+ *          Value: The result of the map (which is consists of stopwatches/number of threads for the period
+ */
 public class HCatMapper extends MapReduceBase implements
         Mapper<LongWritable, Text, LongWritable, MapResult> {
     private static final Logger LOG = LoggerFactory.getLogger(HCatMapper.class);
@@ -80,7 +85,8 @@ public class HCatMapper extends MapReduceBase implements
         final List<Future<SortedMap<Long, List<StopWatchWritable>>>> futures =
                 new ArrayList<Future<SortedMap<Long, List<StopWatchWritable>>>>();
 
-        List<Task> tasks;
+        // Initialize tasks
+        List<org.apache.hcatalog.hcatmix.load.tasks.Task> tasks;
         try {
             tasks = initializeTasks(jobConf);
         } catch (Exception e) {
@@ -90,8 +96,11 @@ public class HCatMapper extends MapReduceBase implements
         ThreadCreatorTimer createNewThreads =
                 new ThreadCreatorTimer(new TimeKeeper(timeKeeper), tasks, threadIncrementCount, futures, reporter);
 
+        // Create timer thread to automatically keep on increasing threads at fixed interval
         Timer newThreadCreator = new Timer(true);
         newThreadCreator.scheduleAtFixedRate(createNewThreads, 0, threadIncrementIntervalInMillis);
+
+        // Sleep and let the tasks get expired
         try {
             Thread.sleep(timeKeeper.getRemainingTimeIncludingBuffer());
         } catch (InterruptedException e) {
@@ -101,6 +110,8 @@ public class HCatMapper extends MapReduceBase implements
         LOG.info("Time is over, will collect the futures now. Total number of threads: " + futures.size());
         SortedMap<Long, List<StopWatchWritable>> stopWatchAggregatedTimeSeries =
                 new TreeMap<Long, List<StopWatchWritable>>();
+
+        // Collect the futures for all the threads
         for (Future<SortedMap<Long, List<StopWatchWritable>>> future : futures) {
             try {
                 SortedMap<Long, List<StopWatchWritable>> threadTimeSeries = future.get();
@@ -120,6 +131,8 @@ public class HCatMapper extends MapReduceBase implements
                 LOG.error("Error while getting thread results", e);
             }
         }
+
+        // Output the consolidated futures for this map along with the number of threads against time
         LOG.info("Collected all the statistics for #threads: " + createNewThreads.getThreadCount());
         SortedMap<Long, Integer> threadCountTimeSeries = createNewThreads.getThreadCountTimeSeries();
         int threadCount = 0;
@@ -134,7 +147,14 @@ public class HCatMapper extends MapReduceBase implements
         }
     }
 
-    private List<Task> initializeTasks(JobConf jobConf) throws Exception {
+    /**
+     * Creates the {@link org.apache.hcatalog.hcatmix.load.tasks.Task} instances using reflection and calls configure on it, The task names
+     * are comma separated list of {@link org.apache.hcatalog.hcatmix.load.tasks.Task} classes.
+     * @param jobConf
+     * @return
+     * @throws Exception
+     */
+    private List<org.apache.hcatalog.hcatmix.load.tasks.Task> initializeTasks(JobConf jobConf) throws Exception {
         String classNames = jobConf.get(Conf.TASK_CLASS_NAMES.getJobConfKey());
         if(StringUtils.isEmpty(classNames)) {
             String msg = MessageFormat.format("{0} setting is found to be null/empty", Conf.TASK_CLASS_NAMES);
@@ -142,13 +162,13 @@ public class HCatMapper extends MapReduceBase implements
             throw new IllegalArgumentException(msg);
         }
 
-        List<Task> tasks = new ArrayList<Task>();
+        List<org.apache.hcatalog.hcatmix.load.tasks.Task> tasks = new ArrayList<org.apache.hcatalog.hcatmix.load.tasks.Task>();
 
         String[] classes = classNames.split(",");
         for (String aClass : classes) {
             Class clazz = Class.forName(aClass);
             try {
-                Task task = (Task) clazz.newInstance();
+                org.apache.hcatalog.hcatmix.load.tasks.Task task = (org.apache.hcatalog.hcatmix.load.tasks.Task) clazz.newInstance();
                 task.configure(jobConf);
                 tasks.add(task);
             } catch (Exception e) {

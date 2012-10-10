@@ -20,6 +20,7 @@ package org.apache.hcatalog.hcatmix.load;
 
 import org.apache.hadoop.mapred.Reporter;
 import org.apache.hcatalog.hcatmix.load.hadoop.StopWatchWritable;
+import org.apache.hcatalog.hcatmix.load.tasks.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,6 +30,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+/**
+ * A timer thread that keeps on increasing the number of {@link TaskExecutor} at fixed intervals.
+ * It also reports progress to Hadoop so that the task doesn't get killed.
+ */
 public class ThreadCreatorTimer extends TimerTask {
     private static final Logger LOG = LoggerFactory.getLogger(ThreadCreatorTimer.class);
     private int threadCount;

@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.TimeUnit;
 
 public class TimeKeeper {
+
     private static final Logger LOG = LoggerFactory.getLogger(TimeKeeper.class);
     private final long timeInterval;
     private final long startTime;

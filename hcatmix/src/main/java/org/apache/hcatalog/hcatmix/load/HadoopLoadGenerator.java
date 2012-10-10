@@ -54,6 +54,11 @@ import java.util.Properties;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+/**
+ * This class launches a hadoop job to load test a system. Each map would keep on incrementing
+ * the number of threads over time and repeatedly execute the task {@link org.apache.hcatalog.hcatmix.load.tasks.Task}
+ * It measures time take to do the task over time and returns the statistics over time.
+ */
 public class HadoopLoadGenerator extends Configured implements Tool {
     public static final String CONF_FILE = "hcat_load_test.properties";
     public final String JOB_NAME = "hcat-load-generator";
@@ -65,6 +70,9 @@ public class HadoopLoadGenerator extends Configured implements Tool {
 
     private static final Logger LOG = LoggerFactory.getLogger(HadoopLoadGenerator.class);
 
+    /**
+     * Configuration that can be configured in properties files and their default values
+     */
     public enum Conf {
         NUM_MAPPERS("num.mappers", 30),
         THREAD_INCREMENT_COUNT("thread.increment.count", 5),
@@ -131,12 +139,22 @@ public class HadoopLoadGenerator extends Configured implements Tool {
         return 1;
     }
 
-    public void usage() {
+    private void usage() {
         System.out.println("TODO");
         System.exit(1);
     }
 
-    public SortedMap<Long, ReduceResult> run(String taskClassName, Configuration conf) throws IOException, MetaException, TException {
+    /**
+     * Prepare input directory/jobConf and launch the hadoop job.
+     *
+     * @param taskClassNames The comma separated classnames of the tasks to be executed
+     * @param conf
+     * @return
+     * @throws IOException
+     * @throws MetaException
+     * @throws TException
+     */
+    public SortedMap<Long, ReduceResult> run(String taskClassNames, Configuration conf) throws IOException, MetaException, TException {
         JobConf jobConf;
         if(conf != null) {
             jobConf = new JobConf(conf);
@@ -177,7 +195,7 @@ public class HadoopLoadGenerator extends Configured implements Tool {
         jobConf.setOutputKeyClass(LongWritable.class);
         jobConf.setOutputValueClass(ReduceResult.class);
         jobConf.setOutputFormat(SequenceFileOutputFormat.class);
-        jobConf.set(Conf.TASK_CLASS_NAMES.getJobConfKey(), taskClassName);
+        jobConf.set(Conf.TASK_CLASS_NAMES.getJobConfKey(), taskClassNames);
 
         fs = FileSystem.get(jobConf);
 
@@ -188,7 +206,7 @@ public class HadoopLoadGenerator extends Configured implements Tool {
         FileOutputFormat.setOutputPath(jobConf, outputDir);
 
         // Set up delegation token required for hiveMetaStoreClient in map task
-        HiveConf hiveConf = new HiveConf(Task.class);
+        HiveConf hiveConf = new HiveConf(org.apache.hcatalog.hcatmix.load.tasks.Task.class);
         HiveMetaStoreClient hiveClient = new HiveMetaStoreClient(hiveConf);
         String tokenStr = hiveClient.getDelegationToken(UserGroupInformation.getCurrentUser().getUserName(), "mapred");
         Token<? extends AbstractDelegationTokenIdentifier> token = new Token<DelegationTokenIdentifier>();
@@ -205,11 +223,16 @@ public class HadoopLoadGenerator extends Configured implements Tool {
         }
 
         return readResult(outputDir, jobConf);
-//        LOG.info("Graph URL:" + LoadTestGrapher.getURL(readResult(outputDir, jobConf)));
-//        return 0;
     }
 
-    public SortedMap<Long, ReduceResult> readResult(Path outputDir, JobConf jobConf) throws IOException {
+    /**
+     * Read result from HDFS reduce output directory and return the results
+     * @param outputDir where to read the data from. Expects the file to be {SequenceFile}
+     * @param jobConf
+     * @return
+     * @throws IOException
+     */
+    private SortedMap<Long, ReduceResult> readResult(Path outputDir, JobConf jobConf) throws IOException {
         SortedMap<Long, ReduceResult> timeseriesResults = new TreeMap<Long, ReduceResult>();
         FileStatus[] files = fs.listStatus(outputDir, new PathFilter() {
             @Override
@@ -239,6 +262,14 @@ public class HadoopLoadGenerator extends Configured implements Tool {
         jobConf.set(conf.getJobConfKey(), props.getProperty(conf.propName, "" + conf.defaultValue));
     }
 
+
+    /**
+     * Create input directory with dummy input file to match the number of mappers
+     * @param inputDir
+     * @param numMappers
+     * @return
+     * @throws IOException
+     */
     private Path[] createInputFiles(final Path inputDir, final int numMappers) throws IOException {
         Path[] paths = new Path[numMappers];
         if (!fs.exists(inputDir)) {

@@ -27,12 +27,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
-* Author: malakar
-*/
+ * Writable object representing statistics for a period of time.
+ */
 public class MapResult implements Writable {
     int threadCount;
     List<StopWatchWritable> stopWatchList;
-    int errors;
 
     public MapResult() {
     }

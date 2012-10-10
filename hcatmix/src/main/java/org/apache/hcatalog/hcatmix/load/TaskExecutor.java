@@ -19,6 +19,7 @@
 package org.apache.hcatalog.hcatmix.load;
 
 import org.apache.hcatalog.hcatmix.load.hadoop.StopWatchWritable;
+import org.apache.hcatalog.hcatmix.load.tasks.Task;
 import org.perf4j.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +30,10 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.Callable;
 
+/**
+ * The executor for {@link org.apache.hcatalog.hcatmix.load.tasks.Task}, this class also maintains the time taken for doing tasks using a timeseries.
+ * The method stops doing task and returns once the expiry time is over.
+ */
 public class TaskExecutor implements Callable<SortedMap<Long, List<StopWatchWritable>>> {
     private final TimeKeeper timeKeeper;
     private final List<Task> tasks;
@@ -39,6 +44,12 @@ public class TaskExecutor implements Callable<SortedMap<Long, List<StopWatchWrit
         this.tasks = tasks;
     }
 
+    /**
+     * Measures time taken for the task over time. It bookkeeps the StopWatches against time interval as configured in
+     * {@link TimeKeeper}
+     * @return a SortedMap of list of stopwatches against timeStamps
+     * @throws Exception
+     */
     @Override
     public SortedMap<Long, List<StopWatchWritable>> call() throws Exception {
         SortedMap<Long, List<StopWatchWritable>> timeSeriesStopWatches = new TreeMap<Long, List<StopWatchWritable>>();
@@ -54,12 +65,17 @@ public class TaskExecutor implements Callable<SortedMap<Long, List<StopWatchWrit
                 }
 
                 StopWatch stopWatch = new StopWatch(task.getName());
+                StopWatch stopWatchFromTask = null;
                 try {
-                    task.doTask();
+                    stopWatchFromTask = task.doTask();
                 } catch (Exception e) {
                     LOG.info("Error encountered while doing task", e);
                 }
                 stopWatch.stop();
+                // Give preference if the task itself returns a StopWatch otherwise use the one we calculated
+                if(stopWatchFromTask != null) {
+                    stopWatch = stopWatchFromTask;
+                }
                 stopWatches.add(StopWatchWritable.fromStopWatch(stopWatch));
 
                 if(timeKeeper.hasExpired()) {

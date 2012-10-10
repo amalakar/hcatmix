@@ -28,6 +28,9 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.util.*;
 
+/**
+ * Writable wrapper around {@link StopWatch}. For storing time taken for one execution of a task
+ */
 public class StopWatchWritable implements Writable {
     private StopWatch stopWatch;
 

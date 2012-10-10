@@ -16,9 +16,10 @@
  * limitations under the License.
  */
 
-package org.apache.hcatalog.hcatmix.load;
+package org.apache.hcatalog.hcatmix.load.tasks;
 
 import org.apache.hadoop.mapred.JobConf;
+import org.perf4j.StopWatch;
 
 /**
  * This interface represents the task that would be benchmarked, by the benchmarking framework
@@ -39,10 +40,13 @@ public interface Task {
     public void configure(JobConf jobConf) throws Exception;
 
     /**
-     * Do the actual task, would be called repeatedly by different threads
+     * Do the actual task, would be called repeatedly by different threads. The task can return null if time taken for
+     * doTask() is to be measured. If doTask() involves setting up and then doing the actual task, then it should calculate
+     * the StopWatch on its own and return it.
+     * @return the StopWatch for the task that is to be measured. Otherwise return null.
      * @throws Exception
      */
-    public void doTask() throws Exception;
+    public StopWatch doTask() throws Exception;
 
     /**
      * Cleanup code goes here

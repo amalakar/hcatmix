@@ -21,11 +21,13 @@ export action=$1
 case $action in
     listPartition)
         echo "Executing HCatListPartitionTask"
-        hadoop  --config $conf_dir jar $hcatmixjar org.apache.hcatalog.hcatmix.load.HadoopLoadGenerator -libjars $JAR_LIST --classnames 'org.apache.hcatalog.hcatmix.load.HCatLoadTask$HCatListPartitionTask'
+        hadoop  --config $conf_dir jar $hcatmixjar org.apache.hcatalog.hcatmix.load.HadoopLoadGenerator \
+                -libjars $JAR_LIST --classnames 'org.apache.hcatalog.hcatmix.load.tasks.HCatListPartitionTask'
         ;;
     addPartition)
         echo "Executing HCatAddPartitionTask"
-        hadoop  --config $conf_dir jar $hcatmixjar org.apache.hcatalog.hcatmix.load.HadoopLoadGenerator -libjars $JAR_LIST --classnames 'org.apache.hcatalog.hcatmix.load.HCatLoadTask$HCatAddPartitionTask'
+        hadoop  --config $conf_dir jar $hcatmixjar org.apache.hcatalog.hcatmix.load.HadoopLoadGenerator \
+                -libjars $JAR_LIST --classnames 'org.apache.hcatalog.hcatmix.load.tasks.HCatAddPartitionTask'
         ;;
     loadtest)
         echo "Executing LoadTestRunner"
@@ -40,7 +42,8 @@ case $action in
         if [ -n "$3" ]; then
             numTimes=$3
         fi
-        hadoop  --config $conf_dir jar $hcatmixjar org.apache.hcatalog.hcatmix.loadstore.test.LoadStoreTestRunner -libjars $JAR_LIST -h $hcatSpecFile -n $numTimes
+        hadoop  --config $conf_dir jar $hcatmixjar org.apache.hcatalog.hcatmix.loadstore.test.LoadStoreTestRunner \
+                -libjars $JAR_LIST -h $hcatSpecFile -n $numTimes
 #        hadoop  org.apache.hcatalog.hcatmix.HCatMixSetup -f scripts/hcat_table_specification.xml -m 0 -o /tmp/hcatmix/
         ;;
     *)

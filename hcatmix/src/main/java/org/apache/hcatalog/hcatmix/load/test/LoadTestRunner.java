@@ -27,7 +27,8 @@ import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.hcatalog.hcatmix.HCatMixSetup;
 import org.apache.hcatalog.hcatmix.conf.HiveTableSchema;
-import org.apache.hcatalog.hcatmix.load.HCatLoadTask;
+import org.apache.hcatalog.hcatmix.load.tasks.HCatAddPartitionTask;
+import org.apache.hcatalog.hcatmix.load.tasks.HCatListPartitionTask;
 import org.apache.hcatalog.hcatmix.load.HadoopLoadGenerator;
 import org.apache.hcatalog.hcatmix.load.hadoop.ReduceResult;
 import org.apache.hcatalog.hcatmix.loadstore.LoadStoreScriptRunner;
@@ -55,14 +56,21 @@ public class LoadTestRunner extends Configured implements Tool {
     @Override
     public int run(String[] args) throws Exception {
         setUp();
-        testReadTask();
+        testAddPartitionTask();
         tearDown();
         return 0;
     }
 
-    public void testReadTask() throws Exception, MetaException {
+    public void testListPartitionTask() throws Exception, MetaException {
         HadoopLoadGenerator loadGenerator = new HadoopLoadGenerator();
-        SortedMap<Long, ReduceResult> results =  loadGenerator.run(HCatLoadTask.HCatListPartitionTask.class.getName(), getConf());
+        SortedMap<Long, ReduceResult> results =  loadGenerator.run(HCatListPartitionTask.class.getName(), getConf());
+        LoadTestResultsPublisher publisher = new LoadTestResultsPublisher(results);
+        publisher.publishAll();
+    }
+
+    public void testAddPartitionTask() throws Exception, MetaException {
+        HadoopLoadGenerator loadGenerator = new HadoopLoadGenerator();
+        SortedMap<Long, ReduceResult> results =  loadGenerator.run(HCatAddPartitionTask.class.getName(), getConf());
         LoadTestResultsPublisher publisher = new LoadTestResultsPublisher(results);
         publisher.publishAll();
     }

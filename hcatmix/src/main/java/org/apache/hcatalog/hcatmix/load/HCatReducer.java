@@ -35,6 +35,12 @@ import java.text.MessageFormat;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * Aggregate the timseries information collected from all the maps. Outputs the aggregated information in the following
+ * format: <br/>
+ *      Key: timestamp in Minutes <br/>
+ *      Value: {@link ReduceResult} with thread count and aggregated statistics for the period <br/>
+ */
 public class HCatReducer extends MapReduceBase implements
         Reducer<LongWritable, MapResult,
         LongWritable, ReduceResult> {
