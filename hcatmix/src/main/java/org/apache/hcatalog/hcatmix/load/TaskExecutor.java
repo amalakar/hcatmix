@@ -66,17 +66,22 @@ public class TaskExecutor implements Callable<SortedMap<Long, List<StopWatchWrit
 
                 StopWatch stopWatch = new StopWatch(task.getName());
                 StopWatch stopWatchFromTask = null;
+                boolean errorOccured = false;
                 try {
                     stopWatchFromTask = task.doTask();
                 } catch (Exception e) {
                     LOG.info("Error encountered while doing task", e);
+                    errorOccured = true;
                 }
                 stopWatch.stop();
-                // Give preference if the task itself returns a StopWatch otherwise use the one we calculated
-                if(stopWatchFromTask != null) {
-                    stopWatch = stopWatchFromTask;
+
+                if (!errorOccured) {
+                    // Give preference if the task itself returns a StopWatch otherwise use the one we calculated
+                    if (stopWatchFromTask != null) {
+                        stopWatch = stopWatchFromTask;
+                    }
+                    stopWatches.add(StopWatchWritable.fromStopWatch(stopWatch));
                 }
-                stopWatches.add(StopWatchWritable.fromStopWatch(stopWatch));
 
                 if(timeKeeper.hasExpired()) {
                     LOG.info(Thread.currentThread().getName() + ": Stopped doing work as thread expired");

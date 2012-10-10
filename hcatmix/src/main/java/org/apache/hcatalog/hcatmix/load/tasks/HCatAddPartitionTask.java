@@ -23,6 +23,7 @@ import org.apache.hadoop.hive.metastore.Warehouse;
 import org.apache.hadoop.hive.metastore.api.*;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.thrift.TException;
+import org.apache.thrift.transport.TTransportException;
 import org.perf4j.StopWatch;
 
 import java.io.IOException;
@@ -65,14 +66,14 @@ public class HCatAddPartitionTask extends HCatLoadTask {
 
     @Override
     public StopWatch doTask() throws Exception {
-        StopWatch stopWatch;
+        StopWatch stopWatch = null;
         try {
             partition = new Partition();
             partition.setDbName(DB_NAME);
             partition.setTableName(TABLE_NAME);
 
             List<String> pvals = new ArrayList<String>();
-            pvals.add(UUID.randomUUID().toString());
+            pvals.add(UUID.randomUUID().toString() + "_" + Thread.currentThread().getId());
 
             partition.setValues(pvals);
             partition.setSd(sd);
@@ -80,7 +81,6 @@ public class HCatAddPartitionTask extends HCatLoadTask {
             String partName;
             try {
                 partName = Warehouse.makePartName(partitionKeys, pvals);
-                LOG.info("Setting partition location to :" + partName);
             } catch (MetaException e) {
                 throw new RuntimeException("Exception while creating partition name.", e);
             }
@@ -93,8 +93,15 @@ public class HCatAddPartitionTask extends HCatLoadTask {
             hiveClient.get().add_partition(partition);
             stopWatch.stop();
             LOG.info("Successfully created partition");
+        } catch (TTransportException e) {
+            recycleHiveClient();
+            numErrors.set(numErrors.get() + 1);
+            throw e;
+        } catch(AlreadyExistsException e) {
+            // If the partition already exists it is not an error on hcatalog server side
+            throw e;
         } catch (Exception e) {
-            LOG.info("Error listing partitions", e);
+            LOG.info("Error adding partitions", e);
             numErrors.set(numErrors.get() + 1);
             throw e;
         }

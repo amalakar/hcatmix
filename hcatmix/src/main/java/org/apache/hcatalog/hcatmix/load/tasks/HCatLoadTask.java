@@ -43,9 +43,11 @@ public abstract class HCatLoadTask implements Task {
     protected static ThreadLocal<Integer> numErrors;
     protected static final Logger LOG = LoggerFactory.getLogger(Task.class);
     public static final String HIVE_CONF_TOKEN_KEY = "hive.metastore.token.signature";
+    protected HiveConf hiveConf;
 
     protected static final String DB_NAME = "default";
-    protected static final String TABLE_NAME = "load_test_table_0_1";
+    // The following table name comes from the hcatSpecFile, changing there would require it to be changed here as well
+    protected static final String TABLE_NAME = "load_test_table_20000_0";
 
     protected HCatLoadTask() throws IOException {
         numErrors = new ThreadLocal<Integer>(){
@@ -69,7 +71,7 @@ public abstract class HCatLoadTask implements Task {
             throw new IllegalArgumentException("Delegation token needs to be set");
         }
 
-        final HiveConf hiveConf = new HiveConf(Task.class);
+        hiveConf = new HiveConf(Task.class);
         hiveConf.set(HIVE_CONF_TOKEN_KEY, HadoopLoadGenerator.METASTORE_TOKEN_SIGNATURE);
         hiveClient = new ThreadLocal<HiveMetaStoreClient>() {
             @Override
@@ -81,6 +83,22 @@ public abstract class HCatLoadTask implements Task {
                 }
             }
         };
+    }
+
+    /**
+     * A Hive client may become unusable if it throws any error. It needs to be recycled in such case
+     *
+     * @throws MetaException
+     */
+    public void recycleHiveClient() throws MetaException {
+        try {
+            // Try to release the old client, but ignore any error
+            hiveClient.get().close();
+        } catch (Exception e) {
+            LOG.info("Couldn't close the old client. Ignored");
+        }
+        LOG.info("Will recycle the HiveMetaStoreClient as it was broken");
+        hiveClient.set(new HiveMetaStoreClient(hiveConf));
     }
 
     public void close() {
