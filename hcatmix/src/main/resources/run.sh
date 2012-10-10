@@ -32,7 +32,8 @@ case $action in
         hadoop  --config $conf_dir jar $hcatmixjar org.apache.hcatalog.hcatmix.load.test.LoadTestRunner -libjars $JAR_LIST
         ;;
     loadstoretest)
-        echo "Running HCatMixSetup"
-        hadoop  org.apache.hcatalog.hcatmix.HCatMixSetup -f scripts/hcat_table_specification.xml -m 0 -o /tmp/hcatmix/
+        echo "Running HCatMixSetup load store tests"
+        hadoop  --config $conf_dir jar $hcatmixjar org.apache.hcatalog.hcatmix.loadstore.test.LoadStoreTestRunner -libjars $JAR_LIST
+#        hadoop  org.apache.hcatalog.hcatmix.HCatMixSetup -f scripts/hcat_table_specification.xml -m 0 -o /tmp/hcatmix/
         ;;
 esac

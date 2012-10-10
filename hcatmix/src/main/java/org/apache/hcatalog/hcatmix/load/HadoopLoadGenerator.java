@@ -141,7 +141,7 @@ public class HadoopLoadGenerator extends Configured implements Tool {
         if(conf != null) {
             jobConf = new JobConf(conf);
         } else {
-            jobConf = new JobConf();
+            jobConf = new JobConf(new Configuration());
         }
         InputStream confFile = Thread.currentThread().getContextClassLoader().getResourceAsStream(CONF_FILE);
 

@@ -55,7 +55,7 @@ public class HadoopRunner {
         if(conf != null) { // TODO: conf could be null, check when and why
             job = new JobConf(conf);
         } else {
-            job = new JobConf();
+            job = new JobConf(new Configuration());
         }
         fs = FileSystem.get(job);
 
