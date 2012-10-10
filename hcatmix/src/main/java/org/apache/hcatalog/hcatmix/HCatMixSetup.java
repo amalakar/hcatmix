@@ -157,7 +157,7 @@ public class HCatMixSetup extends Configured implements Tool {
         table.setDbName(hiveTableSchema.getDatabaseName());
         table.setTableName(hiveTableSchema.getName());
         try {
-            table.setOwner(UserGroupInformation.getCurrentUser().toString());
+            table.setOwner(UserGroupInformation.getCurrentUser().getUserName());
         } catch (IOException e) {
             throw new IOException("Couldn't get user information. Cannot create table", e);
         }
