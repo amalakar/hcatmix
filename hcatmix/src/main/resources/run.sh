@@ -29,7 +29,7 @@ case $action in
         ;;
     loadtest)
         echo "Executing LoadTestRunner"
-        hadoop  --config $conf_dir jar $hcatmixjar org.apache.hcatalog.hcatmix.load.LoadRunner -libjars $JAR_LIST
+        hadoop  --config $conf_dir jar $hcatmixjar org.apache.hcatalog.hcatmix.load.test.LoadRunner -libjars $JAR_LIST
         ;;
     loadstoretest)
         echo "Running HCatMixSetup"

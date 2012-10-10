@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.hcatalog.hcatmix.load;
+package org.apache.hcatalog.hcatmix.load.test;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
@@ -27,6 +27,9 @@ import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.hcatalog.hcatmix.HCatMixSetup;
 import org.apache.hcatalog.hcatmix.conf.HiveTableSchema;
+import org.apache.hcatalog.hcatmix.load.HCatLoadTask;
+import org.apache.hcatalog.hcatmix.load.HadoopLoadGenerator;
+import org.apache.hcatalog.hcatmix.load.hadoop.ReduceResult;
 import org.apache.hcatalog.hcatmix.results.LoadStoreScriptRunner;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
@@ -36,6 +39,7 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.net.URL;
+import java.util.SortedMap;
 
 public class LoadRunner extends Configured implements Tool {
     private HCatMixSetup hCatMixSetup;
@@ -57,7 +61,8 @@ public class LoadRunner extends Configured implements Tool {
 
     public void testReadTask() throws IOException, TException, MetaException {
         HadoopLoadGenerator loadGenerator = new HadoopLoadGenerator();
-        loadGenerator.run(HCatLoadTask.HCatListPartitionTask.class.getName());
+        SortedMap<Long, ReduceResult> results =  loadGenerator.run(HCatLoadTask.HCatListPartitionTask.class.getName(), getConf());
+        String graphURL = LoadTestGrapher.getURL(results);
     }
 
     public void setUp() throws MetaException, IOException, TException, NoSuchObjectException, SAXException, InvalidObjectException, ParserConfigurationException {

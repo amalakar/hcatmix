@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.hcatalog.hcatmix.load;
+package org.apache.hcatalog.hcatmix.load.test;
 
 import com.googlecode.charts4j.*;
 import org.apache.hcatalog.hcatmix.load.hadoop.ReduceResult;

@@ -85,5 +85,4 @@ class ResultsPublisher {
             throw e;
         }
     }
-
 }

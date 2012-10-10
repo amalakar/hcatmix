@@ -19,6 +19,7 @@
 package org.apache.hcatalog.hcatmix.load;
 
 import org.apache.hcatalog.hcatmix.load.hadoop.ReduceResult;
+import org.apache.hcatalog.hcatmix.load.test.LoadTestGrapher;
 import org.perf4j.GroupedTimingStatistics;
 import org.perf4j.TimingStatistics;
 import org.slf4j.Logger;

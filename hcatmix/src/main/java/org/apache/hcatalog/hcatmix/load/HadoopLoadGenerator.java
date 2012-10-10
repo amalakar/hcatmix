@@ -127,7 +127,8 @@ public class HadoopLoadGenerator extends Configured implements Tool {
                     pe.getMessage());
             usage();
         }
-        return run(classNames);
+        run(classNames, getConf());
+        return 1;
     }
 
     public void usage() {
@@ -135,10 +136,10 @@ public class HadoopLoadGenerator extends Configured implements Tool {
         System.exit(1);
     }
 
-    public int run(String taskClassName) throws IOException, MetaException, TException {
+    public SortedMap<Long, ReduceResult> run(String taskClassName, Configuration conf) throws IOException, MetaException, TException {
         JobConf jobConf;
-        if(getConf() != null) {
-            jobConf = new JobConf(getConf());
+        if(conf != null) {
+            jobConf = new JobConf(conf);
         } else {
             jobConf = new JobConf();
         }
@@ -203,8 +204,9 @@ public class HadoopLoadGenerator extends Configured implements Tool {
             throw new IOException("Job failed");
         }
 
-        LOG.info("Graph URL:" + LoadTestGrapher.getURL(readResult(outputDir, jobConf)));
-        return 0;
+        return readResult(outputDir, jobConf);
+//        LOG.info("Graph URL:" + LoadTestGrapher.getURL(readResult(outputDir, jobConf)));
+//        return 0;
     }
 
     public SortedMap<Long, ReduceResult> readResult(Path outputDir, JobConf jobConf) throws IOException {
