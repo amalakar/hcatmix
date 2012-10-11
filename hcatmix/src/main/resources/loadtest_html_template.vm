@@ -41,6 +41,8 @@
                         <td>$numberTool.format("###,###.##", $statistics.Max)</td>
                         <td>$numberTool.format("###,###.##", $statistics.StandardDeviation)</td>
                         <td>$numberTool.format("###,###.##", $statistics.Count)</td>
+                        <td>$loadTestResult.NumErrors</td>
+
                     </tr>
 
         #end

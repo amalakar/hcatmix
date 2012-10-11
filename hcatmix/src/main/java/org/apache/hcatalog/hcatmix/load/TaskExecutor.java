@@ -18,6 +18,7 @@
 
 package org.apache.hcatalog.hcatmix.load;
 
+import org.apache.hcatalog.hcatmix.load.hadoop.IntervalResult;
 import org.apache.hcatalog.hcatmix.load.hadoop.StopWatchWritable;
 import org.apache.hcatalog.hcatmix.load.tasks.Task;
 import org.perf4j.StopWatch;
@@ -34,14 +35,17 @@ import java.util.concurrent.Callable;
  * The executor for {@link org.apache.hcatalog.hcatmix.load.tasks.Task}, this class also maintains the time taken for doing tasks using a timeseries.
  * The method stops doing task and returns once the expiry time is over.
  */
-public class TaskExecutor implements Callable<SortedMap<Long, List<StopWatchWritable>>> {
+public class TaskExecutor implements Callable<SortedMap<Long, IntervalResult>> {
     private final TimeKeeper timeKeeper;
     private final List<Task> tasks;
     private static final Logger LOG = LoggerFactory.getLogger(TaskExecutor.class);
 
+    private SortedMap<Long, IntervalResult> timeSeriesResult;
+
     public TaskExecutor(final TimeKeeper timeKeeper, List<Task> tasks) {
         this.timeKeeper = timeKeeper;
         this.tasks = tasks;
+        timeSeriesResult = new TreeMap<Long, IntervalResult>();
     }
 
     /**
@@ -51,17 +55,18 @@ public class TaskExecutor implements Callable<SortedMap<Long, List<StopWatchWrit
      * @throws Exception
      */
     @Override
-    public SortedMap<Long, List<StopWatchWritable>> call() throws Exception {
-        SortedMap<Long, List<StopWatchWritable>> timeSeriesStopWatches = new TreeMap<Long, List<StopWatchWritable>>();
-
+    public SortedMap<Long, IntervalResult> call() throws Exception {
         List<StopWatchWritable> stopWatches = new ArrayList<StopWatchWritable>();
         timeKeeper.updateCheckpoint();
+        int numErrors = 0; // Bug: This should be a Map for each task, wont work if there are more than one task
+
         workLoop: while(true) {
             for (Task task : tasks) {
                 if(timeKeeper.hasNextCheckpointArrived()) {
-                    timeSeriesStopWatches.put(timeKeeper.getCurrentCheckPoint(), stopWatches);
-                    stopWatches = new ArrayList<StopWatchWritable>();
+                    timeSeriesResult.put(timeKeeper.getCurrentCheckPoint(), new IntervalResult(numErrors, stopWatches));
                     timeKeeper.updateCheckpoint();
+                    stopWatches = new ArrayList<StopWatchWritable>();
+                    numErrors = 0;
                 }
 
                 StopWatch stopWatch = new StopWatch(task.getName());
@@ -72,6 +77,7 @@ public class TaskExecutor implements Callable<SortedMap<Long, List<StopWatchWrit
                 } catch (Exception e) {
                     LOG.info("Error encountered while doing task", e);
                     errorOccured = true;
+                    numErrors++;
                 }
                 stopWatch.stop();
 
@@ -93,6 +99,10 @@ public class TaskExecutor implements Callable<SortedMap<Long, List<StopWatchWrit
             LOG.info("Errors for the task " + task.getName() + " is: " + task.getNumErrors()); // TODO incorporate this in final stats
             task.close();
         }
-        return timeSeriesStopWatches;
+        return timeSeriesResult;
+    }
+
+    public SortedMap<Long, IntervalResult> getTimeSeriesResult() {
+        return timeSeriesResult;
     }
 }

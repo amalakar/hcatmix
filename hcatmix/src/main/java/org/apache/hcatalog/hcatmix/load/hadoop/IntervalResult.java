@@ -27,17 +27,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Writable object representing statistics for a period of time.
+ * Writable object representing statistics/number of errors etc. for an interval of time.
  */
-public class MapResult implements Writable {
-    int threadCount;
-    List<StopWatchWritable> stopWatchList;
+public class IntervalResult implements Writable {
+    private Integer threadCount;
+    private Integer numErrors; // TODO: Should be a map
+    // Stop Watch collected during the period
+    private List<StopWatchWritable> stopWatchList;
 
-    public MapResult() {
+    public IntervalResult() {
     }
 
-    public MapResult(int threadCount, List<StopWatchWritable> stopWatchList) {
+    public IntervalResult(Integer numErrors, List<StopWatchWritable> stopWatchList) {
+        this(null, numErrors, stopWatchList);
+    }
+
+    public IntervalResult(Integer threadCount, Integer numErrors, List<StopWatchWritable> stopWatchList) {
         this.threadCount = threadCount;
+        this.numErrors = numErrors;
         this.stopWatchList = stopWatchList;
     }
 
@@ -48,6 +55,7 @@ public class MapResult implements Writable {
             stopWatchWritable.write(dataOutput);
         }
         dataOutput.writeInt(threadCount);
+        dataOutput.writeInt(numErrors);
     }
 
     @Override
@@ -61,13 +69,27 @@ public class MapResult implements Writable {
         }
 
         threadCount = dataInput.readInt();
+        numErrors = dataInput.readInt();
     }
 
-    public int getThreadCount() {
+    public Integer getThreadCount() {
         return threadCount;
+    }
+
+    public void setThreadCount(Integer threadCount) {
+        this.threadCount = threadCount;
     }
 
     public List<StopWatchWritable> getStopWatchList() {
         return stopWatchList;
+    }
+
+    public Integer getNumErrors() {
+        return numErrors;
+    }
+
+    public void addIntervalResult(IntervalResult intervalResult) {
+        numErrors += intervalResult.getNumErrors();
+        stopWatchList.addAll(intervalResult.getStopWatchList());
     }
 }

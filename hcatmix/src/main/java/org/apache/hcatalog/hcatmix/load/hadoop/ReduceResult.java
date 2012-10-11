@@ -37,18 +37,21 @@ import java.util.TreeMap;
 public class ReduceResult implements Writable {
     private GroupedTimingStatistics statistics;
     private int threadCount;
+    private int numErrors;
 
     public ReduceResult() {
     }
 
-    public ReduceResult(GroupedTimingStatistics statistics, int threadCount) {
+    public ReduceResult(GroupedTimingStatistics statistics, int threadCount, int numErrors) {
         this.statistics = statistics;
         this.threadCount = threadCount;
+        this.numErrors = numErrors;
     }
 
     @Override
     public void write(DataOutput dataOutput) throws IOException {
         dataOutput.writeInt(threadCount);
+        dataOutput.writeInt(numErrors);
         dataOutput.writeInt(statistics.getStatisticsByTag().size());
         for (Map.Entry<String, TimingStatistics> entry : statistics.getStatisticsByTag().entrySet()) {
             dataOutput.writeUTF(entry.getKey());
@@ -66,6 +69,7 @@ public class ReduceResult implements Writable {
         statistics = new GroupedTimingStatistics();
         SortedMap<String, TimingStatistics> statisticsByTag = new TreeMap<String, TimingStatistics>();
         threadCount = dataInput.readInt();
+        numErrors = dataInput.readInt();
         int size = dataInput.readInt();
         for (int i = 0; i < size; i++) {
             String taskName = dataInput.readUTF();
@@ -86,5 +90,9 @@ public class ReduceResult implements Writable {
 
     public int getThreadCount() {
         return threadCount;
+    }
+
+    public int getNumErrors() {
+        return numErrors;
     }
 }

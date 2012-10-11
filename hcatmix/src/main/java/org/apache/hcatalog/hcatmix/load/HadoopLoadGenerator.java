@@ -38,7 +38,7 @@ import org.apache.hadoop.security.token.delegation.AbstractDelegationTokenIdenti
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.hcatalog.hcatmix.HCatMixUtils;
-import org.apache.hcatalog.hcatmix.load.hadoop.MapResult;
+import org.apache.hcatalog.hcatmix.load.hadoop.IntervalResult;
 import org.apache.hcatalog.hcatmix.load.hadoop.ReduceResult;
 import org.apache.pig.tools.cmdline.CmdLineParser;
 import org.apache.thrift.TException;
@@ -191,7 +191,7 @@ public class HadoopLoadGenerator extends Configured implements Tool {
         jobConf.setJarByClass(HCatMapper.class);
         jobConf.setReducerClass(HCatReducer.class);
         jobConf.setMapOutputKeyClass(LongWritable.class);
-        jobConf.setMapOutputValueClass(MapResult.class);
+        jobConf.setMapOutputValueClass(IntervalResult.class);
         jobConf.setOutputKeyClass(LongWritable.class);
         jobConf.setOutputValueClass(ReduceResult.class);
         jobConf.setOutputFormat(SequenceFileOutputFormat.class);
@@ -249,6 +249,7 @@ public class HadoopLoadGenerator extends Configured implements Tool {
                 LOG.info("Timestamp: " + timeStamp);
                 LOG.info("ThreadCount: " + result.getThreadCount());
                 LOG.info("Stats:\n" + result.getStatistics());
+                LOG.info("Errors: " + result.getNumErrors());
                 timeseriesResults.put(timeStamp.get(), result);
                 timeStamp = new LongWritable(); // initialize, so as to use new objects for next round reading
                 result = new ReduceResult();

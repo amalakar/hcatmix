@@ -92,7 +92,6 @@ public class HCatAddPartitionTask extends HCatLoadTask {
             stopWatch = new StopWatch(getName());
             hiveClient.get().add_partition(partition);
             stopWatch.stop();
-            LOG.info("Successfully created partition");
         } catch (TTransportException e) {
             recycleHiveClient();
             numErrors.set(numErrors.get() + 1);

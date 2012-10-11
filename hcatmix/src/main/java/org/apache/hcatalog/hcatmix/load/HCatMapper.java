@@ -22,7 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.*;
-import org.apache.hcatalog.hcatmix.load.hadoop.MapResult;
+import org.apache.hcatalog.hcatmix.load.hadoop.IntervalResult;
 import org.apache.hcatalog.hcatmix.load.hadoop.StopWatchWritable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +42,7 @@ import static org.apache.hcatalog.hcatmix.load.HadoopLoadGenerator.Conf;
  *          Value: The result of the map (which is consists of stopwatches/number of threads for the period
  */
 public class HCatMapper extends MapReduceBase implements
-        Mapper<LongWritable, Text, LongWritable, MapResult> {
+        Mapper<LongWritable, Text, LongWritable, IntervalResult> {
     private static final Logger LOG = LoggerFactory.getLogger(HCatMapper.class);
 
     private int threadIncrementCount;
@@ -79,11 +79,11 @@ public class HCatMapper extends MapReduceBase implements
 
     @Override
     public void map(LongWritable longWritable, Text text,
-                    OutputCollector<LongWritable, MapResult> collector,
+                    OutputCollector<LongWritable, IntervalResult> collector,
                     final Reporter reporter) throws IOException {
         LOG.info(MessageFormat.format("Input: {0}={1}", longWritable, text));
-        final List<Future<SortedMap<Long, List<StopWatchWritable>>>> futures =
-                new ArrayList<Future<SortedMap<Long, List<StopWatchWritable>>>>();
+        final List<Future<SortedMap<Long, IntervalResult>>> futures =
+                new ArrayList<Future<SortedMap<Long, IntervalResult>>>();
 
         // Initialize tasks
         List<org.apache.hcatalog.hcatmix.load.tasks.Task> tasks;
@@ -108,24 +108,25 @@ public class HCatMapper extends MapReduceBase implements
         }
         newThreadCreator.cancel();
         LOG.info("Time is over, will collect the futures now. Total number of threads: " + futures.size());
-        SortedMap<Long, List<StopWatchWritable>> stopWatchAggregatedTimeSeries =
-                new TreeMap<Long, List<StopWatchWritable>>();
+        SortedMap<Long, IntervalResult> stopWatchAggregatedTimeSeries =
+                new TreeMap<Long, IntervalResult>();
 
-        // Collect the futures for all the threads
-        for (Future<SortedMap<Long, List<StopWatchWritable>>> future : futures) {
+        // Merge the corresponding time interval results received from all the threads for each time interval
+        for (Future<SortedMap<Long, IntervalResult>> future : futures) {
             try {
-                SortedMap<Long, List<StopWatchWritable>> threadTimeSeries = future.get();
-                for (Map.Entry<Long, List<StopWatchWritable>> entry : threadTimeSeries.entrySet()) {
+                SortedMap<Long, IntervalResult> threadTimeSeries = future.get();
+                for (Map.Entry<Long, IntervalResult> entry : threadTimeSeries.entrySet()) {
                     Long timeStamp = entry.getKey();
-                    List<StopWatchWritable> threadStopWatches = entry.getValue();
+                    IntervalResult intervalResult = entry.getValue();
 
                     if(stopWatchAggregatedTimeSeries.containsKey(timeStamp)) {
-                        stopWatchAggregatedTimeSeries.get(timeStamp).addAll(threadStopWatches);
+                        stopWatchAggregatedTimeSeries.get(timeStamp).addIntervalResult(intervalResult);
                     } else {
-                        stopWatchAggregatedTimeSeries.put(timeStamp, threadStopWatches);
+                        stopWatchAggregatedTimeSeries.put(timeStamp, intervalResult);
                     }
                     LOG.info(MessageFormat.format("{0}: Added {1} stopwatches. Current stopwatch number: {2}",
-                            timeStamp, threadStopWatches.size(), stopWatchAggregatedTimeSeries.get(timeStamp).size()));
+                            timeStamp, intervalResult.getStopWatchList().size(),
+                            stopWatchAggregatedTimeSeries.get(timeStamp).getStopWatchList().size()));
                 }
             } catch (Exception e) {
                 LOG.error("Error while getting thread results", e);
@@ -136,14 +137,14 @@ public class HCatMapper extends MapReduceBase implements
         LOG.info("Collected all the statistics for #threads: " + createNewThreads.getThreadCount());
         SortedMap<Long, Integer> threadCountTimeSeries = createNewThreads.getThreadCountTimeSeries();
         int threadCount = 0;
-        for (Map.Entry<Long, List<StopWatchWritable>> entry : stopWatchAggregatedTimeSeries.entrySet()) {
+        for (Map.Entry<Long, IntervalResult> entry : stopWatchAggregatedTimeSeries.entrySet()) {
             long timeStamp = entry.getKey();
-            List<StopWatchWritable> stopWatchList = entry.getValue();
+            IntervalResult intervalResult = entry.getValue();
             if(threadCountTimeSeries.containsKey(timeStamp)) {
                 threadCount = threadCountTimeSeries.get(timeStamp);
             }
-            collector.collect(new LongWritable(timeStamp),
-                    new MapResult(threadCount, stopWatchList));
+            intervalResult.setThreadCount(threadCount);
+            collector.collect(new LongWritable(timeStamp), intervalResult);
         }
     }
 

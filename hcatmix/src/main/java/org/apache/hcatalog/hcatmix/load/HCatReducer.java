@@ -23,7 +23,7 @@ import org.apache.hadoop.mapred.MapReduceBase;
 import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.Reducer;
 import org.apache.hadoop.mapred.Reporter;
-import org.apache.hcatalog.hcatmix.load.hadoop.MapResult;
+import org.apache.hcatalog.hcatmix.load.hadoop.IntervalResult;
 import org.apache.hcatalog.hcatmix.load.hadoop.ReduceResult;
 import org.apache.hcatalog.hcatmix.load.hadoop.StopWatchWritable;
 import org.perf4j.GroupedTimingStatistics;
@@ -42,7 +42,7 @@ import java.util.List;
  *      Value: {@link ReduceResult} with thread count and aggregated statistics for the period <br/>
  */
 public class HCatReducer extends MapReduceBase implements
-        Reducer<LongWritable, MapResult,
+        Reducer<LongWritable, IntervalResult,
         LongWritable, ReduceResult> {
     private static final Logger LOG = LoggerFactory.getLogger(HCatReducer.class);
 
@@ -50,25 +50,27 @@ public class HCatReducer extends MapReduceBase implements
     }
 
     @Override
-    public void reduce(LongWritable timeStamp, Iterator<MapResult> mapResultIterator,
+    public void reduce(LongWritable timeStamp, Iterator<IntervalResult> resultIterator,
                        OutputCollector<LongWritable, ReduceResult> collector, Reporter reporter)
             throws IOException {
         GroupedTimingStatistics statistics = new GroupedTimingStatistics();
         LOG.info(MessageFormat.format("Going through statistics for time: {0}", timeStamp));
         int threadCount = 0;
-        while (mapResultIterator.hasNext()) {
-            MapResult mapResult = mapResultIterator.next();
-            List<StopWatchWritable> stopWatches = mapResult.getStopWatchList();
+        int numErrors = 0;
+        while (resultIterator.hasNext()) {
+            IntervalResult intervalResult = resultIterator.next();
+            List<StopWatchWritable> stopWatches = intervalResult.getStopWatchList();
             for (StopWatchWritable stopWatch : stopWatches) {
                 statistics.addStopWatch(stopWatch.getStopWatch());
             }
             LOG.info(MessageFormat.format("Reducing for {0} Stopwatch count: {1}", timeStamp,
-                    mapResult.getStopWatchList().size()));
+                    intervalResult.getStopWatchList().size()));
             LOG.info("Current statistics: " + statistics);
-            threadCount += mapResult.getThreadCount();
+            threadCount += intervalResult.getThreadCount();
+            numErrors += intervalResult.getNumErrors();
         }
         LOG.info(MessageFormat.format("Final statistics for {0}: Threads: {1}, Statistics: {2}",
                 timeStamp, threadCount, statistics));
-        collector.collect(timeStamp, new ReduceResult(statistics,  threadCount));
+        collector.collect(timeStamp, new ReduceResult(statistics, threadCount, numErrors));
     }
 }

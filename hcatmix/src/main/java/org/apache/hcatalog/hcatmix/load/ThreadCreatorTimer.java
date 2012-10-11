@@ -19,6 +19,7 @@
 package org.apache.hcatalog.hcatmix.load;
 
 import org.apache.hadoop.mapred.Reporter;
+import org.apache.hcatalog.hcatmix.load.hadoop.IntervalResult;
 import org.apache.hcatalog.hcatmix.load.hadoop.StopWatchWritable;
 import org.apache.hcatalog.hcatmix.load.tasks.Task;
 import org.slf4j.Logger;
@@ -39,14 +40,14 @@ public class ThreadCreatorTimer extends TimerTask {
     private int threadCount;
     private final TimeKeeper timeKeeper;
     private final List<Task> tasks;
-    private final List<Future<SortedMap<Long, List<StopWatchWritable>>>> futures;
+    private final List<Future<SortedMap<Long, IntervalResult>>> futures;
     private final Reporter reporter;
     private final SortedMap<Long, Integer> threadCountTimeSeries = new TreeMap<Long, Integer>();
     private final int threadIncrementCount;
     enum COUNTERS { NUM_THREADS}
 
     public ThreadCreatorTimer(TimeKeeper timeKeeper, List<Task> tasks, final int threadIncrementCount,
-                              List<Future<SortedMap<Long, List<StopWatchWritable>>>> futures, Reporter reporter) {
+                              List<Future<SortedMap<Long, IntervalResult>>> futures, Reporter reporter) {
         this.timeKeeper = timeKeeper;
         this.tasks = tasks;
         this.threadIncrementCount = threadIncrementCount;
