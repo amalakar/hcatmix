@@ -44,6 +44,7 @@ public class ThreadCreatorTimer extends TimerTask {
     private final Reporter reporter;
     private final SortedMap<Long, Integer> threadCountTimeSeries = new TreeMap<Long, Integer>();
     private final int threadIncrementCount;
+    private final List<TaskExecutor> taskExecutors =  new ArrayList<TaskExecutor>();
     enum COUNTERS { NUM_THREADS}
 
     public ThreadCreatorTimer(TimeKeeper timeKeeper, List<Task> tasks, final int threadIncrementCount,
@@ -60,12 +61,12 @@ public class ThreadCreatorTimer extends TimerTask {
     public void run() {
         LOG.info("About to create " + threadIncrementCount + " threads.");
         final ExecutorService executorPool = Executors.newFixedThreadPool(threadIncrementCount);
-        Collection<TaskExecutor> taskExecutors = new ArrayList<TaskExecutor>(threadIncrementCount);
+        Collection<TaskExecutor> newTaskExecutors = new ArrayList<TaskExecutor>(threadIncrementCount);
         for (int i = 0; i < threadIncrementCount; i++) {
-            taskExecutors.add(new TaskExecutor(new TimeKeeper(timeKeeper), tasks));
+            newTaskExecutors.add(new TaskExecutor(new TimeKeeper(timeKeeper), tasks));
         }
-
-        for (TaskExecutor taskExecutor : taskExecutors) {
+        taskExecutors.addAll(newTaskExecutors);
+        for (TaskExecutor taskExecutor : newTaskExecutors) {
             futures.add(executorPool.submit(taskExecutor));
         }
         threadCount += threadIncrementCount;
@@ -79,7 +80,7 @@ public class ThreadCreatorTimer extends TimerTask {
         reporter.setStatus(msg);
         reporter.incrCounter(COUNTERS.NUM_THREADS, threadIncrementCount);
 
-        // Update time series
+        // Update time series of thread Count
         if(timeKeeper.hasNextCheckpointArrived()) {
             threadCountTimeSeries.put(timeKeeper.getCurrentCheckPoint(), getThreadCount());
             timeKeeper.updateCheckpoint();
@@ -92,5 +93,9 @@ public class ThreadCreatorTimer extends TimerTask {
 
     public SortedMap<Long, Integer> getThreadCountTimeSeries() {
         return threadCountTimeSeries;
+    }
+
+    public List<TaskExecutor> getTaskExecutors() {
+        return taskExecutors;
     }
 }

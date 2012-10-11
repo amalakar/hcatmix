@@ -24,6 +24,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 
 public class HCatMixUtils {
     public static final String COPY_TABLE_NAME_SUFFIX = "_copy";
@@ -125,5 +128,21 @@ public class HCatMixUtils {
     public static void logAndThrow(RuntimeException e) {
         LOG.error(e.getMessage(), e);
         throw e;
+    }
+
+    public static InputStream getInputStream(String fileName) throws FileNotFoundException {
+        InputStream is;
+        File file = new File(fileName);
+        if (file.exists() && file.isFile()) {
+            is = new FileInputStream(file);
+            LOG.info(fileName + " found in file system path will use it, wont look in classpath");
+        } else {
+            is = Thread.currentThread().getContextClassLoader().getResourceAsStream(fileName);
+            LOG.info(fileName + " found in classpath, will use it.");
+            if (is == null) {
+                throw new IllegalArgumentException("Couldn't find " + fileName + " in classpath. Aborting");
+            }
+        }
+        return is;
     }
 }

@@ -25,14 +25,13 @@ import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
-import org.apache.hcatalog.hcatmix.HCatMixSetup;
-import org.apache.hcatalog.hcatmix.conf.HiveTableSchema;
 import org.apache.hcatalog.hcatmix.load.tasks.HCatAddPartitionTask;
 import org.apache.hcatalog.hcatmix.load.tasks.HCatListPartitionTask;
 import org.apache.hcatalog.hcatmix.load.HadoopLoadGenerator;
 import org.apache.hcatalog.hcatmix.load.hadoop.ReduceResult;
 import org.apache.hcatalog.hcatmix.loadstore.LoadStoreScriptRunner;
 import org.apache.hcatalog.hcatmix.publisher.LoadTestResultsPublisher;
+import org.apache.pig.tools.cmdline.CmdLineParser;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,13 +40,13 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.net.URL;
+import java.text.ParseException;
 import java.util.SortedMap;
 
 public class LoadTestRunner extends Configured implements Tool {
-    private HCatMixSetup hCatMixSetup;
-    private HiveTableSchema tableSchema;
     private static final Logger LOG = LoggerFactory.getLogger(LoadTestRunner.class);
-    private final String HCAT_SPEC_FILE = "load_test_table.xml";
+    private final String LOAD_TEST_HCAT_SPEC_FILE = "load_test_table.xml";
+    private LoadStoreScriptRunner loadStoreScriptRunner;
 
     public static void main(String[] args) throws Exception {
         ToolRunner.run(new Configuration(), new LoadTestRunner(), args);
@@ -55,44 +54,55 @@ public class LoadTestRunner extends Configured implements Tool {
 
     @Override
     public int run(String[] args) throws Exception {
+        CmdLineParser opts = new CmdLineParser(args);
+        opts.registerOpt('c', "confFile", CmdLineParser.ValueExpected.REQUIRED);
+
+        char opt;
         setUp();
-        testAddPartitionTask();
+        parseOption: try {
+            while ((opt = opts.getNextOpt()) != CmdLineParser.EndOfOpts) {
+                switch (opt) {
+                    case 'c':
+                        runTest(opts.getValStr());
+                        break parseOption;
+                    default:
+                        LOG.error("Unrecognized option " + opts.getValStr());
+                        usage();
+                }
+            }
+        } catch (ParseException pe) {
+            System.err.println("Couldn't parse the command line arguments, " +
+                    pe.getMessage());
+            usage();
+        }
+
         tearDown();
         return 0;
     }
 
-    public void testListPartitionTask() throws Exception, MetaException {
+    public void runTest(String confFile) throws Exception {
         HadoopLoadGenerator loadGenerator = new HadoopLoadGenerator();
-        SortedMap<Long, ReduceResult> results =  loadGenerator.run(HCatListPartitionTask.class.getName(), getConf());
-        LoadTestResultsPublisher publisher = new LoadTestResultsPublisher(results);
-        publisher.publishAll();
-    }
-
-    public void testAddPartitionTask() throws Exception, MetaException {
-        HadoopLoadGenerator loadGenerator = new HadoopLoadGenerator();
-        SortedMap<Long, ReduceResult> results =  loadGenerator.run(HCatAddPartitionTask.class.getName(), getConf());
+        SortedMap<Long, ReduceResult> results =  loadGenerator.run(confFile, getConf());
         LoadTestResultsPublisher publisher = new LoadTestResultsPublisher(results);
         publisher.publishAll();
     }
 
     public void setUp() throws MetaException, IOException, TException, NoSuchObjectException, SAXException, InvalidObjectException, ParserConfigurationException {
-        URL url = Thread.currentThread().getContextClassLoader().getResource(HCAT_SPEC_FILE);
+        URL url = Thread.currentThread().getContextClassLoader().getResource(LOAD_TEST_HCAT_SPEC_FILE);
         if(url == null) {
-            LOG.error(HCAT_SPEC_FILE + " not found");
-            throw new RuntimeException(HCAT_SPEC_FILE + " not found");
+            LOG.error(LOAD_TEST_HCAT_SPEC_FILE + " not found");
+            throw new RuntimeException(LOAD_TEST_HCAT_SPEC_FILE + " not found");
         }
 
         String hcatTableSpecFile = url.getPath();
 
-        LoadStoreScriptRunner loadStoreScriptRunner = new LoadStoreScriptRunner(hcatTableSpecFile);
-
+        loadStoreScriptRunner = new LoadStoreScriptRunner(hcatTableSpecFile);
         loadStoreScriptRunner.setUp();
         loadStoreScriptRunner.runPigLoadHCatStoreScript();
-        tableSchema = loadStoreScriptRunner.getHiveTableSchema();
     }
 
     public void tearDown() throws NoSuchObjectException, MetaException, TException {
-        hCatMixSetup.deleteTable(tableSchema.getDatabaseName(), tableSchema.getName());
+        loadStoreScriptRunner.deleteHCatTables();
     }
 
     private void usage() {

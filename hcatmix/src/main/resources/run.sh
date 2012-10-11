@@ -22,12 +22,12 @@ case $action in
     listPartition)
         echo "Executing HCatListPartitionTask"
         hadoop  --config $conf_dir jar $hcatmixjar org.apache.hcatalog.hcatmix.load.HadoopLoadGenerator \
-                -libjars $JAR_LIST --classnames 'org.apache.hcatalog.hcatmix.load.tasks.HCatListPartitionTask'
+                -libjars $JAR_LIST -c hcat_add_partition_load_test.properties
         ;;
     addPartition)
         echo "Executing HCatAddPartitionTask"
         hadoop  --config $conf_dir jar $hcatmixjar org.apache.hcatalog.hcatmix.load.HadoopLoadGenerator \
-                -libjars $JAR_LIST --classnames 'org.apache.hcatalog.hcatmix.load.tasks.HCatAddPartitionTask'
+                -libjars $JAR_LIST -c hcat_add_partition_load_test.properties
         ;;
     loadtest)
         echo "Executing LoadTestRunner"

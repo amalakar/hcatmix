@@ -45,10 +45,7 @@ import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintWriter;
+import java.io.*;
 import java.text.ParseException;
 import java.util.Properties;
 import java.util.SortedMap;
@@ -60,7 +57,6 @@ import java.util.TreeMap;
  * It measures time take to do the task over time and returns the statistics over time.
  */
 public class HadoopLoadGenerator extends Configured implements Tool {
-    public static final String CONF_FILE = "hcat_load_test.properties";
     public final String JOB_NAME = "hcat-load-generator";
 
     public static final String METASTORE_TOKEN_KEY = "metaStoreToken";
@@ -115,16 +111,16 @@ public class HadoopLoadGenerator extends Configured implements Tool {
     @Override
     public int run(String[] args) throws Exception {
         CmdLineParser opts = new CmdLineParser(args);
-        String classNames = null;
+        String confFileName = null;
 
-        opts.registerOpt('c', "classnames", CmdLineParser.ValueExpected.REQUIRED);
+        opts.registerOpt('c', "confFile", CmdLineParser.ValueExpected.REQUIRED);
 
         char opt;
         try {
             while ((opt = opts.getNextOpt()) != CmdLineParser.EndOfOpts) {
                 switch (opt) {
                     case 'c':
-                        classNames = opts.getValStr();
+                        confFileName = opts.getValStr();
                         break;
                     default:
                         throw new IllegalArgumentException("Unrecognized option");
@@ -135,7 +131,7 @@ public class HadoopLoadGenerator extends Configured implements Tool {
                     pe.getMessage());
             usage();
         }
-        run(classNames, getConf());
+        run(confFileName, getConf());
         return 1;
     }
 
@@ -147,39 +143,41 @@ public class HadoopLoadGenerator extends Configured implements Tool {
     /**
      * Prepare input directory/jobConf and launch the hadoop job.
      *
-     * @param taskClassNames The comma separated classnames of the tasks to be executed
+     * @param confFileName The properties file for the task, should be available in the classpath
      * @param conf
      * @return
      * @throws IOException
      * @throws MetaException
      * @throws TException
      */
-    public SortedMap<Long, ReduceResult> run(String taskClassNames, Configuration conf) throws IOException, MetaException, TException {
+    public SortedMap<Long, ReduceResult> run(String confFileName, Configuration conf) throws Exception, MetaException, TException {
         JobConf jobConf;
         if(conf != null) {
             jobConf = new JobConf(conf);
         } else {
             jobConf = new JobConf(new Configuration());
         }
-        InputStream confFile = Thread.currentThread().getContextClassLoader().getResourceAsStream(CONF_FILE);
-
-        Properties props = new Properties();
-        if(confFile != null) {
-            try {
-                props.load(confFile);
-            } catch (IOException e) {
-                LOG.error("[Ignored] Couldn't load properties file: " + CONF_FILE, e);
-            }
-
-            LOG.info("Loading configuration file: " + CONF_FILE);
-            addToJobConf(jobConf, props, Conf.MAP_RUN_TIME_MINUTES);
-            addToJobConf(jobConf, props, Conf.STAT_COLLECTION_INTERVAL_MINUTE);
-            addToJobConf(jobConf, props, Conf.THREAD_INCREMENT_COUNT);
-            addToJobConf(jobConf, props, Conf.THREAD_INCREMENT_INTERVAL_MINUTES);
-            addToJobConf(jobConf, props, Conf.THREAD_COMPLETION_BUFFER_MINUTES);
-        } else {
-            LOG.error("Couldn't find config file in classpath: " + CONF_FILE + " ignored and proceeding");
+        InputStream confFileIS = null;
+        try {
+            confFileIS = HCatMixUtils.getInputStream(confFileName);
+        } catch (Exception e) {
+            LOG.error("Couldn't load configuration conf file " + confFileName);
+            throw e;
         }
+        Properties props = new Properties();
+        try {
+            props.load(confFileIS);
+        } catch (IOException e) {
+            LOG.error("[Ignored] Couldn't load properties file: " + confFileName, e);
+            throw e;
+        }
+
+        LOG.info("Loading configuration file: " + confFileName);
+        addToJobConf(jobConf, props, Conf.MAP_RUN_TIME_MINUTES);
+        addToJobConf(jobConf, props, Conf.STAT_COLLECTION_INTERVAL_MINUTE);
+        addToJobConf(jobConf, props, Conf.THREAD_INCREMENT_COUNT);
+        addToJobConf(jobConf, props, Conf.THREAD_INCREMENT_INTERVAL_MINUTES);
+        addToJobConf(jobConf, props, Conf.THREAD_COMPLETION_BUFFER_MINUTES);
 
         int numMappers = Integer.parseInt(props.getProperty(Conf.NUM_MAPPERS.propName, "" + Conf.NUM_MAPPERS.defaultValue));
         Path inputDir = new Path(props.getProperty(Conf.INPUT_DIR.propName, Conf.INPUT_DIR.defaultValueStr));
@@ -195,7 +193,8 @@ public class HadoopLoadGenerator extends Configured implements Tool {
         jobConf.setOutputKeyClass(LongWritable.class);
         jobConf.setOutputValueClass(ReduceResult.class);
         jobConf.setOutputFormat(SequenceFileOutputFormat.class);
-        jobConf.set(Conf.TASK_CLASS_NAMES.getJobConfKey(), taskClassNames);
+        jobConf.set(Conf.TASK_CLASS_NAMES.getJobConfKey(), props.getProperty(Conf.TASK_CLASS_NAMES.propName,
+                Conf.TASK_CLASS_NAMES.defaultValueStr));
 
         fs = FileSystem.get(jobConf);
 
@@ -206,7 +205,7 @@ public class HadoopLoadGenerator extends Configured implements Tool {
         FileOutputFormat.setOutputPath(jobConf, outputDir);
 
         // Set up delegation token required for hiveMetaStoreClient in map task
-        HiveConf hiveConf = new HiveConf(org.apache.hcatalog.hcatmix.load.tasks.Task.class);
+        HiveConf hiveConf = new HiveConf( HadoopLoadGenerator.class);
         HiveMetaStoreClient hiveClient = new HiveMetaStoreClient(hiveConf);
         String tokenStr = hiveClient.getDelegationToken(UserGroupInformation.getCurrentUser().getUserName(), "mapred");
         Token<? extends AbstractDelegationTokenIdentifier> token = new Token<DelegationTokenIdentifier>();

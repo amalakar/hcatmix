@@ -106,15 +106,16 @@ public class HCatMapper extends MapReduceBase implements
         } catch (InterruptedException e) {
             LOG.error("Got interrupted while sleeping for timer thread to finish");
         }
+
         newThreadCreator.cancel();
         LOG.info("Time is over, will collect the futures now. Total number of threads: " + futures.size());
         SortedMap<Long, IntervalResult> stopWatchAggregatedTimeSeries =
                 new TreeMap<Long, IntervalResult>();
 
         // Merge the corresponding time interval results received from all the threads for each time interval
-        for (Future<SortedMap<Long, IntervalResult>> future : futures) {
+        for (TaskExecutor taskExecutor : createNewThreads.getTaskExecutors()) {
             try {
-                SortedMap<Long, IntervalResult> threadTimeSeries = future.get();
+                SortedMap<Long, IntervalResult> threadTimeSeries = taskExecutor.getTimeSeriesResult();
                 for (Map.Entry<Long, IntervalResult> entry : threadTimeSeries.entrySet()) {
                     Long timeStamp = entry.getKey();
                     IntervalResult intervalResult = entry.getValue();
@@ -133,7 +134,7 @@ public class HCatMapper extends MapReduceBase implements
             }
         }
 
-        // Output the consolidated futures for this map along with the number of threads against time
+        // Output the consolidated result for this map along with the number of threads against time
         LOG.info("Collected all the statistics for #threads: " + createNewThreads.getThreadCount());
         SortedMap<Long, Integer> threadCountTimeSeries = createNewThreads.getThreadCountTimeSeries();
         int threadCount = 0;
