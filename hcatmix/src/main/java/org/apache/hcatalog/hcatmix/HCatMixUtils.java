@@ -18,15 +18,17 @@
 
 package org.apache.hcatalog.hcatmix;
 
+import junit.framework.Assert;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hcatalog.hcatmix.conf.HiveTableSchema;
+import org.apache.hcatalog.hcatmix.conf.TableSchemaXMLParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xml.sax.SAXException;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.*;
+import java.util.List;
 
 public class HCatMixUtils {
     public static final String COPY_TABLE_NAME_SUFFIX = "_copy";
@@ -144,5 +146,11 @@ public class HCatMixUtils {
             LOG.info(fileName + " found in classpath, will use it.");
         }
         return is;
+    }
+
+    public static HiveTableSchema getFirstTableFromConf(String hcatTableSpecFile) throws IOException, SAXException, ParserConfigurationException {
+        TableSchemaXMLParser configParser = new TableSchemaXMLParser(hcatTableSpecFile);
+        List<HiveTableSchema> multiInstanceList = configParser.getHiveTableList();
+        return  multiInstanceList.get(0);
     }
 }
