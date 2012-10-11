@@ -21,18 +21,16 @@ export action=$1
 case $action in
     listPartition)
         echo "Executing HCatListPartitionTask"
-        hadoop  --config $conf_dir jar $hcatmixjar org.apache.hcatalog.hcatmix.load.HadoopLoadGenerator \
-                -libjars $JAR_LIST -c hcat_add_partition_load_test.properties
+        hadoop  --config $conf_dir jar $hcatmixjar org.apache.hcatalog.hcatmix.load.test.LoadTestRunner \
+                -libjars $JAR_LIST -c src/main/resources/hcat_list_partition_load_test.properties
         ;;
+
     addPartition)
         echo "Executing HCatAddPartitionTask"
-        hadoop  --config $conf_dir jar $hcatmixjar org.apache.hcatalog.hcatmix.load.HadoopLoadGenerator \
-                -libjars $JAR_LIST -c hcat_add_partition_load_test.properties
+        hadoop  --config $conf_dir jar $hcatmixjar org.apache.hcatalog.hcatmix.load.test.LoadTestRunner \
+                -libjars $JAR_LIST -c src/main/resources/hcat_add_partition_load_test.properties
         ;;
-    loadtest)
-        echo "Executing LoadTestRunner"
-        hadoop  --config $conf_dir jar $hcatmixjar org.apache.hcatalog.hcatmix.load.test.LoadTestRunner -libjars $JAR_LIST
-        ;;
+
     loadstoretest)
         echo "Running HCatMixSetup load store tests"
         if [ -n "$2" ]; then

@@ -25,8 +25,6 @@ import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
-import org.apache.hcatalog.hcatmix.load.tasks.HCatAddPartitionTask;
-import org.apache.hcatalog.hcatmix.load.tasks.HCatListPartitionTask;
 import org.apache.hcatalog.hcatmix.load.HadoopLoadGenerator;
 import org.apache.hcatalog.hcatmix.load.hadoop.ReduceResult;
 import org.apache.hcatalog.hcatmix.loadstore.LoadStoreScriptRunner;

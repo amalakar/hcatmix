@@ -138,10 +138,10 @@ public class HCatMixUtils {
             LOG.info(fileName + " found in file system path will use it, wont look in classpath");
         } else {
             is = Thread.currentThread().getContextClassLoader().getResourceAsStream(fileName);
-            LOG.info(fileName + " found in classpath, will use it.");
             if (is == null) {
-                throw new IllegalArgumentException("Couldn't find " + fileName + " in classpath. Aborting");
+                throw new FileNotFoundException("Couldn't find " + fileName + " in classpath. Aborting");
             }
+            LOG.info(fileName + " found in classpath, will use it.");
         }
         return is;
     }

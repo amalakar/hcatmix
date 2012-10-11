@@ -74,7 +74,7 @@ public class LoadTestGrapher {
         // Defining chart.
         LineChart chart = GCharts.newLineChart(lines);
         chart.setSize(600, 450);
-        chart.setTitle("Response Time VS Response Time (in Milliseconds)", WHITE, 14);
+        chart.setTitle("Response Time VS Thread Count (in Milliseconds)", WHITE, 14);
         chart.setGrid(25, 25, 3, 2);
 
         // Defining axis info and styles

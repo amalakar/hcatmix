@@ -86,7 +86,7 @@
                     <type>string</type>
                     <avgLength>5</avgLength>
                     <distribution>uniform</distribution>
-                    <cardinality>30</cardinality>
+                    <cardinality>15</cardinality>
                 </partition>
             </partitions>
             <instances>
