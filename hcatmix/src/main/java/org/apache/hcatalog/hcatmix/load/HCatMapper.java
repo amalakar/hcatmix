@@ -101,11 +101,17 @@ public class HCatMapper extends MapReduceBase implements
         newThreadCreator.scheduleAtFixedRate(createNewThreads, 0, threadIncrementIntervalInMillis);
 
         // Sleep and let the tasks get expired
-        try {
-            Thread.sleep(timeKeeper.getRemainingTimeIncludingBuffer());
-        } catch (InterruptedException e) {
-            LOG.error("Got interrupted while sleeping for timer thread to finish");
+        long remainingTime = timeKeeper.getRemainingTimeIncludingBuffer();
+        final long sleepPeriod = 2000;
+        for (long i = remainingTime; i > 0 ; i = i - sleepPeriod) {
+            try {
+                Thread.sleep(sleepPeriod);
+                reporter.progress();
+            } catch (InterruptedException e) {
+                LOG.error("Got interrupted while sleeping for timer thread to finish");
+            }
         }
+
 
         newThreadCreator.cancel();
         LOG.info("Time is over, will collect the futures now. Total number of threads: " + futures.size());
