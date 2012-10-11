@@ -61,6 +61,6 @@ public class TestLoadTestGrapher {
         timingStatistics = new TimingStatistics(mean + new Random().nextInt(100), standardDeviation, max, min, count);
         statisticsByTag.put("getTable", timingStatistics);
         statistics.setStatisticsByTag(statisticsByTag);
-        return new ReduceResult(statistics, threadCount);
+        return new ReduceResult(statistics, threadCount, new Random().nextInt(20));
     }
 }

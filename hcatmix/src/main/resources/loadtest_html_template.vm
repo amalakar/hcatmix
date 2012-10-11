@@ -25,6 +25,7 @@
                         <th>Max</th>
                         <th>Std Dev</th>
                         <th>Number of runs</th>
+                        <th>Errors</th>
                     </tr>
                 </thead>
                 <tbody>
