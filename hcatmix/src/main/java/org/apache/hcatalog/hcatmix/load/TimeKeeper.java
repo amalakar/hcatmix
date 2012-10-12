@@ -75,8 +75,8 @@ public class TimeKeeper {
         return expiryTimeWithBufferInMillis - System.currentTimeMillis();
     }
 
-    public long getPercentageProgress() {
-        return (System.currentTimeMillis() - startTime) / (expiryTimeInMillis -startTime);
+    public float getPercentageProgress() {
+        return ((System.currentTimeMillis() - startTime) / (expiryTimeInMillis -startTime)) * 100;
     }
 
     public boolean hasNextCheckpointArrived() {

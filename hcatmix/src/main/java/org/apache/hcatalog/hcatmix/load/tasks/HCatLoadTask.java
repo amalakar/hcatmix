@@ -49,7 +49,6 @@ public abstract class HCatLoadTask implements Task {
     protected HiveConf hiveConf;
 
     protected String dbName;
-    // The following table name comes from the hcatSpecFile, changing there would require it to be changed here as well
     protected String tableName;
 
     protected HCatLoadTask() throws IOException {

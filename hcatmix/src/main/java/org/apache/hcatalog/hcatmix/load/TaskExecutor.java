@@ -25,6 +25,7 @@ import org.perf4j.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.SortedMap;
@@ -64,6 +65,8 @@ public class TaskExecutor implements Callable<SortedMap<Long, IntervalResult>> {
             for (Task task : tasks) {
                 if(timeKeeper.hasNextCheckpointArrived()) {
                     timeSeriesResult.put(timeKeeper.getCurrentCheckPoint(), new IntervalResult(numErrors, stopWatches));
+                    LOG.info(MessageFormat.format("{0}:{1} - Added stopWatches: {2}, Errors: {3}", Thread.currentThread(),
+                            timeKeeper.getCurrentCheckPoint(),stopWatches.size(), numErrors));
                     timeKeeper.updateCheckpoint();
                     stopWatches = new ArrayList<StopWatchWritable>();
                     numErrors = 0;
