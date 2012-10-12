@@ -76,7 +76,7 @@ public class TimeKeeper {
     }
 
     public float getPercentageProgress() {
-        return ((System.currentTimeMillis() - startTime) / (expiryTimeInMillis -startTime)) * 100;
+        return ((System.currentTimeMillis() - startTime) * 100 / (expiryTimeInMillis -startTime));
     }
 
     public boolean hasNextCheckpointArrived() {

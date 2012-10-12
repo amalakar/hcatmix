@@ -76,10 +76,7 @@ public class LoadStoreScriptRunner {
                 .numMappers(NUM_MAPPERS).build();
         hCatMixSetup = new HCatMixSetup();
 
-        TableSchemaXMLParser configParser = new TableSchemaXMLParser(hcatTableSpecFile);
-        List<HiveTableSchema> multiInstanceList = configParser.getHiveTableList();
-        Assert.assertEquals("Only one table specification should be present per file", 1, multiInstanceList.size());
-        hiveTableSchema = multiInstanceList.get(0);
+        hiveTableSchema = HCatMixUtils.getFirstTableFromConf(hcatTableSpecFile);
         tableName = hiveTableSchema.getName();
         dbName = hiveTableSchema.getDatabaseName();
         rowCount = hiveTableSchema.getRowCount();

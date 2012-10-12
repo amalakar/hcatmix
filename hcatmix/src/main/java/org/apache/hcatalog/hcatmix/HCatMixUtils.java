@@ -132,6 +132,13 @@ public class HCatMixUtils {
         throw e;
     }
 
+    /**
+     * Look for the file in file system first, if unavailable look for the same in the classpath.
+     *
+     * @param fileName the file to look for (first in path then in classpath)
+     * @return the input stream for the given file
+     * @throws FileNotFoundException
+     */
     public static InputStream getInputStream(String fileName) throws FileNotFoundException {
         InputStream is;
         File file = new File(fileName);

@@ -18,6 +18,7 @@
 
 package org.apache.hcatalog.hcatmix.conf;
 
+import org.apache.hcatalog.hcatmix.HCatMixUtils;
 import org.apache.pig.test.utils.DataType;
 import org.apache.pig.test.utils.datagen.ColSpec;
 import org.slf4j.Logger;
@@ -31,7 +32,6 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -50,12 +50,7 @@ public class TableSchemaXMLParser {
     public static final String TYPE = "type";
 
     public TableSchemaXMLParser(String fileName) throws ParserConfigurationException, IOException, SAXException {
-        File file = new File(fileName);
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        DocumentBuilder db = dbf.newDocumentBuilder();
-        Document xmlDoc = db.parse(file);
-        xmlDoc.getDocumentElement().normalize();
-        hiveTableList = parse(xmlDoc);
+        this(HCatMixUtils.getInputStream(fileName));
     }
 
     public TableSchemaXMLParser(InputStream inputStream) throws ParserConfigurationException, IOException, SAXException {

@@ -23,6 +23,8 @@ import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import org.apache.velocity.exception.ParseErrorException;
 import org.apache.velocity.exception.ResourceNotFoundException;
+import org.apache.velocity.runtime.RuntimeConstants;
+import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,8 +43,8 @@ public abstract class ResultsPublisher {
 
     ResultsPublisher() throws Exception {
         Properties props = new Properties();
-        props.setProperty("resource.loader", "file, class, jar");
-        props.setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
+        props.setProperty(RuntimeConstants.RESOURCE_LOADER, "file, class, jar");
+        props.setProperty("class.resource.loader.class", ClasspathResourceLoader.class.getName());
         props.setProperty("runtime.references.strict", "true");
         try {
             Velocity.init(props);

@@ -37,6 +37,11 @@ public interface Task {
      */
     public String getName();
 
+    /**
+     * Do the configuration required of the task, would be called only once for the Task object
+     * @param jobConf The hadoop job configuration
+     * @throws Exception
+     */
     public void configure(JobConf jobConf) throws Exception;
 
     /**
