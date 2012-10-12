@@ -27,7 +27,10 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.security.token.Token;
+import org.apache.hcatalog.hcatmix.HCatMixUtils;
+import org.apache.hcatalog.hcatmix.conf.HiveTableSchema;
 import org.apache.hcatalog.hcatmix.load.HadoopLoadGenerator;
+import org.apache.hcatalog.hcatmix.load.test.LoadTestRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,9 +48,9 @@ public abstract class HCatLoadTask implements Task {
     public static final String HIVE_CONF_TOKEN_KEY = "hive.metastore.token.signature";
     protected HiveConf hiveConf;
 
-    protected static final String DB_NAME = "default";
+    protected String dbName;
     // The following table name comes from the hcatSpecFile, changing there would require it to be changed here as well
-    protected static final String TABLE_NAME = "load_test_table_20000_0";
+    protected String tableName;
 
     protected HCatLoadTask() throws IOException {
         numErrors = new ThreadLocal<Integer>(){
@@ -83,6 +86,11 @@ public abstract class HCatLoadTask implements Task {
                 }
             }
         };
+
+        HiveTableSchema tableSchema = HCatMixUtils.getFirstTableFromConf(LoadTestRunner.LOAD_TEST_HCAT_SPEC_FILE);
+        dbName = tableSchema.getDatabaseName();
+        tableName = tableSchema.getName();
+        LOG.info("Table to do load test on is: " + dbName + "." + tableName);
     }
 
     /**

@@ -43,7 +43,7 @@ import java.util.SortedMap;
 
 public class LoadTestRunner extends Configured implements Tool {
     private static final Logger LOG = LoggerFactory.getLogger(LoadTestRunner.class);
-    private final String LOAD_TEST_HCAT_SPEC_FILE = "load_test_table.xml";
+    public static final String LOAD_TEST_HCAT_SPEC_FILE = "load_test_table.xml";
     private LoadStoreScriptRunner loadStoreScriptRunner;
 
     public static void main(String[] args) throws Exception {

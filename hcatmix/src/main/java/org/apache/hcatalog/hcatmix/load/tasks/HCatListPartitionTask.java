@@ -40,7 +40,7 @@ public class HCatListPartitionTask extends HCatLoadTask {
         StopWatch stopWatch;
         try {
             stopWatch = new StopWatch(getName());
-            hiveClient.get().listPartitions(DB_NAME, TABLE_NAME, (short) -1);
+            hiveClient.get().listPartitions(dbName, tableName, (short) -1);
             stopWatch.stop();
         } catch (Exception e) {
             LOG.info("Error listing partitions", e);

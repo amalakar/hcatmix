@@ -149,7 +149,7 @@ public class HCatMixUtils {
     }
 
     public static HiveTableSchema getFirstTableFromConf(String hcatTableSpecFile) throws IOException, SAXException, ParserConfigurationException {
-        TableSchemaXMLParser configParser = new TableSchemaXMLParser(hcatTableSpecFile);
+        TableSchemaXMLParser configParser = new TableSchemaXMLParser(getInputStream(hcatTableSpecFile));
         List<HiveTableSchema> multiInstanceList = configParser.getHiveTableList();
         return  multiInstanceList.get(0);
     }

@@ -50,7 +50,7 @@ public class HCatAddPartitionTask extends HCatLoadTask {
     @Override
     public void configure(JobConf jobConf) throws Exception {
         super.configure(jobConf);
-        hiveTable = hiveClient.get().getTable(DB_NAME, TABLE_NAME);
+        hiveTable = hiveClient.get().getTable(dbName, tableName);
         sd = new StorageDescriptor(hiveTable.getSd());
         parameters = hiveTable.getParameters();
         partitionKeys = hiveTable.getPartitionKeys();
@@ -69,8 +69,8 @@ public class HCatAddPartitionTask extends HCatLoadTask {
         StopWatch stopWatch = null;
         try {
             partition = new Partition();
-            partition.setDbName(DB_NAME);
-            partition.setTableName(TABLE_NAME);
+            partition.setDbName(dbName);
+            partition.setTableName(tableName);
 
             List<String> pvals = new ArrayList<String>();
             pvals.add(UUID.randomUUID().toString() + "_" + Thread.currentThread().getId());

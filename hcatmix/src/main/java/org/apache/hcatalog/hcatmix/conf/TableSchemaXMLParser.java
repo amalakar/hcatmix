@@ -33,6 +33,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -53,6 +54,14 @@ public class TableSchemaXMLParser {
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         DocumentBuilder db = dbf.newDocumentBuilder();
         Document xmlDoc = db.parse(file);
+        xmlDoc.getDocumentElement().normalize();
+        hiveTableList = parse(xmlDoc);
+    }
+
+    public TableSchemaXMLParser(InputStream inputStream) throws ParserConfigurationException, IOException, SAXException {
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        DocumentBuilder db = dbf.newDocumentBuilder();
+        Document xmlDoc = db.parse(inputStream);
         xmlDoc.getDocumentElement().normalize();
         hiveTableList = parse(xmlDoc);
     }
