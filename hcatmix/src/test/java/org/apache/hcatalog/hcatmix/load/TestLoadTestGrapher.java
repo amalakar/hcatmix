@@ -19,7 +19,6 @@
 package org.apache.hcatalog.hcatmix.load;
 
 import org.apache.hcatalog.hcatmix.load.hadoop.ReduceResult;
-import org.apache.hcatalog.hcatmix.load.test.LoadTestGrapher;
 import org.apache.hcatalog.hcatmix.publisher.LoadTestResultsPublisher;
 import org.perf4j.GroupedTimingStatistics;
 import org.perf4j.TimingStatistics;
@@ -27,12 +26,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.Test;
 
-import java.util.Map;
 import java.util.Random;
 import java.util.SortedMap;
 import java.util.TreeMap;
-
-import static org.testng.Assert.assertEquals;
 
 public class TestLoadTestGrapher {
     private static final Logger LOG = LoggerFactory.getLogger(TestLoadTestGrapher.class);

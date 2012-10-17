@@ -45,12 +45,12 @@ public class TestLoadStoreScripts {
     private static final Logger LOG = LoggerFactory.getLogger(TestLoadStoreScripts.class);
     private static LoadStoreTestResults loadStoreTestResults = new LoadStoreTestResults();
 
-    // Use -DhcatSpecFile=<fileName1>,<fileName2> to run load/store for these table specification file only
-    private static final String HCAT_SPEC_FILES = "hcatSpecFiles";
+    // Use -DhcatSpecFile=<fileName1>,<fileName2> to runLoadTest load/store for these table specification file only
+    private static final String HCAT_SPEC_FILES_ARG_NAME = "hcatSpecFiles";
 
     @DataProvider(name = "HCatSpecFileNames")
     public Iterator<Object[]> hcatSpecFileNames() {
-        final String hcatSpecFile = System.getProperty(HCAT_SPEC_FILES);
+        final String hcatSpecFile = System.getProperty(HCAT_SPEC_FILES_ARG_NAME);
         final List<Object[]> specFiles = new ArrayList<Object[]>();
 
         if (hcatSpecFile == null) {
@@ -70,7 +70,7 @@ public class TestLoadStoreScripts {
                 specFiles.add(new Object[]{ file.getAbsolutePath()});
             }
         } else {
-            LOG.info(MessageFormat.format("Honouring command line option: -D{0}={1}", HCAT_SPEC_FILES, hcatSpecFile));
+            LOG.info(MessageFormat.format("Honouring command line option: -D{0}={1}", HCAT_SPEC_FILES_ARG_NAME, hcatSpecFile));
             specFiles.add(hcatSpecFile.split(","));
         }
         return specFiles.iterator();
@@ -107,5 +107,15 @@ public class TestLoadStoreScripts {
     @AfterClass
     public static void publishResults() throws Exception {
         loadStoreTestResults.publish();
+    }
+
+    public static class LoadStoreScriptConfig {
+        public String hcatSpecFileName;
+        public int numRuns;
+
+        public LoadStoreScriptConfig(String hcatSpecFileName, int numRuns) {
+            this.hcatSpecFileName = hcatSpecFileName;
+            this.numRuns = numRuns;
+        }
     }
 }

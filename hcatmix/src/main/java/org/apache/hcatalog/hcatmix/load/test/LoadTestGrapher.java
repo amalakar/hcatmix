@@ -28,9 +28,6 @@ import java.util.*;
 
 import static com.googlecode.charts4j.Color.*;
 
-/**
- * Author: malakar
- */
 public class LoadTestGrapher {
     private static final Logger LOG = LoggerFactory.getLogger(LoadTestGrapher.class);
 

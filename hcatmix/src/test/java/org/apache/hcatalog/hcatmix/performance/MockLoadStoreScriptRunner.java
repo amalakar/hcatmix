@@ -52,7 +52,7 @@ public class MockLoadStoreScriptRunner extends LoadStoreScriptRunner {
     @Override
     protected void runScript(String scriptName) {
         int sleepTime = random.nextInt(1000);
-        LOG.info(MessageFormat.format("Supposed to run {0}, but mock runner will only sleep for {1} milliseconds", scriptName, sleepTime));
+        LOG.info(MessageFormat.format("Supposed to runLoadTest {0}, but mock runner will only sleep for {1} milliseconds", scriptName, sleepTime));
         try {
             Thread.sleep(sleepTime);
         } catch (InterruptedException e) {

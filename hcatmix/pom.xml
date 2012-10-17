@@ -30,28 +30,85 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-
+    <profiles>
+        <profile>
+            <id>hadoop20</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.apache.hadoop</groupId>
+                    <artifactId>hadoop-core</artifactId>
+                    <version>1.0.2</version>
+                    <scope>provided</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.apache.pig</groupId>
+                    <artifactId>pig</artifactId>
+                    <version>0.9.2</version>
+                    <scope>provided</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>junit</groupId>
+                            <artifactId>junit</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>hadoop23</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.apache.hadoop</groupId>
+                    <artifactId>hadoop-common</artifactId>
+                    <version>0.23.3</version>
+                    <scope>provided</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.apache.hadoop</groupId>
+                    <artifactId>hadoop-hdfs</artifactId>
+                    <version>0.23.3</version>
+                    <scope>provided</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.apache.hadoop</groupId>
+                    <artifactId>hadoop-mapreduce-client</artifactId>
+                    <version>0.23.3</version>
+                    <type>pom</type>
+                </dependency>
+                <dependency>
+                    <groupId>org.apache.hadoop</groupId>
+                    <artifactId>hadoop-mapreduce-client-core</artifactId>
+                    <version>0.23.3</version>
+                    <scope>provided</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.apache.hadoop</groupId>
+                    <artifactId>hadoop-mapreduce-client-jobclient</artifactId>
+                    <version>0.23.3</version>
+                    <scope>provided</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.apache.hadoop</groupId>
+                    <artifactId>hadoop-mapreduce-client-app</artifactId>
+                    <version>0.23.3</version>
+                    <scope>provided</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.apache.hadoop</groupId>
+                    <artifactId>hadoop-mapreduce</artifactId>
+                    <version>0.23.3</version>
+                    <type>pom</type>
+                </dependency>
+                <dependency>
+                    <groupId>yahoo.yinst.pig</groupId>
+                    <artifactId>pig</artifactId>
+                    <version>0.10.1.2.1210051249</version>
+                    <classifier>h23</classifier>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
     <dependencies>
-        <dependency>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-core</artifactId>
-            <version>1.0.2</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.pig</groupId>
-            <artifactId>pig</artifactId>
-            <version>0.9.2</version>
-            <scope>provided</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>junit</groupId>
-                    <artifactId>junit</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
         <!-- antlr dependencies should have been brought by pig -->
         <dependency>
             <groupId>org.antlr</groupId>
@@ -93,6 +150,10 @@
                     <groupId>junit</groupId>
                     <artifactId>junit</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>org.apache.hadoop</groupId>
+                    <artifactId>hadoop-core</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
 
@@ -121,6 +182,10 @@
                 <exclusion>
                     <groupId>junit</groupId>
                     <artifactId>junit</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.hadoop</groupId>
+                    <artifactId>hadoop-core</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -194,8 +259,6 @@
             <version>2.0</version>
             <scope>compile</scope>
         </dependency>
-
-
     </dependencies>
     <build>
         <plugins>
@@ -279,7 +342,7 @@
                 <configuration>
                     <additionalClasspathElements>
                         <additionalClasspathElement>${env.HADOOP_CONF_DIR}</additionalClasspathElement>
-                        <additionalClasspathElement>${env.HADOOP_HOME}/lib/hadoop-gpl-compression-0.1.0-1206210100.jar</additionalClasspathElement>
+                        <additionalClasspathElement>${env.HADOOP_HOME}/share/hadoop/common/hadoop-gpl-compression.jar</additionalClasspathElement>
                         <additionalClasspathElement>${env.HCAT_HOME}/lib/hcatalog-0.4.1.2.jar</additionalClasspathElement>
                     </additionalClasspathElements>
                     <systemPropertyVariables>
@@ -341,6 +404,16 @@
         <repository>
             <id>Datanucleus repository</id>
             <url>http://www.datanucleus.org/downloads/maven2/</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>yahoo</id>
+            <url>http://ymaven.corp.yahoo.com:9999/proximity/repository/public</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
         </repository>
     </repositories>
 

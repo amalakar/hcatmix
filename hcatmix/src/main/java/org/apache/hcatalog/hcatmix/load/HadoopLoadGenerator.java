@@ -131,7 +131,7 @@ public class HadoopLoadGenerator extends Configured implements Tool {
                     pe.getMessage());
             usage();
         }
-        run(confFileName, getConf());
+        runLoadTest(confFileName, getConf());
         return 1;
     }
 
@@ -141,7 +141,7 @@ public class HadoopLoadGenerator extends Configured implements Tool {
     }
 
     /**
-     * Prepare input directory/jobConf and launch the hadoop job.
+     * Prepare input directory/jobConf and launch the hadoop job, for load testing
      *
      * @param confFileName The properties file for the task, should be available in the classpath
      * @param conf
@@ -150,25 +150,25 @@ public class HadoopLoadGenerator extends Configured implements Tool {
      * @throws MetaException
      * @throws TException
      */
-    public SortedMap<Long, ReduceResult> run(String confFileName, Configuration conf) throws Exception, MetaException, TException {
+    public SortedMap<Long, ReduceResult> runLoadTest(String confFileName, Configuration conf) throws Exception, MetaException, TException {
         JobConf jobConf;
         if(conf != null) {
             jobConf = new JobConf(conf);
         } else {
             jobConf = new JobConf(new Configuration());
         }
-        InputStream confFileIS = null;
+        InputStream confFileIS;
         try {
             confFileIS = HCatMixUtils.getInputStream(confFileName);
         } catch (Exception e) {
-            LOG.error("Couldn't load configuration conf file " + confFileName);
+            LOG.error("Couldn't load configuration file " + confFileName);
             throw e;
         }
         Properties props = new Properties();
         try {
             props.load(confFileIS);
         } catch (IOException e) {
-            LOG.error("[Ignored] Couldn't load properties file: " + confFileName, e);
+            LOG.error("Couldn't load properties file: " + confFileName, e);
             throw e;
         }
 
@@ -213,14 +213,13 @@ public class HadoopLoadGenerator extends Configured implements Tool {
         token.setService(new Text(METASTORE_TOKEN_SIGNATURE));
         jobConf.getCredentials().addToken(new Text(METASTORE_TOKEN_KEY), token);
 
-        // Submit the job, then poll for progress until the job is complete
+        // Submit the job, once the job is complete see output
         LOG.info("Submitted hadoop job");
         RunningJob j = JobClient.runJob(jobConf);
         LOG.info("JobID is: " + j.getJobName());
         if (!j.isSuccessful()) {
             throw new IOException("Job failed");
         }
-
         return readResult(outputDir, jobConf);
     }
 

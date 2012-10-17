@@ -18,10 +18,8 @@
 
 package org.apache.hcatalog.hcatmix.load.tasks;
 
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
-import org.apache.hadoop.hive.metastore.Warehouse;
 import org.apache.hadoop.hive.metastore.api.*;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.JobConf;
@@ -30,15 +28,13 @@ import org.apache.hadoop.security.token.Token;
 import org.apache.hcatalog.hcatmix.HCatMixUtils;
 import org.apache.hcatalog.hcatmix.conf.HiveTableSchema;
 import org.apache.hcatalog.hcatmix.load.HadoopLoadGenerator;
-import org.apache.hcatalog.hcatmix.load.test.LoadTestRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
 /**
- * An abstract class for HCatalog tasks that are to be load tested.
- *
+ * An abstract class for HCatalog tasks that are to be load tested
  */
 public abstract class HCatLoadTask implements Task {
     // Needs to be ThreadLocal, hiveMetaStoreClient fails if used in multiple threads
@@ -46,6 +42,7 @@ public abstract class HCatLoadTask implements Task {
     protected static ThreadLocal<Integer> numErrors;
     protected static final Logger LOG = LoggerFactory.getLogger(Task.class);
     public static final String HIVE_CONF_TOKEN_KEY = "hive.metastore.token.signature";
+    public static final String LOAD_TEST_HCAT_SPEC_FILE = "load/load_test_table.xml";
     protected HiveConf hiveConf;
 
     protected String dbName;
@@ -86,7 +83,7 @@ public abstract class HCatLoadTask implements Task {
             }
         };
 
-        HiveTableSchema tableSchema = HCatMixUtils.getFirstTableFromConf(LoadTestRunner.LOAD_TEST_HCAT_SPEC_FILE);
+        HiveTableSchema tableSchema = HCatMixUtils.getFirstTableFromConf(LOAD_TEST_HCAT_SPEC_FILE);
         dbName = tableSchema.getDatabaseName();
         tableName = tableSchema.getName();
         LOG.info("Table to do load test on is: " + dbName + "." + tableName);
