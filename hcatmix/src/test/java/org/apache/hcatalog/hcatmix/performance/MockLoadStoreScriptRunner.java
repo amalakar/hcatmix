@@ -41,7 +41,7 @@ public class MockLoadStoreScriptRunner extends LoadStoreScriptRunner {
     private Random random = new Random();
     public MockLoadStoreScriptRunner(String hcatTableSpecFile) throws MetaException, IOException, SAXException,
             ParserConfigurationException, NoSuchObjectException, TException, InvalidObjectException {
-        super(hcatTableSpecFile);
+        super(hcatTableSpecFile, 0);
     }
 
     @Override

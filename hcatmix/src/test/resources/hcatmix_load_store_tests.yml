@@ -1,0 +1,62 @@
+maxMaps: &maxMaps 30         # The maximum number of maps allowed in the cluster,
+                             # this variable can be referred as *maxMaps in rest of the file
+defaultNumRuns: &defaultNumRuns 10   # The number of times a test should be run
+                                     # this variable can be referred as *defaultNumRuns in rest of the file
+
+tests:
+    - fileName:    performance/105MB_no_partitions.xml
+      numRuns:    *defaultNumRuns       # Refers  to  variable defaultNumRuns, could be a number as well
+      numDataGenMappers:    1
+
+    - fileName:    performance/105MB_300_partitions.xml
+      numRuns:    *defaultNumRuns
+      numDataGenMappers:    1
+
+    - fileName:    performance/105MB_600_partitions.xml
+      numRuns:    *defaultNumRuns
+      numDataGenMappers:    1
+
+    - fileName:    performance/105MB_900_partitions.xml
+      numRuns:    *defaultNumRuns
+      numDataGenMappers:    1
+
+    - fileName:    performance/105MB_1200_partitions.xml
+      numRuns:    *defaultNumRuns
+      numDataGenMappers:    1
+
+    - fileName:    performance/105MB_1500_partitions.xml
+      numRuns:    *defaultNumRuns
+      numDataGenMappers:    1
+
+    - fileName:    performance/105MB_2000_partitions.xml
+      numRuns:    *defaultNumRuns
+      numDataGenMappers:    1
+
+    - fileName:    performance/105MB_4000_partitions.xml
+      numRuns:    *defaultNumRuns
+      numDataGenMappers:    1
+
+    - fileName:    performance/1GB_no_partition.xml
+      numRuns:    *defaultNumRuns
+      numDataGenMappers:    10
+
+    - fileName:    performance/1GB_600_partition.xml
+      numRuns:    *defaultNumRuns
+      numDataGenMappers:    10
+
+    - fileName:    performance/10GB_no_paritions.xml
+      numRuns:    *defaultNumRuns
+      numDataGenMappers:    *maxMaps
+
+    - fileName:    performance/10GB_300_partitions.xml
+      numRuns:    *defaultNumRuns
+      numDataGenMappers:    *maxMaps
+
+    - fileName:    performance/100GB_no_partition.xml
+      numRuns:    3
+      numDataGenMappers:    *maxMaps
+
+    - fileName:   performance/100GB_300_parititons.xml
+      numRuns:    3
+      numDataGenMappers:    *maxMaps
+

@@ -25,7 +25,6 @@ import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hcatalog.hcatmix.*;
 import org.apache.hcatalog.hcatmix.conf.HiveTableSchema;
-import org.apache.hcatalog.hcatmix.conf.TableSchemaXMLParser;
 import org.apache.pig.PigRunner;
 import org.apache.pig.tools.pigstats.JobStats;
 import org.apache.pig.tools.pigstats.OutputStats;
@@ -41,7 +40,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
-import java.util.List;
 
 import org.perf4j.StopWatch;
 
@@ -59,13 +57,12 @@ public class LoadStoreScriptRunner {
     private final HCatMixSetupConf hCatMixSetupConf;
     private final String tableName;
     private final String dbName;
-    private final int NUM_MAPPERS = 30;
     private final int rowCount;
     private final String hcatTableSpecFileName;
     private final GroupedTimingStatistics timedStats = new GroupedTimingStatistics();
     private final HiveTableSchema hiveTableSchema;
 
-    public LoadStoreScriptRunner(String hcatTableSpecFile) throws MetaException, IOException, SAXException, ParserConfigurationException,
+    public LoadStoreScriptRunner(String hcatTableSpecFile, int numDataGenMappers) throws MetaException, IOException, SAXException, ParserConfigurationException,
             NoSuchObjectException, TException, InvalidObjectException {
         this.hcatTableSpecFileName = new File(hcatTableSpecFile).getName();
 
@@ -73,7 +70,7 @@ public class LoadStoreScriptRunner {
         hCatMixSetupConf = new HCatMixSetupConf.Builder().confFileName(hcatTableSpecFile)
                 .createTable().generateData().outputDir(DATAGEN_OUTPUT_DIR).generatePigScripts()
                 .pigScriptDir(HCATMIX_PIG_SCRIPT_DIR).pigDataOutputDir(PIG_DATA_OUTPUT_DIR)
-                .numMappers(NUM_MAPPERS).build();
+                .numMappers(numDataGenMappers).build();
         hCatMixSetup = new HCatMixSetup();
 
         hiveTableSchema = HCatMixUtils.getFirstTableFromConf(hcatTableSpecFile);

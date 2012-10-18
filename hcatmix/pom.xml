@@ -259,6 +259,12 @@
             <version>2.0</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>1.10</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
@@ -349,6 +355,8 @@
                         <LIBPATH>${env.HADOOP_HOME}/lib/native/Linux-amd64-64/</LIBPATH>
                         <buildDirectory>${project.build.directory}</buildDirectory>
                         <hcatSpecFile>${hcatSpecFile}</hcatSpecFile>
+                        <hcatSpecFile>${numRun}</hcatSpecFile>
+                        <hcatSpecFile>${numDataGenMappers}</hcatSpecFile>
                     </systemPropertyVariables>
                 </configuration>
                 <!--<executions>-->
