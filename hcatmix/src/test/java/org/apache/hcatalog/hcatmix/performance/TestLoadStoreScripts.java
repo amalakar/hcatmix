@@ -18,42 +18,40 @@
 
 package org.apache.hcatalog.hcatmix.performance;
 
-import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
-import org.apache.hadoop.hive.metastore.api.MetaException;
-import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
+
+import org.apache.hcatalog.hcatmix.HCatMixUtils;
 import org.apache.hcatalog.hcatmix.loadstore.LoadStoreScriptRunner;
 import org.apache.hcatalog.hcatmix.loadstore.LoadStoreTestResults;
 import org.apache.hcatalog.hcatmix.performance.conf.LoadStoreTestConf;
 import org.apache.hcatalog.hcatmix.performance.conf.LoadStoreTestsConf;
-import org.apache.thrift.TException;
 import org.perf4j.GroupedTimingStatistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
 import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 
-import javax.xml.parsers.ParserConfigurationException;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.MessageFormat;
 import java.util.*;
 
-import static org.testng.Assert.assertNotNull;
-
 public class TestLoadStoreScripts {
     private static final Logger LOG = LoggerFactory.getLogger(TestLoadStoreScripts.class);
-    private static final LoadStoreTestResults loadStoreTestResults = new LoadStoreTestResults();
+    private static LoadStoreTestResults loadStoreTestResults;
     private static final String LOAD_STORE_TESTS_CONF = "hcatmix_load_store_tests.yml";
 
     // Use -DhcatSpecFile=<fileName> to runLoadTest load/store for these table specification file only
     private static final String HCAT_SPEC_FILE_ARG_NAME = "hcatSpecFile";
     private static final String HCAT_NUM_RUN_ARG_NAME = "numRun";
     private static final String HCAT_DATAGEN_NUM_MAPPERS_ARG_NAME = "numDataGenMappers";
+
+    private static String resultsDir;
 
     /**
      * Load the yaml file and provide the individual configuration to the test method. Individual tests can be ran
@@ -92,10 +90,18 @@ public class TestLoadStoreScripts {
         return testArgs.iterator();
     }
 
+    @BeforeClass
+    public static void setupResultsDirectory() {
+        resultsDir = HCatMixUtils.getTempDirName() + "/results";
+        new File(resultsDir).mkdir();
+        LOG.info("Created results directory: " + resultsDir);
+
+        loadStoreTestResults = new LoadStoreTestResults(resultsDir + "/load_store_results_all.html",
+                resultsDir + "/load_store_results_all.json");
+    }
 
     @Test(dataProvider = "LoadStoreTests")
-    public void testAllLoadStoreScripts(String hcatSpecFileName, int numRuns, int numDataGenMappers) throws IOException, TException, NoSuchObjectException,
-            MetaException, SAXException, InvalidObjectException, ParserConfigurationException {
+    public void testAllLoadStoreScripts(String hcatSpecFileName, int numRuns, int numDataGenMappers) throws Exception {
         LOG.info(MessageFormat.format("HCatalog spec file name: {0}, number of runs: {1}, number of mapper for data generation {3}",
                 hcatSpecFileName, numRuns, numDataGenMappers));
         LoadStoreScriptRunner runner = new LoadStoreScriptRunner(hcatSpecFileName, numDataGenMappers);
@@ -118,20 +124,18 @@ public class TestLoadStoreScripts {
 
         GroupedTimingStatistics stats = runner.getTimedStats();
         loadStoreTestResults.addResult(hcatSpecFileName, stats);
+
+        // publish result after each test, this way if a single test fails we would still have test results
+        // of individual tests
+        LoadStoreTestResults individualTestResults = new LoadStoreTestResults(resultsDir + "/" + hcatSpecFileName + ".html",
+                                    resultsDir + "/" + hcatSpecFileName +".json");
+        individualTestResults.addResult(hcatSpecFileName, stats);
+        individualTestResults.publish();
+
     }
 
     @AfterClass
     public static void publishResults() throws Exception {
         loadStoreTestResults.publish();
-    }
-
-    public static class LoadStoreScriptConfig {
-        public String hcatSpecFileName;
-        public int numRuns;
-
-        public LoadStoreScriptConfig(String hcatSpecFileName, int numRuns) {
-            this.hcatSpecFileName = hcatSpecFileName;
-            this.numRuns = numRuns;
-        }
     }
 }

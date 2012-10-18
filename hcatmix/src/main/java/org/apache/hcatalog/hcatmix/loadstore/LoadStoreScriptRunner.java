@@ -122,14 +122,7 @@ public class LoadStoreScriptRunner {
     protected void runScript(String scriptName) {
         PigProgressListener listener = new PigProgressListener(rowCount);
 
-        String tmpDir = System.getProperty("buildDirectory");
-        if( tmpDir == null) {
-            if(new File("target/").exists()) {
-                tmpDir = "target";
-            } else {
-                tmpDir = "/tmp";
-            }
-        }
+        String tmpDir = HCatMixUtils.getTempDirName();
         final String logFileName = tmpDir + "/" + new File(scriptName).getName() + "-" + System.currentTimeMillis() / 1000 + ".log";
         LOG.info("[" + scriptName + "] log file: " + logFileName);
         String[] args = {"-Dpig.additional.jars=" + getHCatLibJars(), "-f", scriptName, "-l", logFileName};

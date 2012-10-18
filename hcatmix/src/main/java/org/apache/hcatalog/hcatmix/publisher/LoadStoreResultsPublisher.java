@@ -29,12 +29,14 @@ import java.util.List;
  */
 public class LoadStoreResultsPublisher extends ResultsPublisher {
     private static final String HTML_TEMPLATE = "loadstore_html_template.vm";
-    private static final String HTML_FILE = "hcatmix_loadstore_results.html";
     private static final String JSON_TEMPLATE = "loadstore_json_template.vm";
-    private static final String JSON_FILE = "hcatmix_loadstore_results.json";
+    private final String htmlOutFileName;
+    private final String jsonOutFileName;
 
-    public LoadStoreResultsPublisher(List<LoadStoreStats> stats) throws Exception {
+    public LoadStoreResultsPublisher(List<LoadStoreStats> stats, final String htmlOutFileName, final String jsonOutFileName) throws Exception {
         super();
+        this.htmlOutFileName = htmlOutFileName;
+        this.jsonOutFileName = jsonOutFileName;
 
         VelocityContext context  = new VelocityContext();
         context.put("hcatStats", stats);
@@ -43,7 +45,7 @@ public class LoadStoreResultsPublisher extends ResultsPublisher {
     }
 
     public void publishAll() throws Exception {
-        publishUsingTemplate(HTML_TEMPLATE, HTML_FILE);
-        publishUsingTemplate(JSON_TEMPLATE, JSON_FILE);
+        publishUsingTemplate(HTML_TEMPLATE, htmlOutFileName);
+        publishUsingTemplate(JSON_TEMPLATE, jsonOutFileName);
     }
 }

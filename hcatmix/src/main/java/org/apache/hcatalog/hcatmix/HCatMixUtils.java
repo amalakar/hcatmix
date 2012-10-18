@@ -155,9 +155,33 @@ public class HCatMixUtils {
         return is;
     }
 
+    /**
+     * Returnt the first table schema from a spec file
+     * @param hcatTableSpecFile
+     * @return
+     * @throws IOException
+     * @throws SAXException
+     * @throws ParserConfigurationException
+     */
     public static HiveTableSchema getFirstTableFromConf(String hcatTableSpecFile) throws IOException, SAXException, ParserConfigurationException {
         TableSchemaXMLParser configParser = new TableSchemaXMLParser(getInputStream(hcatTableSpecFile));
         List<HiveTableSchema> multiInstanceList = configParser.getHiveTableList();
         return  multiInstanceList.get(0);
+    }
+
+    /**
+     *
+     * @return temporary directory
+     */
+    public static String getTempDirName() {
+        String tmpDir = System.getProperty("buildDirectory");
+        if( tmpDir == null) {
+            if(new File("target/").exists()) {
+                tmpDir = "target";
+            } else {
+                tmpDir = "/tmp";
+            }
+        }
+        return tmpDir;
     }
 }

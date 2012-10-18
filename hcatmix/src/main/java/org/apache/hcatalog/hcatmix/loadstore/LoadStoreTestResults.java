@@ -29,14 +29,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Author: malakar
- */
 public class LoadStoreTestResults {
     private Map<String, LoadStoreStats> results;
     private static final Logger LOG = LoggerFactory.getLogger(LoadStoreStats.class);
+    private final String htmlOutFileName;
+    private final String jsonOutFileName;
 
-    public LoadStoreTestResults() {
+    public LoadStoreTestResults(final String htmlOutFileName, final String jsonOutFileName) {
+        this.htmlOutFileName = htmlOutFileName;
+        this.jsonOutFileName = jsonOutFileName;
         results = new HashMap<String, LoadStoreStats>();
     }
 
@@ -52,7 +53,8 @@ public class LoadStoreTestResults {
             LOG.info(fileName + " Statistics:\n" + stats.toString());
             LOG.info("Chart URL: " + stats.getChartUrl());
         }
-        ResultsPublisher publisher = new LoadStoreResultsPublisher(new ArrayList<LoadStoreStats>(results.values()));
+        ResultsPublisher publisher = new LoadStoreResultsPublisher(new ArrayList<LoadStoreStats>(results.values()),
+                htmlOutFileName, jsonOutFileName);
         publisher.publishAll();
     }
 
