@@ -248,6 +248,13 @@
         </dependency>
 
         <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+            <version>2.1</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
             <groupId>org.apache.velocity</groupId>
             <artifactId>velocity</artifactId>
             <version>1.6.2</version>
@@ -355,9 +362,10 @@
                         <LIBPATH>${env.HADOOP_HOME}/lib/native/Linux-amd64-64/</LIBPATH>
                         <buildDirectory>${project.build.directory}</buildDirectory>
                         <hcatSpecFile>${hcatSpecFile}</hcatSpecFile>
-                        <hcatSpecFile>${numRun}</hcatSpecFile>
-                        <hcatSpecFile>${numDataGenMappers}</hcatSpecFile>
+                        <numRuns>${numRuns}</numRuns>
+                        <numDataGenMappers>${numDataGenMappers}</numDataGenMappers>
                     </systemPropertyVariables>
+                    <argLine>-Xms1024m -Xmx1024m</argLine>
                 </configuration>
                 <!--<executions>-->
                     <!--<execution>-->

@@ -39,9 +39,9 @@ import java.util.Random;
 public class MockLoadStoreScriptRunner extends LoadStoreScriptRunner {
     private static final Logger LOG = LoggerFactory.getLogger(MockLoadStoreScriptRunner.class);
     private Random random = new Random();
-    public MockLoadStoreScriptRunner(String hcatTableSpecFile) throws MetaException, IOException, SAXException,
+    public MockLoadStoreScriptRunner(String hcatTableSpecFile, int numDataGenMappers) throws MetaException, IOException, SAXException,
             ParserConfigurationException, NoSuchObjectException, TException, InvalidObjectException {
-        super(hcatTableSpecFile, 0);
+        super(hcatTableSpecFile, numDataGenMappers);
     }
 
     @Override
@@ -51,7 +51,7 @@ public class MockLoadStoreScriptRunner extends LoadStoreScriptRunner {
 
     @Override
     protected void runScript(String scriptName) {
-        int sleepTime = random.nextInt(1000);
+        int sleepTime = 60000 + random.nextInt(20000);
         LOG.info(MessageFormat.format("Supposed to runLoadTest {0}, but mock runner will only sleep for {1} milliseconds", scriptName, sleepTime));
         try {
             Thread.sleep(sleepTime);

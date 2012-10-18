@@ -40,7 +40,7 @@ public class LoadStoreResultsPublisher extends ResultsPublisher {
 
         VelocityContext context  = new VelocityContext();
         context.put("hcatStats", stats);
-        context.put("numberTool", new NumberTool());
+        context.put("formatter", new HCatMixFormatter());
         super.setContext(context);
     }
 

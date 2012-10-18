@@ -30,11 +30,11 @@
         #set ($statistics = $result.value)
             <tr>
                 <td>$result.key</td>
-                <td>$numberTool.format("###,###.##", $statistics.Mean) </td>
-                <td>$numberTool.format("###,###.##", $statistics.Min)</td>
-                <td>$numberTool.format("###,###.##", $statistics.Max)</td>
-                <td>$numberTool.format("###,###.##", $statistics.StandardDeviation)</td>
-                <td>$numberTool.format("###,###.##", $statistics.Count)</td>
+                <td>$formatter.formatDuration($statistics.Mean) </td>
+                <td>$formatter.formatDuration($statistics.Min)</td>
+                <td>$formatter.formatDuration($statistics.Max)</td>
+                <td>$formatter.formatDuration($statistics.StandardDeviation)</td>
+                <td>$formatter.formatCount($statistics.Count)</td>
             </tr>
     #end
         </tbody>

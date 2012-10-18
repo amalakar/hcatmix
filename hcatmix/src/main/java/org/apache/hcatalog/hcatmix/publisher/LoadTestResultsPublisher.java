@@ -21,7 +21,6 @@ package org.apache.hcatalog.hcatmix.publisher;
 import org.apache.hcatalog.hcatmix.load.hadoop.ReduceResult;
 import org.apache.hcatalog.hcatmix.load.test.LoadTestGrapher;
 import org.apache.velocity.VelocityContext;
-import org.apache.velocity.tools.generic.NumberTool;
 
 import java.util.SortedMap;
 
@@ -39,7 +38,7 @@ public class LoadTestResultsPublisher extends  ResultsPublisher {
         VelocityContext context  = new VelocityContext();
         context.put("loadTestResults", results);
         context.put("chartURL", LoadTestGrapher.getURL(results));
-        context.put("numberTool", new NumberTool());
+        context.put("formatter", new HCatMixFormatter());
         super.setContext(context);
     }
 

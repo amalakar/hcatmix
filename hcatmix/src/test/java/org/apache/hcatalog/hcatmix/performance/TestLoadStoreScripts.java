@@ -48,8 +48,11 @@ public class TestLoadStoreScripts {
 
     // Use -DhcatSpecFile=<fileName> to runLoadTest load/store for these table specification file only
     private static final String HCAT_SPEC_FILE_ARG_NAME = "hcatSpecFile";
-    private static final String HCAT_NUM_RUN_ARG_NAME = "numRun";
+    private static final String HCAT_NUM_RUN_ARG_NAME = "numRuns";
     private static final String HCAT_DATAGEN_NUM_MAPPERS_ARG_NAME = "numDataGenMappers";
+
+    private static final String RESULTS_ALL_HTML = "load_store_results_all.html";
+    private static final String RESULTS_ALL_JSON = "load_store_results_all.json";
 
     private static String resultsDir;
 
@@ -93,21 +96,22 @@ public class TestLoadStoreScripts {
     @BeforeClass
     public static void setupResultsDirectory() {
         resultsDir = HCatMixUtils.getTempDirName() + "/results";
-        new File(resultsDir).mkdir();
-        LOG.info("Created results directory: " + resultsDir);
+        File resultsDirObj = new File(resultsDir);
+        resultsDirObj.mkdir();
+        LOG.info("Created results directory: " + resultsDirObj.getAbsolutePath());
 
-        loadStoreTestResults = new LoadStoreTestResults(resultsDir + "/load_store_results_all.html",
-                resultsDir + "/load_store_results_all.json");
+        loadStoreTestResults = new LoadStoreTestResults(resultsDir + "/" + RESULTS_ALL_HTML,
+                resultsDir + "/" + RESULTS_ALL_JSON);
     }
 
     @Test(dataProvider = "LoadStoreTests")
     public void testAllLoadStoreScripts(String hcatSpecFileName, int numRuns, int numDataGenMappers) throws Exception {
-        LOG.info(MessageFormat.format("HCatalog spec file name: {0}, number of runs: {1}, number of mapper for data generation {3}",
+        LOG.info(MessageFormat.format("HCatalog spec file name: {0}, number of runs: {1}, number of mapper for data generation {2}",
                 hcatSpecFileName, numRuns, numDataGenMappers));
         LoadStoreScriptRunner runner = new LoadStoreScriptRunner(hcatSpecFileName, numDataGenMappers);
 
         for (int i = 0; i < numRuns; i++) {
-            LOG.info(MessageFormat.format("{0}: Run - {1}/{2}", hcatSpecFileName, i, numRuns));
+            LOG.info(MessageFormat.format("{0}: Run - {1} of {2}", hcatSpecFileName, i+1, numRuns));
             try {
                 runner.setUp();
                 runner.runPigLoadHCatStoreScript();
@@ -127,8 +131,9 @@ public class TestLoadStoreScripts {
 
         // publish result after each test, this way if a single test fails we would still have test results
         // of individual tests
-        LoadStoreTestResults individualTestResults = new LoadStoreTestResults(resultsDir + "/" + hcatSpecFileName + ".html",
-                                    resultsDir + "/" + hcatSpecFileName +".json");
+        String hcatSpecFileNameOnly = new File(hcatSpecFileName).getName();
+        LoadStoreTestResults individualTestResults = new LoadStoreTestResults(resultsDir + "/" + hcatSpecFileNameOnly + ".html",
+                                    resultsDir + "/" + hcatSpecFileNameOnly +".json");
         individualTestResults.addResult(hcatSpecFileName, stats);
         individualTestResults.publish();
 
