@@ -99,14 +99,11 @@ public class HCatAddPartitionTask extends HCatLoadTask {
             stopWatch.stop();
         } catch (TTransportException e) {
             recycleHiveClient();
-            numErrors.set(numErrors.get() + 1);
             throw e;
         } catch(AlreadyExistsException e) {
-            // If the partition already exists it is not an error on hcatalog server side
-            throw e;
+            // If the partition already exists it is not an error on hcatalog server side, ignore it
         } catch (Exception e) {
             LOG.info("Error adding partitions", e);
-            numErrors.set(numErrors.get() + 1);
             throw e;
         }
         return stopWatch;

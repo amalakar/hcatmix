@@ -45,7 +45,7 @@ public class MockLoadStoreScriptRunner extends LoadStoreScriptRunner {
     }
 
     @Override
-    public void setUp() throws IOException, TException, NoSuchObjectException, MetaException, SAXException,
+    public void setUp(boolean createCopy) throws IOException, TException, NoSuchObjectException, MetaException, SAXException,
             InvalidObjectException, ParserConfigurationException {
     }
 

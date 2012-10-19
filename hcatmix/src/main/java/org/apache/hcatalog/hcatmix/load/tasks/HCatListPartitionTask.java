@@ -46,7 +46,6 @@ public class HCatListPartitionTask extends HCatLoadTask {
             stopWatch.stop();
         } catch (Exception e) {
             LOG.info("Error listing partitions", e);
-            numErrors.set(numErrors.get() + 1);
             throw e;
         }
         return stopWatch;

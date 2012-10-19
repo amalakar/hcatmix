@@ -57,10 +57,4 @@ public interface Task {
      * Cleanup code goes here
      */
     public void close();
-
-    /**
-     * Return the number of times errors occurred which doing the task since inception
-     * @return
-     */
-    public int getNumErrors();
 }

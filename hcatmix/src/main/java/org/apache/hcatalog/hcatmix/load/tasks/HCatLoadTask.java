@@ -39,7 +39,6 @@ import java.io.IOException;
 public abstract class HCatLoadTask implements Task {
     // Needs to be ThreadLocal, hiveMetaStoreClient fails if used in multiple threads
     protected static ThreadLocal<HiveMetaStoreClient> hiveClient;
-    protected static ThreadLocal<Integer> numErrors;
     protected static final Logger LOG = LoggerFactory.getLogger(Task.class);
     public static final String HIVE_CONF_TOKEN_KEY = "hive.metastore.token.signature";
     public static final String LOAD_TEST_HCAT_SPEC_FILE = "load/load_test_table.xml";
@@ -49,12 +48,6 @@ public abstract class HCatLoadTask implements Task {
     protected String tableName;
 
     protected HCatLoadTask() throws IOException {
-        numErrors = new ThreadLocal<Integer>(){
-            @Override
-            protected Integer initialValue() {
-                return 0;
-            }
-        };
     }
 
     @Override
@@ -112,9 +105,4 @@ public abstract class HCatLoadTask implements Task {
             LOG.error("Couldn't close hiveClient, ignored error", e);
         }
     }
-
-    public int getNumErrors() {
-        return numErrors.get();
-    }
-
 }
