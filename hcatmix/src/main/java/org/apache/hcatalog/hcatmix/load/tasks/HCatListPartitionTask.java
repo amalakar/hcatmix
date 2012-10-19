@@ -18,9 +18,11 @@
 
 package org.apache.hcatalog.hcatmix.load.tasks;
 
+import org.apache.hadoop.hive.metastore.api.Partition;
 import org.perf4j.StopWatch;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
 * Task to list partitions of an hcatalog table
@@ -40,8 +42,9 @@ public class HCatListPartitionTask extends HCatLoadTask {
         StopWatch stopWatch;
         try {
             stopWatch = new StopWatch(getName());
-            hiveClient.get().listPartitions(dbName, tableName, (short) -1);
+            List<Partition> partitions = hiveClient.get().listPartitions(dbName, tableName, (short) -1);
             stopWatch.stop();
+            LOG.info("Partitions: " + partitions.size());
         } catch (Exception e) {
             LOG.info("Error listing partitions", e);
             numErrors.set(numErrors.get() + 1);

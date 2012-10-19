@@ -38,6 +38,7 @@ import org.apache.hadoop.security.token.delegation.AbstractDelegationTokenIdenti
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.hcatalog.hcatmix.HCatMixUtils;
+import org.apache.hcatalog.hcatmix.load.hadoop.HadoopUtils;
 import org.apache.hcatalog.hcatmix.load.hadoop.IntervalResult;
 import org.apache.hcatalog.hcatmix.load.hadoop.ReduceResult;
 import org.apache.pig.tools.cmdline.CmdLineParser;
@@ -48,6 +49,7 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.text.ParseException;
 import java.util.Properties;
+import java.util.Random;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -197,6 +199,9 @@ public class HadoopLoadGenerator extends Configured implements Tool {
                 Conf.TASK_CLASS_NAMES.defaultValueStr));
 
         fs = FileSystem.get(jobConf);
+        Path jarRoot = new Path("/tmp/hcatmix_jar_" + new Random().nextInt());
+        HadoopUtils.uploadClasspathAndAddToJobConf(jobConf, jarRoot);
+        fs.deleteOnExit(jarRoot);
 
         FileInputFormat.setInputPaths(jobConf, createInputFiles(inputDir, numMappers));
         if(fs.exists(outputDir)) {
