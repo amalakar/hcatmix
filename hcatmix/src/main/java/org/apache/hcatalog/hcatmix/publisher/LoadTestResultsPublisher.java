@@ -19,7 +19,7 @@
 package org.apache.hcatalog.hcatmix.publisher;
 
 import org.apache.hcatalog.hcatmix.load.hadoop.ReduceResult;
-import org.apache.hcatalog.hcatmix.load.test.LoadTestGrapher;
+import org.apache.hcatalog.hcatmix.load.LoadTestGrapher;
 import org.apache.velocity.VelocityContext;
 
 import java.util.SortedMap;

@@ -357,13 +357,21 @@
                         <additionalClasspathElement>${env.HADOOP_CONF_DIR}</additionalClasspathElement>
                         <additionalClasspathElement>${env.HADOOP_HOME}/share/hadoop/common/hadoop-gpl-compression.jar</additionalClasspathElement>
                         <additionalClasspathElement>${env.HCAT_HOME}/lib/hcatalog-0.4.1.2.jar</additionalClasspathElement>
-                    </additionalClasspathElements>
+
+                        <!-- The following mega jar gets used as the job jar while submitting jobs, otherwise maven only creates
+                         a jar with MANIFEST.MF listing all the required jars, JobConf cannot find classes in such jars -->
+                        <additionalClasspathElement>${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar</additionalClasspathElement>                    </additionalClasspathElements>
                     <systemPropertyVariables>
                         <LIBPATH>${env.HADOOP_HOME}/lib/native/Linux-amd64-64/</LIBPATH>
                         <buildDirectory>${project.build.directory}</buildDirectory>
+                        <!-- arguments for load store pig script tests -->
                         <hcatSpecFile>${hcatSpecFile}</hcatSpecFile>
                         <numRuns>${numRuns}</numRuns>
                         <numDataGenMappers>${numDataGenMappers}</numDataGenMappers>
+
+                        <!-- arguments for load test -->
+                        <loadTestConfFile>${loadTestConfFile}</loadTestConfFile>
+
                     </systemPropertyVariables>
                     <argLine>-Xms1024m -Xmx1024m</argLine>
                 </configuration>
