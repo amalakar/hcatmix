@@ -113,7 +113,7 @@ public class TestLoadStoreScripts {
         for (int i = 0; i < numRuns; i++) {
             LOG.info(MessageFormat.format("{0}: Run - {1} of {2}", hcatSpecFileName, i+1, numRuns));
             try {
-                runner.setUp();
+                runner.setUp(true);
                 runner.runPigLoadHCatStoreScript();
                 runner.runHCatLoadPigStoreScript();
                 runner.runPigLoadPigStoreScript();

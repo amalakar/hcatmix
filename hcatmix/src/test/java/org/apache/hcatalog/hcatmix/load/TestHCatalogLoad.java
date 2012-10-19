@@ -88,7 +88,7 @@ public class TestHCatalogLoad {
         String hcatTableSpecFile = url.getPath();
 
         loadStoreScriptRunner = new LoadStoreScriptRunner(hcatTableSpecFile, 1);
-        loadStoreScriptRunner.setUp();
+        loadStoreScriptRunner.setUp(false);
         loadStoreScriptRunner.runPigLoadHCatStoreScript();
     }
 

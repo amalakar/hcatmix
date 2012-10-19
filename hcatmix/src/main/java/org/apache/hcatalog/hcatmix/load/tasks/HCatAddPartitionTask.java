@@ -27,10 +27,9 @@ import org.apache.thrift.transport.TTransportException;
 import org.perf4j.StopWatch;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.net.InetAddress;
+import java.text.MessageFormat;
+import java.util.*;
 
 /**
 * Author: malakar
@@ -42,9 +41,12 @@ public class HCatAddPartitionTask extends HCatLoadTask {
     Map<String,String> parameters;
     List<FieldSchema> partitionKeys;
     String location;
+    private final String hostname;
+    private final Random rand = new Random();
 
     public HCatAddPartitionTask() throws IOException, NoSuchObjectException, TException, MetaException {
         super();
+        hostname = InetAddress.getLocalHost().getHostName();
     }
 
     @Override
@@ -55,8 +57,6 @@ public class HCatAddPartitionTask extends HCatLoadTask {
         parameters = hiveTable.getParameters();
         partitionKeys = hiveTable.getPartitionKeys();
         location = hiveTable.getSd().getLocation();
-
-
     }
 
     @Override
@@ -73,7 +73,12 @@ public class HCatAddPartitionTask extends HCatLoadTask {
             partition.setTableName(tableName);
 
             List<String> pvals = new ArrayList<String>();
-            pvals.add(UUID.randomUUID().toString() + "_" + Thread.currentThread().getId());
+
+            // Make the partition name as unique as possible, so that two tasks or wont end up adding the same partition
+            // The rand is to introduce more randomness to reduce chances of the same thread adding an already added partition
+            final String uniquePartition = MessageFormat.format("{0}_{1}_{2}_{3}", hostname, Thread.currentThread().getId(),
+                          System.nanoTime(), UUID.randomUUID().toString());
+            pvals.add(uniquePartition);
 
             partition.setValues(pvals);
             partition.setSd(sd);

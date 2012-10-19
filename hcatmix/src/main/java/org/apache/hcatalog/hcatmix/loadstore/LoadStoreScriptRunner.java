@@ -103,18 +103,20 @@ public class LoadStoreScriptRunner {
         return jars.toString();
     }
 
-    public void setUp() throws IOException, TException, NoSuchObjectException, MetaException, SAXException,
+    public void setUp(boolean createCopy) throws IOException, TException, NoSuchObjectException, MetaException, SAXException,
             InvalidObjectException, ParserConfigurationException {
         hCatMixSetup.setupFromConf(hCatMixSetupConf);
 
-        // Also create one more copy of the table for testing copying from one HCat table to another
-        hiveTableSchema.setName(HCatMixUtils.getCopyTableName(tableName));
-        try {
-            hCatMixSetup.createTable(hiveTableSchema);
-            // Revert back the name to the original name, so that the calling setUp() again wont give a wrong name
-            hiveTableSchema.setName(HCatMixUtils.removeCopyFromTableName(hiveTableSchema.getName()));
-        } catch (AlreadyExistsException e) {
-            LOG.info("Couldn't create table, " + hiveTableSchema.getName() + ". Already exists ignored and proceeding", e);
+        if (createCopy) {
+            // Also create one more copy of the table for testing copying from one HCat table to another
+            hiveTableSchema.setName(HCatMixUtils.getCopyTableName(tableName));
+            try {
+                hCatMixSetup.createTable(hiveTableSchema);
+                // Revert back the name to the original name, so that the calling setUp() again wont give a wrong name
+                hiveTableSchema.setName(HCatMixUtils.removeCopyFromTableName(hiveTableSchema.getName()));
+            } catch (AlreadyExistsException e) {
+                LOG.info("Couldn't create table, " + hiveTableSchema.getName() + ". Already exists ignored and proceeding", e);
+            }
         }
 
     }
