@@ -67,6 +67,7 @@ public class HCatAddPartitionTask extends HCatLoadTask {
     @Override
     public StopWatch doTask() throws Exception {
         StopWatch stopWatch = null;
+        String partitionName = null;
         try {
             partition = new Partition();
             partition.setDbName(dbName);
@@ -76,9 +77,9 @@ public class HCatAddPartitionTask extends HCatLoadTask {
 
             // Make the partition name as unique as possible, so that two tasks or wont end up adding the same partition
             // The rand is to introduce more randomness to reduce chances of the same thread adding an already added partition
-            final String uniquePartition = MessageFormat.format("{0}_{1}_{2}_{3}", hostname, Thread.currentThread().getId(),
+            partitionName = MessageFormat.format("{0}_{1}_{2}_{3}", hostname, Thread.currentThread().getId(),
                           System.nanoTime(), UUID.randomUUID().toString());
-            pvals.add(uniquePartition);
+            pvals.add(partitionName);
 
             partition.setValues(pvals);
             partition.setSd(sd);
@@ -102,8 +103,11 @@ public class HCatAddPartitionTask extends HCatLoadTask {
             throw e;
         } catch(AlreadyExistsException e) {
             // If the partition already exists it is not an error on hcatalog server side, ignore it
+            LOG.info("[Ignored]: Partition " + partitionName + " already exists ", e);
+            recycleHiveClient();
         } catch (Exception e) {
             LOG.info("Error adding partitions", e);
+            recycleHiveClient();
             throw e;
         }
         return stopWatch;

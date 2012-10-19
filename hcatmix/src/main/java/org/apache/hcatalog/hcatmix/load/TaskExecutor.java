@@ -98,10 +98,6 @@ public class TaskExecutor implements Callable<SortedMap<Long, IntervalResult>> {
                 }
             }
         }
-        for (Task task : tasks) {
-            LOG.info("Errors for the task " + task.getName() + " is: " + task.getNumErrors()); // TODO incorporate this in final stats
-            task.close();
-        }
         return timeSeriesResult;
     }
 
