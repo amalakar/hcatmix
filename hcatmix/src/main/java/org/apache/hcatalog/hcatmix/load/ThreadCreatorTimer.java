@@ -59,7 +59,7 @@ public class ThreadCreatorTimer extends TimerTask {
     }
 
     public void run() {
-        LOG.info("About to create " + threadIncrementCount + " threads.");
+        LOG.info("About to create " + threadIncrementCount + " more threads.");
         final ExecutorService executorPool = Executors.newFixedThreadPool(threadIncrementCount);
         Collection<TaskExecutor> newTaskExecutors = new ArrayList<TaskExecutor>(threadIncrementCount);
         for (int i = 0; i < threadIncrementCount; i++) {

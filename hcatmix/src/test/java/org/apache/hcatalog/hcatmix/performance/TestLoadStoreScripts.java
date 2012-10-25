@@ -36,10 +36,11 @@ import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.text.MessageFormat;
 import java.util.*;
+
+import static org.testng.Assert.fail;
 
 public class TestLoadStoreScripts {
     private static final Logger LOG = LoggerFactory.getLogger(TestLoadStoreScripts.class);
@@ -118,11 +119,11 @@ public class TestLoadStoreScripts {
                 runner.runHCatLoadPigStoreScript();
                 runner.runPigLoadPigStoreScript();
                 runner.runHCatLoadHCatStoreScript();
-
+            } catch (Exception e) {
+                fail(MessageFormat.format("{0}: Run - {1} of {2} failed", hcatSpecFileName, i+1, numRuns), e);
+            } finally {
                 runner.deleteHCatTables();
                 runner.deletePigData();
-            } catch (IOException e) {
-                LOG.error("Error running script: " + hcatSpecFileName + " ignored.", e);
             }
         }
 

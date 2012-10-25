@@ -35,14 +35,13 @@ import java.util.*;
 * Author: malakar
 */
 public class HCatAddPartitionTask extends HCatLoadTask {
-    Partition partition;
-    Table hiveTable;
-    StorageDescriptor sd;
-    Map<String,String> parameters;
-    List<FieldSchema> partitionKeys;
-    String location;
+//    Partition partition;
+//    Table hiveTable;
+//    StorageDescriptor sd;
+//    Map<String,String> parameters;
+//    List<FieldSchema> partitionKeys;
+//    String location;
     private final String hostname;
-    private final Random rand = new Random();
 
     public HCatAddPartitionTask() throws IOException, NoSuchObjectException, TException, MetaException {
         super();
@@ -52,11 +51,11 @@ public class HCatAddPartitionTask extends HCatLoadTask {
     @Override
     public void configure(JobConf jobConf) throws Exception {
         super.configure(jobConf);
-        hiveTable = hiveClient.get().getTable(dbName, tableName);
-        sd = new StorageDescriptor(hiveTable.getSd());
-        parameters = hiveTable.getParameters();
-        partitionKeys = hiveTable.getPartitionKeys();
-        location = hiveTable.getSd().getLocation();
+//        hiveTable = hiveClient.get().getTable(dbName, tableName);
+//        sd = new StorageDescriptor(hiveTable.getSd());
+//        parameters = hiveTable.getParameters();
+//        partitionKeys = hiveTable.getPartitionKeys();
+//        location = hiveTable.getSd().getLocation();
     }
 
     @Override
@@ -69,6 +68,19 @@ public class HCatAddPartitionTask extends HCatLoadTask {
         StopWatch stopWatch = null;
         String partitionName = null;
         try {
+            Partition partition;
+            Table hiveTable;
+            StorageDescriptor sd;
+            Map<String,String> parameters;
+            List<FieldSchema> partitionKeys;
+            String location;
+
+            hiveTable = hiveClient.get().getTable(dbName, tableName);
+            sd = new StorageDescriptor(hiveTable.getSd());
+            parameters = hiveTable.getParameters();
+            partitionKeys = hiveTable.getPartitionKeys();
+            location = hiveTable.getSd().getLocation();
+
             partition = new Partition();
             partition.setDbName(dbName);
             partition.setTableName(tableName);

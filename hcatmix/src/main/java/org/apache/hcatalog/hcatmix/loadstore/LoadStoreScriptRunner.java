@@ -18,7 +18,6 @@
 
 package org.apache.hcatalog.hcatmix.loadstore;
 
-import junit.framework.Assert;
 import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
 import org.apache.hadoop.hive.metastore.api.MetaException;
@@ -43,7 +42,7 @@ import java.text.MessageFormat;
 
 import org.perf4j.StopWatch;
 
-import static junit.framework.Assert.assertEquals;
+import static org.testng.AssertJUnit.assertEquals;
 
 public class LoadStoreScriptRunner {
     private static final Logger LOG = LoggerFactory.getLogger(LoadStoreScriptRunner.class);
@@ -250,7 +249,7 @@ public class LoadStoreScriptRunner {
 
         @Override
         public void jobFailedNotification(String scriptId, JobStats jobStats) {
-            Assert.fail(MessageFormat.format("{0}: Hadoop job ID: {1} failed", scriptId, jobStats.getJobId()));
+            throw new RuntimeException(MessageFormat.format("{0}: Hadoop job ID: {1} failed", scriptId, jobStats.getJobId()));
         }
 
         @Override
@@ -268,7 +267,7 @@ public class LoadStoreScriptRunner {
         @Override
         public void launchCompletedNotification(String scriptId, int numJobsSucceeded) {
             LOG.info(MessageFormat.format("{0}: Launch completed: {1}", scriptId, numJobsSucceeded));
-            Assert.assertEquals(numJobsSubmitted, numJobsSubmitted);
+            assertEquals(numJobsSubmitted, numJobsSubmitted);
         }
     }
 }
