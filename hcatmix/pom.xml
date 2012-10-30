@@ -100,12 +100,12 @@
                     <type>pom</type>
                 </dependency>
                 <!-- pig supporting hadoop 23 goes here -->
-                <!--dependency>
+                <dependency>
                     <groupId>yahoo.yinst.pig</groupId>
                     <artifactId>pig</artifactId>
                     <version>0.10.1.2.1210051249</version>
                     <classifier>h23</classifier>
-                </dependency-->
+                </dependency>
             </dependencies>
         </profile>
     </profiles>
@@ -441,6 +441,13 @@
         <repository>
             <id>Datanucleus repository</id>
             <url>http://www.datanucleus.org/downloads/maven2/</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>yahoo</id>
+            <url>http://ymaven.corp.yahoo.com:9999/proximity/repository/public</url>
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
