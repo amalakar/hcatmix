@@ -21,7 +21,7 @@ import org.perf4j.slf4j.Slf4JStopWatch;
 
 
 /**
- * Author: malakar
+ * Wrapper for StopWatch with little customization
  */
 public class LoadStoreStopWatch extends Slf4JStopWatch {
     String hcatSchemaFile;

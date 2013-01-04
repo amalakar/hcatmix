@@ -29,36 +29,39 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class LoadStoreTestResults {
-    private Map<String, LoadStoreStats> results;
-    private static final Logger LOG = LoggerFactory.getLogger(LoadStoreStats.class);
+/**
+ * Generate results (html/json) for all load/store tests
+ */
+public class LoadStoreTestAllResults {
+    private Map<String, LoadStoreTestStatistics> results;
+    private static final Logger LOG = LoggerFactory.getLogger(LoadStoreTestStatistics.class);
     private final String htmlOutFileName;
     private final String jsonOutFileName;
 
-    public LoadStoreTestResults(final String htmlOutFileName, final String jsonOutFileName) {
+    public LoadStoreTestAllResults(final String htmlOutFileName, final String jsonOutFileName) {
         this.htmlOutFileName = htmlOutFileName;
         this.jsonOutFileName = jsonOutFileName;
-        results = new HashMap<String, LoadStoreStats>();
+        results = new HashMap<String, LoadStoreTestStatistics>();
     }
 
     public void addResult(String fileName, GroupedTimingStatistics stats) {
         LOG.info(fileName + " Statistics:\n" + stats.toString());
-        results.put(fileName, new LoadStoreStats(new File(fileName).getName(), stats));
+        results.put(fileName, new LoadStoreTestStatistics(new File(fileName).getName(), stats));
     }
 
     public void publish() throws Exception {
-        for (Map.Entry<String, LoadStoreStats> hCatStatsEntry : results.entrySet()) {
+        for (Map.Entry<String, LoadStoreTestStatistics> hCatStatsEntry : results.entrySet()) {
             String fileName = hCatStatsEntry.getKey();
-            LoadStoreStats stats = hCatStatsEntry.getValue();
-            LOG.info(fileName + " Statistics:\n" + stats.toString());
-            LOG.info("Chart URL: " + stats.getChartUrl());
+            LoadStoreTestStatistics stats = hCatStatsEntry.getValue();
+            LOG.info(fileName + " Statistics:\n" + stats.toString() +
+                    "\nChart URL: " + stats.getChartUrl());
         }
-        ResultsPublisher publisher = new LoadStoreResultsPublisher(new ArrayList<LoadStoreStats>(results.values()),
+        ResultsPublisher publisher = new LoadStoreResultsPublisher(new ArrayList<LoadStoreTestStatistics>(results.values()),
                 htmlOutFileName, jsonOutFileName);
         publisher.publishAll();
     }
 
-    public Map<String, LoadStoreStats> getResults() {
+    public Map<String, LoadStoreTestStatistics> getResults() {
         return results;
     }
 }

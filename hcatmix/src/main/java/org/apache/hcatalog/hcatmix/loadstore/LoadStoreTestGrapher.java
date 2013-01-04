@@ -19,9 +19,6 @@
 package org.apache.hcatalog.hcatmix.loadstore;
 
 import com.googlecode.charts4j.*;
-
-import static com.googlecode.charts4j.Color.*;
-
 import org.perf4j.GroupedTimingStatistics;
 import org.perf4j.TimingStatistics;
 import org.slf4j.Logger;
@@ -31,24 +28,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class LoadStoreStats {
+import static com.googlecode.charts4j.Color.BLACK;
 
-    private static final Logger LOG = LoggerFactory.getLogger(LoadStoreStats.class);
-    private String fileName;
-    private GroupedTimingStatistics timedStats;
-    private String chartUrl;
+/**
+ * Generates graph for a load/store test
+ */
+public class LoadStoreTestGrapher {
+    private static final Logger LOG = LoggerFactory.getLogger(LoadStoreTestGrapher.class);
 
-    public LoadStoreStats(String fileName, GroupedTimingStatistics timedStats) {
-        this.fileName = fileName;
-        this.timedStats = timedStats;
-        chartUrl = getChartURL(); //TODO remove this
-    }
-
-    public String getChartUrl() {
-        return chartUrl;
-    }
-
-    protected String getChartURL() {
+    public static String getChartURL(final String fileName, GroupedTimingStatistics timedStats) {
         List<Double> minsList = new ArrayList<Double>();
         List<Double> avgList = new ArrayList<Double>();
         List<Double> maxList = new ArrayList<Double>();
@@ -102,21 +90,9 @@ public class LoadStoreStats {
 
         chart.setTitle(fileName, BLACK, 16);
         chart.setGrid((MAX_LIMIT / 500) * 20, 600, 3, 2);
-        chartUrl = chart.toURLString();
+        String chartUrl = chart.toURLString();
         LOG.info("Generated Chart: " + chartUrl);
         return  chartUrl;
     }
 
-    public GroupedTimingStatistics getTimedStats() {
-        return timedStats;
-    }
-
-    public String getFileName() {
-        return fileName;
-    }
-
-    @Override
-    public String toString() {
-        return fileName + ":\n" + timedStats + "\n" + getChartUrl();
-    }
 }

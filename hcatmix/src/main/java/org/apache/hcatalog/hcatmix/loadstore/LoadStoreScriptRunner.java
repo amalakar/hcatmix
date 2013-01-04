@@ -44,6 +44,10 @@ import org.perf4j.StopWatch;
 
 import static org.testng.AssertJUnit.assertEquals;
 
+/**
+ * Given a hcatSpecFile this class generates the input data/the pig scripts/creates HCatalog tables.
+ * Then the loader/storer pig scripts can be run by calling the run methods
+ */
 public class LoadStoreScriptRunner {
     private static final Logger LOG = LoggerFactory.getLogger(LoadStoreScriptRunner.class);
     private static final String HCATMIX_LOCAL_ROOT = "/tmp/hcatmix";
@@ -102,6 +106,17 @@ public class LoadStoreScriptRunner {
         return jars.toString();
     }
 
+    /**
+     * This method needs to be called to do the data generation/ HCatalog table creation etc
+     * @param createCopy
+     * @throws IOException
+     * @throws TException
+     * @throws NoSuchObjectException
+     * @throws MetaException
+     * @throws SAXException
+     * @throws InvalidObjectException
+     * @throws ParserConfigurationException
+     */
     public void setUp(boolean createCopy) throws IOException, TException, NoSuchObjectException, MetaException, SAXException,
             InvalidObjectException, ParserConfigurationException {
         hCatMixSetup.setupFromConf(hCatMixSetupConf);

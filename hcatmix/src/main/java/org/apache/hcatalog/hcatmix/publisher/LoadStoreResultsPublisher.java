@@ -18,22 +18,18 @@
 
 package org.apache.hcatalog.hcatmix.publisher;
 
-import org.apache.hcatalog.hcatmix.loadstore.LoadStoreStats;
+import org.apache.hcatalog.hcatmix.loadstore.LoadStoreTestStatistics;
 import org.apache.velocity.VelocityContext;
-import org.apache.velocity.tools.generic.NumberTool;
 
 import java.util.List;
 
-/**
- * Author: malakar
- */
 public class LoadStoreResultsPublisher extends ResultsPublisher {
     private static final String HTML_TEMPLATE = "loadstore_html_template.vm";
     private static final String JSON_TEMPLATE = "loadstore_json_template.vm";
     private final String htmlOutFileName;
     private final String jsonOutFileName;
 
-    public LoadStoreResultsPublisher(List<LoadStoreStats> stats, final String htmlOutFileName, final String jsonOutFileName) throws Exception {
+    public LoadStoreResultsPublisher(List<LoadStoreTestStatistics> stats, final String htmlOutFileName, final String jsonOutFileName) throws Exception {
         super();
         this.htmlOutFileName = htmlOutFileName;
         this.jsonOutFileName = jsonOutFileName;

@@ -21,6 +21,7 @@ package org.apache.hcatalog.hcatmix.load;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
+import org.apache.hcatalog.hcatmix.HCatMixUtils;
 import org.apache.hcatalog.hcatmix.load.hadoop.ReduceResult;
 import org.apache.hcatalog.hcatmix.load.tasks.HCatLoadTask;
 import org.apache.hcatalog.hcatmix.loadstore.LoadStoreScriptRunner;
@@ -43,11 +44,13 @@ import java.util.List;
 import java.util.SortedMap;
 
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.fail;
 
 public class TestHCatalogLoad {
     private static final Logger LOG = LoggerFactory.getLogger(TestHCatalogLoad.class);
     private LoadStoreScriptRunner loadStoreScriptRunner;
     private static final String LOAD_TEST_CONF_FILE_ARG_NAME = "loadTestConfFile";
+    private static String resultsDir;
 
     @DataProvider(name = "LoadTestConfFiles")
     public Iterator<Object[]> loadTestConfFiles() {
@@ -77,6 +80,18 @@ public class TestHCatalogLoad {
         return loadTestConfFiles.iterator();
     }
 
+    @BeforeClass
+    public static void setupResultsDirectory() {
+        resultsDir = HCatMixUtils.getTempDirName() + "/results/loadtest/";
+        File resultsDirObj = new File(resultsDir);
+        if(!resultsDirObj.mkdirs()) {
+            fail("Could not setup results directory: " + resultsDir);
+        }
+        LOG.info("Created results directory: " + resultsDirObj.getAbsolutePath());
+
+//        loadStoreTestResults = new LoadStoreTestResults(resultsDir + "/" + RESULTS_ALL_HTML,
+//                resultsDir + "/" + RESULTS_ALL_JSON);
+    }
     @BeforeTest
     public void setUp() throws MetaException, IOException, TException, NoSuchObjectException, SAXException, InvalidObjectException, ParserConfigurationException {
         URL url = Thread.currentThread().getContextClassLoader().getResource(HCatLoadTask.LOAD_TEST_HCAT_SPEC_FILE);
@@ -96,7 +111,7 @@ public class TestHCatalogLoad {
     public void doLoadTest(String confFile) throws Exception {
         HadoopLoadGenerator loadGenerator = new HadoopLoadGenerator();
         SortedMap<Long, ReduceResult> results =  loadGenerator.runLoadTest(confFile, null);
-        LoadTestResultsPublisher publisher = new LoadTestResultsPublisher(results);
+        LoadTestResultsPublisher publisher = new LoadTestResultsPublisher(results, resultsDir + "/" + confFile + ".html");
         publisher.publishAll();
     }
 

@@ -29,12 +29,14 @@ import java.util.SortedMap;
  */
 public class LoadTestResultsPublisher extends  ResultsPublisher {
     private static final String HTML_TEMPLATE = "loadtest_html_template.vm";
-    private static final String HTML_FILE = "hcatmix_loadtest_results.html";
+    private final String htmlFileName;
+
 //    private static final String JSON_TEMPLATE = "loadtest_json_template.vm";
 //    private static final String JSON_FILE = "hcatmix_laodtest_results.json";
 
-    public LoadTestResultsPublisher(SortedMap<Long, ReduceResult> results) throws Exception {
+    public LoadTestResultsPublisher(SortedMap<Long, ReduceResult> results, final String htmlFileName) throws Exception {
         super();
+        this.htmlFileName = htmlFileName;
         VelocityContext context  = new VelocityContext();
         context.put("loadTestResults", results);
         context.put("chartURL", LoadTestGrapher.getURL(results));
@@ -43,6 +45,6 @@ public class LoadTestResultsPublisher extends  ResultsPublisher {
     }
 
     public void publishAll() throws Exception {
-        publishUsingTemplate(HTML_TEMPLATE, HTML_FILE);
+        publishUsingTemplate(HTML_TEMPLATE, htmlFileName);
     }
 }

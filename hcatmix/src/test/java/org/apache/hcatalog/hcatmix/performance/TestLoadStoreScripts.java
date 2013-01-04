@@ -21,7 +21,7 @@ package org.apache.hcatalog.hcatmix.performance;
 
 import org.apache.hcatalog.hcatmix.HCatMixUtils;
 import org.apache.hcatalog.hcatmix.loadstore.LoadStoreScriptRunner;
-import org.apache.hcatalog.hcatmix.loadstore.LoadStoreTestResults;
+import org.apache.hcatalog.hcatmix.loadstore.LoadStoreTestAllResults;
 import org.apache.hcatalog.hcatmix.performance.conf.LoadStoreTestConf;
 import org.apache.hcatalog.hcatmix.performance.conf.LoadStoreTestsConf;
 import org.perf4j.GroupedTimingStatistics;
@@ -44,7 +44,7 @@ import static org.testng.Assert.fail;
 
 public class TestLoadStoreScripts {
     private static final Logger LOG = LoggerFactory.getLogger(TestLoadStoreScripts.class);
-    private static LoadStoreTestResults loadStoreTestResults;
+    private static LoadStoreTestAllResults loadStoreTestAllResults;
     private static final String LOAD_STORE_TESTS_CONF = "hcatmix_load_store_tests.yml";
 
     // Use -DhcatSpecFile=<fileName> to runLoadTest load/store for these table specification file only
@@ -96,12 +96,14 @@ public class TestLoadStoreScripts {
 
     @BeforeClass
     public static void setupResultsDirectory() {
-        resultsDir = HCatMixUtils.getTempDirName() + "/results";
+        resultsDir = HCatMixUtils.getTempDirName() + "/results/loadstoretest/";
         File resultsDirObj = new File(resultsDir);
-        resultsDirObj.mkdir();
+        if(!resultsDirObj.mkdirs()) {
+            fail("Could not setup results directory: " + resultsDir);
+        }
         LOG.info("Created results directory: " + resultsDirObj.getAbsolutePath());
 
-        loadStoreTestResults = new LoadStoreTestResults(resultsDir + "/" + RESULTS_ALL_HTML,
+        loadStoreTestAllResults = new LoadStoreTestAllResults(resultsDir + "/" + RESULTS_ALL_HTML,
                 resultsDir + "/" + RESULTS_ALL_JSON);
     }
 
@@ -128,12 +130,12 @@ public class TestLoadStoreScripts {
         }
 
         GroupedTimingStatistics stats = runner.getTimedStats();
-        loadStoreTestResults.addResult(hcatSpecFileName, stats);
+        loadStoreTestAllResults.addResult(hcatSpecFileName, stats);
 
         // publish result after each test, this way if a single test fails we would still have test results
-        // of individual tests
+        // of individual tests that ran so far
         String hcatSpecFileNameOnly = new File(hcatSpecFileName).getName();
-        LoadStoreTestResults individualTestResults = new LoadStoreTestResults(resultsDir + "/" + hcatSpecFileNameOnly + ".html",
+        LoadStoreTestAllResults individualTestResults = new LoadStoreTestAllResults(resultsDir + "/" + hcatSpecFileNameOnly + ".html",
                                     resultsDir + "/" + hcatSpecFileNameOnly +".json");
         individualTestResults.addResult(hcatSpecFileName, stats);
         individualTestResults.publish();
@@ -142,6 +144,6 @@ public class TestLoadStoreScripts {
 
     @AfterClass
     public static void publishResults() throws Exception {
-        loadStoreTestResults.publish();
+        loadStoreTestAllResults.publish();
     }
 }

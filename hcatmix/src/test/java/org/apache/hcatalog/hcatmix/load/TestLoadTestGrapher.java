@@ -44,7 +44,7 @@ public class TestLoadTestGrapher {
         timeSeries.put((long) 22494672, getReduceResult(630.2, 46.7, 814, 555, 88539, 1200));
 
         // See that no exception is thrown
-        LoadTestResultsPublisher publisher = new LoadTestResultsPublisher(timeSeries);
+        LoadTestResultsPublisher publisher = new LoadTestResultsPublisher(timeSeries, "TODO");
         publisher.publishAll();
     }
 
