@@ -1,6 +1,7 @@
-# HCatMix is the performance testing framework for hcatalog.
+HCatMix is the performance testing framework for apache HCatalog.
+=================================================================
 
-The objective is:
+The objective of HCatMix is:
 
 1. Establish the baseline performance numbers, in order to monitor change in performance as new releases are made
 2. Find out overhead of using HCatalog
