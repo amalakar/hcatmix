@@ -111,7 +111,8 @@ public class TestHCatalogLoad {
     public void doLoadTest(String confFile) throws Exception {
         HadoopLoadGenerator loadGenerator = new HadoopLoadGenerator();
         SortedMap<Long, ReduceResult> results =  loadGenerator.runLoadTest(confFile, null);
-        LoadTestResultsPublisher publisher = new LoadTestResultsPublisher(results, resultsDir + "/" + confFile + ".html");
+        LoadTestResultsPublisher publisher = new LoadTestResultsPublisher(results, resultsDir + "/"
+            + (new File(confFile).getName()) + ".html");
         publisher.publishAll();
     }
 
