@@ -84,9 +84,7 @@ public class TestHCatalogLoad {
     public static void setupResultsDirectory() {
         resultsDir = HCatMixUtils.getTempDirName() + "/results/loadtest/";
         File resultsDirObj = new File(resultsDir);
-        if(!resultsDirObj.mkdirs()) {
-            fail("Could not setup results directory: " + resultsDir);
-        }
+        resultsDirObj.mkdirs();
         LOG.info("Created results directory: " + resultsDirObj.getAbsolutePath());
 
 //        loadStoreTestResults = new LoadStoreTestResults(resultsDir + "/" + RESULTS_ALL_HTML,
