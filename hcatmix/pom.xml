@@ -364,7 +364,7 @@
                     <additionalClasspathElements>
                         <additionalClasspathElement>${env.HADOOP_CONF_DIR}</additionalClasspathElement>
                         <additionalClasspathElement>${env.HADOOP_HOME}/share/hadoop/common/hadoop-gpl-compression.jar</additionalClasspathElement>
-                        <additionalClasspathElement>${env.HCAT_HOME}/lib/hcatalog.jar</additionalClasspathElement>
+                        <additionalClasspathElement>${env.HCAT_HOME}/lib/hcatalog-core.jar</additionalClasspathElement>
                         <!-- Put it in classspath so it gets copied the HDFS while the job runs -->
                         <additionalClasspathElement>${env.HCAT_HOME}/conf/hive-site.xml</additionalClasspathElement>
 
