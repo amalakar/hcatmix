@@ -173,7 +173,7 @@ public class HCatMixSetup extends Configured implements Tool {
         sd.setInputFormat(org.apache.hadoop.hive.ql.io.RCFileInputFormat.class.getName());
         sd.setOutputFormat(org.apache.hadoop.hive.ql.io.RCFileOutputFormat.class.getName());
         sd.getSerdeInfo().getParameters().put(
-                org.apache.hadoop.hive.serde.Constants.SERIALIZATION_FORMAT, "1");
+                org.apache.hadoop.hive.serde.serdeConstants.SERIALIZATION_FORMAT, "1");
         sd.getSerdeInfo().setSerializationLib(
                 org.apache.hadoop.hive.serde2.columnar.ColumnarSerDe.class.getName());
         table.setPartitionKeys(hiveTableSchema.getPartitionFieldSchemas());
