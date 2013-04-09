@@ -98,9 +98,7 @@ public class TestLoadStoreScripts {
     public static void setupResultsDirectory() {
         resultsDir = HCatMixUtils.getTempDirName() + "/results/loadstoretest/";
         File resultsDirObj = new File(resultsDir);
-        if(!resultsDirObj.mkdirs()) {
-            fail("Could not setup results directory: " + resultsDir);
-        }
+        resultsDirObj.mkdirs();
         LOG.info("Created results directory: " + resultsDirObj.getAbsolutePath());
 
         loadStoreTestAllResults = new LoadStoreTestAllResults(resultsDir + "/" + RESULTS_ALL_HTML,
