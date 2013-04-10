@@ -15,7 +15,7 @@
     <p>
     <table class="table">
         <thead>
-            <caption>Load and Store times in milliseconds for $hcatStat.FileName</caption>
+            <caption>Load and Store times for $hcatStat.FileName</caption>
             <tr>
                 <th>Test</th>
                 <th>Avg</th>

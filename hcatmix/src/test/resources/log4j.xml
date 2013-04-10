@@ -6,7 +6,7 @@
       This default ConsoleAppender is used to log all NON perf4j messages
       to System.out
     -->
-    <appender name="hcatmix_console" class="org.apache.log4j.ConsoleAppender">
+    <appender name="stdout" class="org.apache.log4j.ConsoleAppender">
         <layout class="org.apache.log4j.PatternLayout">
             <param name="ConversionPattern" value="%-5p %c{1} - %m%n"/>
         </layout>
@@ -36,8 +36,14 @@
         </layout>
     </appender>
 
-    <appender name="hcatalogExecutionAppender" class="org.apache.log4j.FileAppender">
+    <appender name="hcatmixLogAppender" class="org.apache.log4j.FileAppender">
         <param name="File" value="hcatMix-execution.log"/>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%d %5p (%F) - %m%n"/>
+        </layout>
+    </appender>
+    <appender name="hcatmixAllLogAppender" class="org.apache.log4j.FileAppender">
+        <param name="File" value="hcatMix-execution-all.log"/>
         <layout class="org.apache.log4j.PatternLayout">
             <param name="ConversionPattern" value="%d %5p (%F) - %m%n"/>
         </layout>
@@ -50,8 +56,7 @@
 
     <logger name="org.apache.hcatalog.hcatmix" additivity="false">
         <level value="INFO"/>
-        <appender-ref ref="hcatalogExecutionAppender"/>
-        <appender-ref ref="hcatmix_console"/>
+        <appender-ref ref="hcatmixLogAppender"/>
     </logger>
 
     <!--
@@ -60,6 +65,7 @@
     -->
     <root>
         <level value="INFO"/>
-        <appender-ref ref="hcatmix_console"/>
+        <appender-ref ref="stdout"/>
+        <appender-ref ref="hcatmixAllLogAppender"/>
     </root>
 </log4j:configuration>
