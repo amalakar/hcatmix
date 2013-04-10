@@ -69,6 +69,7 @@ public class TestLoadStoreScripts {
 
         if (hcatSpecFile == null) {
             // yaml magic to load the config file
+            LOG.info("Will load yaml file: " +  LOAD_STORE_TESTS_CONF);
             Constructor constructor = new Constructor(LoadStoreTestsConf.class);
             TypeDescription testDescription = new TypeDescription(LoadStoreTestsConf.class);
             testDescription.putListPropertyType("tests", LoadStoreTestConf.class);
