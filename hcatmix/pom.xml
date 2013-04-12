@@ -30,6 +30,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+
     <profiles>
         <profile>
             <id>hadoop20</id>
@@ -56,6 +57,9 @@
         </profile>
         <profile>
             <id>hadoop23</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
             <dependencies>
                 <dependency>
                     <groupId>org.apache.hadoop</groupId>
@@ -203,6 +207,12 @@
             <artifactId>testng</artifactId>
             <version>6.1.1</version>
             <scope>compile</scope>
+            <exclusions>
+                <exclusion>
+                    <artifactId>snakeyaml</artifactId>
+                    <groupId>org.yaml</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>

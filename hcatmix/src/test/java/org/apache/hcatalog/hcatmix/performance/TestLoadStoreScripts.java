@@ -27,6 +27,7 @@ import org.apache.hcatalog.hcatmix.performance.conf.LoadStoreTestsConf;
 import org.perf4j.GroupedTimingStatistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -40,6 +41,7 @@ import java.io.InputStream;
 import java.text.MessageFormat;
 import java.util.*;
 
+import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.fail;
 
 public class TestLoadStoreScripts {
@@ -68,21 +70,27 @@ public class TestLoadStoreScripts {
         final List<Object[]> testArgs = new ArrayList<Object[]>();
 
         if (hcatSpecFile == null) {
-            // yaml magic to load the config file
-            LOG.info("Will load yaml file: " +  LOAD_STORE_TESTS_CONF);
-            Constructor constructor = new Constructor(LoadStoreTestsConf.class);
-            TypeDescription testDescription = new TypeDescription(LoadStoreTestsConf.class);
-            testDescription.putListPropertyType("tests", LoadStoreTestConf.class);
-            constructor.addTypeDescription(testDescription);
-            Yaml yaml = new Yaml(constructor);
-            ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-            InputStream conf = classLoader.getResourceAsStream(LOAD_STORE_TESTS_CONF);
-            LoadStoreTestsConf loadStoreTestsConf = (LoadStoreTestsConf) yaml.load(conf);
-
-            for (LoadStoreTestConf loadStoreTestConf : loadStoreTestsConf.getTests()) {
-                Object[] argument = {loadStoreTestConf.getFileName(),
-                        loadStoreTestConf.getNumRuns(), loadStoreTestConf.getNumDataGenMappers()};
-                testArgs.add(argument);
+            try {
+                // yaml magic to load the config file
+                LOG.info("Will load yaml file: " +  LOAD_STORE_TESTS_CONF);
+                Constructor constructor = new Constructor(LoadStoreTestsConf.class);
+                TypeDescription testDescription = new TypeDescription(LoadStoreTestsConf.class);
+                testDescription.putListPropertyType("tests", LoadStoreTestConf.class);
+                constructor.addTypeDescription(testDescription);
+                Yaml yaml = new Yaml(constructor);
+                ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+                InputStream conf = classLoader.getResourceAsStream(LOAD_STORE_TESTS_CONF);
+                assertNotNull(conf);
+                LoadStoreTestsConf loadStoreTestsConf = (LoadStoreTestsConf) yaml.load(conf);
+                assertNotNull(loadStoreTestsConf.getTests());
+                Assert.assertTrue(loadStoreTestsConf.getTests().size() >= 1);
+                for (LoadStoreTestConf loadStoreTestConf : loadStoreTestsConf.getTests()) {
+                    Object[] argument = {loadStoreTestConf.getFileName(),
+                            loadStoreTestConf.getNumRuns(), loadStoreTestConf.getNumDataGenMappers()};
+                    testArgs.add(argument);
+                }
+            } catch (Throwable e) {
+                LOG.info("Couldn't load yaml file " + LOAD_STORE_TESTS_CONF, e);
             }
 
         } else {

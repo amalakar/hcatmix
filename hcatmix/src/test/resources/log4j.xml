@@ -6,7 +6,8 @@
       This default ConsoleAppender is used to log all NON perf4j messages
       to System.out
     -->
-    <appender name="stdout" class="org.apache.log4j.ConsoleAppender">
+    <appender name="stderr" class="org.apache.log4j.ConsoleAppender">
+        <param name="target" value="System.err"/>
         <layout class="org.apache.log4j.PatternLayout">
             <param name="ConversionPattern" value="%-5p %c{1} - %m%n"/>
         </layout>
@@ -57,6 +58,7 @@
     <logger name="org.apache.hcatalog.hcatmix" additivity="false">
         <level value="INFO"/>
         <appender-ref ref="hcatmixLogAppender"/>
+        <appender-ref ref="stderr"/>
     </logger>
 
     <!--
@@ -65,7 +67,7 @@
     -->
     <root>
         <level value="INFO"/>
-        <appender-ref ref="stdout"/>
+        <appender-ref ref="stderr"/>
         <appender-ref ref="hcatmixAllLogAppender"/>
     </root>
 </log4j:configuration>
