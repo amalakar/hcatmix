@@ -95,4 +95,13 @@ public class ReduceResult implements Writable {
     public int getNumErrors() {
         return numErrors;
     }
+
+    @Override
+    public String toString() {
+        return "ReduceResult{" +
+                "statistics=" + statistics +
+                ", threadCount=" + threadCount +
+                ", numErrors=" + numErrors +
+                '}';
+    }
 }

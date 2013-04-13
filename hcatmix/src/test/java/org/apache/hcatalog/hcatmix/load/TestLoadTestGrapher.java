@@ -19,16 +19,13 @@
 package org.apache.hcatalog.hcatmix.load;
 
 import org.apache.hcatalog.hcatmix.load.hadoop.ReduceResult;
-import org.apache.hcatalog.hcatmix.publisher.LoadTestResultsPublisher;
 import org.perf4j.GroupedTimingStatistics;
 import org.perf4j.TimingStatistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.Test;
 
-import java.util.Random;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.*;
 
 public class TestLoadTestGrapher {
     private static final Logger LOG = LoggerFactory.getLogger(TestLoadTestGrapher.class);
@@ -44,7 +41,9 @@ public class TestLoadTestGrapher {
         timeSeries.put((long) 22494672, getReduceResult(630.2, 46.7, 814, 555, 88539, 1200));
 
         // See that no exception is thrown
-        LoadTestResultsPublisher publisher = new LoadTestResultsPublisher(timeSeries, "TODO");
+        List<LoadTestStatistics> loadTestStats = new ArrayList<LoadTestStatistics>();
+        loadTestStats.add(new LoadTestStatistics("dummy.properties", timeSeries));
+        LoadTestResultsPublisher publisher = new LoadTestResultsPublisher(loadTestStats, "TODO");
         publisher.publishAll();
     }
 

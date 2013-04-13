@@ -7,60 +7,63 @@
 
     <div class="container">
     <h1>Response time of various HCatalog calls as the number of clients are increased</h1>
+    #foreach( $loadTestResults in $loadTestAllResults )
+    <div class="result">
+        <h6>$loadTestResults.FileName</h6>
+        <img src="$loadTestResults.chartUrl" alt="HCatMix Chart"  class="img-polaroid" />
 
-    <img src="$chartURL" alt="HCatMix Chart"  class="img-polaroid" />
+        #set ($testMethods = $loadTestResults.getTimeSeries().values().iterator().next().getStatistics().getStatisticsByTag().keySet())
 
-    #set ($testMethods = $loadTestResults.values().iterator().next().getStatistics().getStatisticsByTag().keySet())
+        #foreach($method in $testMethods)
+            <p>
+                <h4>$method</h4>
+                <table class="table">
+                    <thead>
+                        <caption>Graph</caption>
+                        <tr>
+                            <th>Thread Count</th>
+                            <th>Avg</th>
+                            <th>Min</th>
+                            <th>Max</th>
+                            <th>Std Dev</th>
+                            <th>Number of runs</th>
+                            <th>Errors</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            #foreach( $entry in $loadTestResults.getTimeSeries().entrySet() )
+                #set ($time  = $entry.Key )
+                #set ($loadTestResult = $entry.Value )
+                #set ($map = $loadTestResult.Statistics.statisticsByTag )
+                #set ($statistics = $map.get($method))
 
-    #foreach($method in $testMethods)
-        <p>
-            <h4>$method</h4>
-            <table class="table">
-                <thead>
-                    <caption>Graph</caption>
-                    <tr>
-                        <th>Thread Count</th>
-                        <th>Avg</th>
-                        <th>Min</th>
-                        <th>Max</th>
-                        <th>Std Dev</th>
-                        <th>Number of runs</th>
-                        <th>Errors</th>
-                    </tr>
-                </thead>
-                <tbody>
-        #foreach( $entry in $loadTestResults.entrySet() )
-            #set ($time  = $entry.Key )
-            #set ($loadTestResult = $entry.Value )
-            #set ($map = $loadTestResult.Statistics.statisticsByTag )
-            #set ($statistics = $map.get($method))
+                        <tr>
+                            <td>$loadTestResult.ThreadCount</td>
+                        #if ($statistics)
+                            <td>$formatter.formatDuration($statistics.Mean) </td>
+                            <td>$formatter.formatDuration($statistics.Min)</td>
+                            <td>$formatter.formatDuration($statistics.Max)</td>
+                            <td>$formatter.formatDuration($statistics.StandardDeviation)</td>
+                            <td>$formatter.formatCount($statistics.Count)</td>
+                        #else
+                            <td>-</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>0</td>
+                        #end
+                            <td>$formatter.formatCount($loadTestResult.NumErrors)</td>
+                        </tr>
 
-                    <tr>
-                        <td>$loadTestResult.ThreadCount</td>
-                    #if ($statistics)
-                        <td>$formatter.formatDuration($statistics.Mean) </td>
-                        <td>$formatter.formatDuration($statistics.Min)</td>
-                        <td>$formatter.formatDuration($statistics.Max)</td>
-                        <td>$formatter.formatDuration($statistics.StandardDeviation)</td>
-                        <td>$formatter.formatCount($statistics.Count)</td>
-                    #else
-                        <td>-</td>
-                        <td>-</td>
-                        <td>-</td>
-                        <td>-</td>
-                        <td>0</td>
-                    #end
-                        <td>$formatter.formatCount($loadTestResult.NumErrors)</td>
-                    </tr>
-
-        #end
-                </tbody>
-            </table>
-            </p>
-            <br/><br/>
-    #end
-
-
+            #end
+                    </tbody>
+                </table>
+                </p>
         </div>
+        #end
+
+
+    </div>
+    #end
     </body>
 </html>

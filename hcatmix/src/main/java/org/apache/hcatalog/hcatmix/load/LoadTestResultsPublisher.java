@@ -16,32 +16,33 @@
  * limitations under the License.
  */
 
-package org.apache.hcatalog.hcatmix.publisher;
+package org.apache.hcatalog.hcatmix.load;
 
-import org.apache.hcatalog.hcatmix.loadstore.LoadStoreTestStatistics;
+import org.apache.hcatalog.hcatmix.publisher.HCatMixFormatter;
+import org.apache.hcatalog.hcatmix.publisher.ResultsPublisher;
 import org.apache.velocity.VelocityContext;
 
 import java.util.List;
 
-public class LoadStoreResultsPublisher extends ResultsPublisher {
-    private static final String HTML_TEMPLATE = "loadstore_html_template.vm";
-    private static final String JSON_TEMPLATE = "loadstore_json_template.vm";
-    private final String htmlOutFileName;
-    private final String jsonOutFileName;
+/**
+ * Author: malakar
+ */
+class LoadTestResultsPublisher extends ResultsPublisher {
+    private static final String HTML_TEMPLATE = "loadtest_html_template.vm";
+    private final String htmlFileName;
 
-    public LoadStoreResultsPublisher(List<LoadStoreTestStatistics> stats, final String htmlOutFileName, final String jsonOutFileName) throws Exception {
+//    private static final String JSON_TEMPLATE = "loadtest_json_template.vm";
+
+    public LoadTestResultsPublisher(List<LoadTestStatistics> allStats, final String htmlFileName) throws Exception {
         super();
-        this.htmlOutFileName = htmlOutFileName;
-        this.jsonOutFileName = jsonOutFileName;
-
+        this.htmlFileName = htmlFileName;
         VelocityContext context  = new VelocityContext();
-        context.put("hcatStats", stats);
+        context.put("loadTestAllResults", allStats);
         context.put("formatter", new HCatMixFormatter());
         super.setContext(context);
     }
 
     public void publishAll() throws Exception {
-        publishUsingTemplate(HTML_TEMPLATE, htmlOutFileName);
-        publishUsingTemplate(JSON_TEMPLATE, jsonOutFileName);
+        publishUsingTemplate(HTML_TEMPLATE, htmlFileName);
     }
 }

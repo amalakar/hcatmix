@@ -22,6 +22,7 @@ package org.apache.hcatalog.hcatmix.performance;
 import org.apache.hcatalog.hcatmix.HCatMixUtils;
 import org.apache.hcatalog.hcatmix.loadstore.LoadStoreScriptRunner;
 import org.apache.hcatalog.hcatmix.loadstore.LoadStoreTestAllResults;
+import org.apache.hcatalog.hcatmix.loadstore.LoadStoreTestStatistics;
 import org.apache.hcatalog.hcatmix.performance.conf.LoadStoreTestConf;
 import org.apache.hcatalog.hcatmix.performance.conf.LoadStoreTestsConf;
 import org.perf4j.GroupedTimingStatistics;
@@ -137,14 +138,14 @@ public class TestLoadStoreScripts {
         }
 
         GroupedTimingStatistics stats = runner.getTimedStats();
-        loadStoreTestAllResults.addResult(hcatSpecFileName, stats);
+        loadStoreTestAllResults.addResult(new LoadStoreTestStatistics(new File(hcatSpecFileName).getName(), stats));
 
         // publish result after each test, this way if a single test fails we would still have test results
         // of individual tests that ran so far
         String hcatSpecFileNameOnly = new File(hcatSpecFileName).getName();
         LoadStoreTestAllResults individualTestResults = new LoadStoreTestAllResults(resultsDir + "/" + hcatSpecFileNameOnly + ".html",
                                     resultsDir + "/" + hcatSpecFileNameOnly +".json");
-        individualTestResults.addResult(hcatSpecFileName, stats);
+        individualTestResults.addResult(new LoadStoreTestStatistics(new File(hcatSpecFileName).getName(), stats));
         individualTestResults.publish();
 
     }

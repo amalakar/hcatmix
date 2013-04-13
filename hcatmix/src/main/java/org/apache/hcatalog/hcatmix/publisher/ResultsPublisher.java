@@ -41,7 +41,7 @@ public abstract class ResultsPublisher {
     private static final Logger LOG = LoggerFactory.getLogger(ResultsPublisher.class);
     private VelocityContext context;
 
-    ResultsPublisher() throws Exception {
+    protected ResultsPublisher() throws Exception {
         Properties props = new Properties();
         props.setProperty(RuntimeConstants.RESOURCE_LOADER, "file, class, jar");
         props.setProperty("class.resource.loader.class", ClasspathResourceLoader.class.getName());

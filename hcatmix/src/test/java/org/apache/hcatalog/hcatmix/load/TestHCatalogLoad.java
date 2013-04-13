@@ -18,24 +18,19 @@
 
 package org.apache.hcatalog.hcatmix.load;
 
-import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
 import org.apache.hcatalog.hcatmix.HCatMixUtils;
 import org.apache.hcatalog.hcatmix.load.hadoop.ReduceResult;
 import org.apache.hcatalog.hcatmix.load.tasks.HCatLoadTask;
 import org.apache.hcatalog.hcatmix.loadstore.LoadStoreScriptRunner;
-import org.apache.hcatalog.hcatmix.publisher.LoadTestResultsPublisher;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.*;
-import org.xml.sax.SAXException;
 
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.FilenameFilter;
-import java.io.IOException;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -44,13 +39,15 @@ import java.util.List;
 import java.util.SortedMap;
 
 import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.fail;
 
 public class TestHCatalogLoad {
     private static final Logger LOG = LoggerFactory.getLogger(TestHCatalogLoad.class);
+    private static LoadTestAllResults loadTestAllResults;
     private LoadStoreScriptRunner loadStoreScriptRunner;
     private static final String LOAD_TEST_CONF_FILE_ARG_NAME = "loadTestConfFile";
     private static String resultsDir;
+    private static final String RESULTS_ALL_HTML = "load_test_results_all.html";
+
 
     @DataProvider(name = "LoadTestConfFiles")
     public Iterator<Object[]> loadTestConfFiles() {
@@ -87,11 +84,10 @@ public class TestHCatalogLoad {
         resultsDirObj.mkdirs();
         LOG.info("Created results directory: " + resultsDirObj.getAbsolutePath());
 
-//        loadStoreTestResults = new LoadStoreTestResults(resultsDir + "/" + RESULTS_ALL_HTML,
-//                resultsDir + "/" + RESULTS_ALL_JSON);
+        loadTestAllResults = new LoadTestAllResults(resultsDir + "/" + RESULTS_ALL_HTML);
     }
     @BeforeTest
-    public void setUp() throws MetaException, IOException, TException, NoSuchObjectException, SAXException, InvalidObjectException, ParserConfigurationException {
+    public void setUp() throws Exception {
         URL url = Thread.currentThread().getContextClassLoader().getResource(HCatLoadTask.LOAD_TEST_HCAT_SPEC_FILE);
         if(url == null) {
             LOG.error(HCatLoadTask.LOAD_TEST_HCAT_SPEC_FILE + " not found");
@@ -109,13 +105,23 @@ public class TestHCatalogLoad {
     public void doLoadTest(String confFile) throws Exception {
         HadoopLoadGenerator loadGenerator = new HadoopLoadGenerator();
         SortedMap<Long, ReduceResult> results =  loadGenerator.runLoadTest(confFile, null);
-        LoadTestResultsPublisher publisher = new LoadTestResultsPublisher(results, resultsDir + "/"
-            + (new File(confFile).getName()) + ".html");
-        publisher.publishAll();
+
+        loadTestAllResults.addResult(new LoadTestStatistics(confFile, results));
+
+        // Also print results after each test is run
+        LoadTestAllResults testResult = new LoadTestAllResults(resultsDir + "/"
+                + (new File(confFile).getName()) + ".html");
+        testResult.addResult(new LoadTestStatistics(confFile, results));
+        testResult.publish();
     }
 
     @AfterTest
     public void tearDown() throws NoSuchObjectException, MetaException, TException {
         loadStoreScriptRunner.deleteHCatTables();
+    }
+
+    @AfterClass
+    public static void publishResults() throws Exception {
+        loadTestAllResults.publish();
     }
 }

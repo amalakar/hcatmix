@@ -18,19 +18,16 @@
 
 package org.apache.hcatalog.hcatmix.loadstore;
 
-import org.apache.hcatalog.hcatmix.publisher.LoadStoreResultsPublisher;
 import org.apache.hcatalog.hcatmix.publisher.ResultsPublisher;
-import org.perf4j.GroupedTimingStatistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Generate results (html/json) for all load/store tests
+ * Class containing results (html/json) for all load/store tests
  */
 public class LoadStoreTestAllResults {
     private Map<String, LoadStoreTestStatistics> results;
@@ -44,9 +41,9 @@ public class LoadStoreTestAllResults {
         results = new HashMap<String, LoadStoreTestStatistics>();
     }
 
-    public void addResult(String fileName, GroupedTimingStatistics stats) {
-        LOG.info(fileName + " Statistics:\n" + stats.toString());
-        results.put(fileName, new LoadStoreTestStatistics(new File(fileName).getName(), stats));
+    public void addResult(LoadStoreTestStatistics stats) {
+        LOG.info(stats.getFileName() + " Statistics:\n" + stats.toString());
+        results.put(stats.getFileName(), stats);
     }
 
     public void publish() throws Exception {

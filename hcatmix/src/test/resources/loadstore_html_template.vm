@@ -6,41 +6,42 @@
     <body>
 
     <div class="container">
-    <h1>Comparison of HCatMix load store functions with pig load store functions for various data</h1>
+    <h3>Comparison of HCatMix load store functions with pig load store functions for various data</h3>
 
 #foreach( $hcatStat in $hcatStats )
-    <h3>$hcatStat.FileName</h6>
-    <img src="$hcatStat.ChartUrl" alt="HCatMix Chart"  class="img-polaroid" />
-    #set ($map = $hcatStat.timedStats.statisticsByTag )
-    <p>
-    <table class="table">
-        <thead>
-            <caption>Load and Store times for $hcatStat.FileName</caption>
-            <tr>
-                <th>Test</th>
-                <th>Avg</th>
-                <th>Min</th>
-                <th>Max</th>
-                <th>Std Dev</th>
-                <th>Number of runs</th>
-            </tr>
-        </thead>
-        <tbody>
-    #foreach ($result in $map.entrySet())
-        #set ($statistics = $result.value)
-            <tr>
-                <td>$result.key</td>
-                <td>$formatter.formatDuration($statistics.Mean) </td>
-                <td>$formatter.formatDuration($statistics.Min)</td>
-                <td>$formatter.formatDuration($statistics.Max)</td>
-                <td>$formatter.formatDuration($statistics.StandardDeviation)</td>
-                <td>$formatter.formatCount($statistics.Count)</td>
-            </tr>
-    #end
-        </tbody>
-    </table>
-    </p>
-    <br/><br/>
+    <div class="result">
+        <h6>$hcatStat.FileName</h6>
+        <img src="$hcatStat.ChartUrl" alt="HCatMix Chart"  class="img-polaroid" />
+        #set ($map = $hcatStat.timedStats.statisticsByTag )
+        <p>
+        <table class="table">
+            <thead>
+                <caption>Load and Store times for $hcatStat.FileName</caption>
+                <tr>
+                    <th>Test</th>
+                    <th>Avg</th>
+                    <th>Min</th>
+                    <th>Max</th>
+                    <th>Std Dev</th>
+                    <th>Number of runs</th>
+                </tr>
+            </thead>
+            <tbody>
+        #foreach ($result in $map.entrySet())
+            #set ($statistics = $result.value)
+                <tr>
+                    <td>$result.key</td>
+                    <td>$formatter.formatDuration($statistics.Mean) </td>
+                    <td>$formatter.formatDuration($statistics.Min)</td>
+                    <td>$formatter.formatDuration($statistics.Max)</td>
+                    <td>$formatter.formatDuration($statistics.StandardDeviation)</td>
+                    <td>$formatter.formatCount($statistics.Count)</td>
+                </tr>
+        #end
+            </tbody>
+        </table>
+        </p>
+    </div>
 #end
 
         </div>

@@ -16,35 +16,33 @@
  * limitations under the License.
  */
 
-package org.apache.hcatalog.hcatmix.publisher;
+package org.apache.hcatalog.hcatmix.loadstore;
 
-import org.apache.hcatalog.hcatmix.load.hadoop.ReduceResult;
-import org.apache.hcatalog.hcatmix.load.LoadTestGrapher;
+import org.apache.hcatalog.hcatmix.publisher.HCatMixFormatter;
+import org.apache.hcatalog.hcatmix.publisher.ResultsPublisher;
 import org.apache.velocity.VelocityContext;
 
-import java.util.SortedMap;
+import java.util.List;
 
-/**
- * Author: malakar
- */
-public class LoadTestResultsPublisher extends  ResultsPublisher {
-    private static final String HTML_TEMPLATE = "loadtest_html_template.vm";
-    private final String htmlFileName;
+class LoadStoreResultsPublisher extends ResultsPublisher {
+    private static final String HTML_TEMPLATE = "loadstore_html_template.vm";
+    private static final String JSON_TEMPLATE = "loadstore_json_template.vm";
+    private final String htmlOutFileName;
+    private final String jsonOutFileName;
 
-//    private static final String JSON_TEMPLATE = "loadtest_json_template.vm";
-//    private static final String JSON_FILE = "hcatmix_laodtest_results.json";
-
-    public LoadTestResultsPublisher(SortedMap<Long, ReduceResult> results, final String htmlFileName) throws Exception {
+    public LoadStoreResultsPublisher(List<LoadStoreTestStatistics> allStats, final String htmlOutFileName, final String jsonOutFileName) throws Exception {
         super();
-        this.htmlFileName = htmlFileName;
+        this.htmlOutFileName = htmlOutFileName;
+        this.jsonOutFileName = jsonOutFileName;
+
         VelocityContext context  = new VelocityContext();
-        context.put("loadTestResults", results);
-        context.put("chartURL", LoadTestGrapher.getURL(results));
+        context.put("hcatStats", allStats);
         context.put("formatter", new HCatMixFormatter());
         super.setContext(context);
     }
 
     public void publishAll() throws Exception {
-        publishUsingTemplate(HTML_TEMPLATE, htmlFileName);
+        publishUsingTemplate(HTML_TEMPLATE, htmlOutFileName);
+        publishUsingTemplate(JSON_TEMPLATE, jsonOutFileName);
     }
 }
