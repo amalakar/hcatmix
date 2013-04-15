@@ -60,11 +60,11 @@
                         </tbody>
                     </table>
                 </p>
+            #end
         #else
             <p>There is no result to display</p>
-        #end
         </div>
-    #end
+        #end
 
 
     </div>
