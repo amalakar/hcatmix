@@ -14,7 +14,7 @@
         <img src="$hcatStat.ChartUrl" alt="HCatMix Chart"  class="img-polaroid" />
         #set ($map = $hcatStat.timedStats.statisticsByTag )
         <p>
-        <table class="table">
+        <table class="table table-bordered table-striped">
             <thead>
                 <caption>Load and Store times for $hcatStat.FileName</caption>
                 <tr>
@@ -45,5 +45,6 @@
 #end
 
         </div>
+        <footer class="footer">Report generated at: $dateTool.getDate()</footer>
     </body>
 </html>

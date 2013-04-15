@@ -43,7 +43,7 @@ public class TestLoadTestGrapher {
         // See that no exception is thrown
         List<LoadTestStatistics> loadTestStats = new ArrayList<LoadTestStatistics>();
         loadTestStats.add(new LoadTestStatistics("dummy.properties", timeSeries));
-        LoadTestResultsPublisher publisher = new LoadTestResultsPublisher(loadTestStats, "TODO");
+        LoadTestResultsPublisher publisher = new LoadTestResultsPublisher(loadTestStats, "/tmp/hcatmix_load_test_all_results.html");
         publisher.publishAll();
     }
 

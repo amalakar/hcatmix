@@ -6,7 +6,7 @@
     <body>
 
     <div class="container">
-    <h1>Response time of various HCatalog calls as the number of clients are increased</h1>
+    <h3>Response time of various HCatalog calls as the number of clients are increased</h3>
     #foreach( $loadTestResults in $loadTestAllResults )
     <div class="result">
         <h6>$loadTestResults.FileName</h6>
@@ -17,10 +17,9 @@
 
             #foreach($method in $testMethods)
                 <p>
-                    <h4>$method</h4>
-                    <table class="table">
+                    <table class="table table-bordered table-striped">
                         <thead>
-                            <caption>Graph</caption>
+                            <caption>$method</caption>
                             <tr>
                                 <th>Thread Count</th>
                                 <th>Avg</th>
@@ -63,10 +62,10 @@
             #end
         #else
             <p>There is no result to display</p>
-        </div>
         #end
-
-
+            <hr/>
+        </div>
+    <footer class="footer">Report generated at: $dateTool.getDate()</footer>
     </div>
     #end
     </body>

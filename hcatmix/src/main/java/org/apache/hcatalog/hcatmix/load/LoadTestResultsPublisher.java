@@ -21,6 +21,7 @@ package org.apache.hcatalog.hcatmix.load;
 import org.apache.hcatalog.hcatmix.publisher.HCatMixFormatter;
 import org.apache.hcatalog.hcatmix.publisher.ResultsPublisher;
 import org.apache.velocity.VelocityContext;
+import org.apache.velocity.tools.generic.DateTool;
 
 import java.util.List;
 
@@ -39,6 +40,7 @@ class LoadTestResultsPublisher extends ResultsPublisher {
         VelocityContext context  = new VelocityContext();
         context.put("loadTestAllResults", allStats);
         context.put("formatter", new HCatMixFormatter());
+        context.put("dateTool", new DateTool());
         super.setContext(context);
     }
 
