@@ -1,4 +1,4 @@
-maxMaps: &maxMaps 90         # The maximum number of maps allowed in the cluster,
+maxMaps: &maxMaps 30         # The maximum number of maps allowed in the cluster,
                              # this variable can be referred as *maxMaps in rest of the file
 defaultNumRuns: &defaultNumRuns 5   # The number of times a test should be run
                                      # this variable can be referred as *defaultNumRuns in rest of the file
