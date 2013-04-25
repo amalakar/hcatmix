@@ -18,7 +18,7 @@
 <database>
     <tables>
         <table>
-            <namePrefix>hcatmix_4000_paritions</namePrefix>
+            <namePrefix>hcatmix_105MB_4000_parts</namePrefix>
             <dbName>default</dbName>
             <columns>
                 <column>

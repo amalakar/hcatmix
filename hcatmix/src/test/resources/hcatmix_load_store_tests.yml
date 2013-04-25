@@ -1,6 +1,6 @@
 maxMaps: &maxMaps 30         # The maximum number of maps allowed in the cluster,
                              # this variable can be referred as *maxMaps in rest of the file
-defaultNumRuns: &defaultNumRuns 5   # The number of times a test should be run
+defaultNumRuns: &defaultNumRuns 3   # The number of times a test should be run
                                      # this variable can be referred as *defaultNumRuns in rest of the file
 
 tests:
@@ -53,10 +53,10 @@ tests:
       numDataGenMappers:    *maxMaps
 
     - fileName:    performance/100GB_no_partition.xml
-      numRuns:    3
+      numRuns:    2
       numDataGenMappers:    *maxMaps
 
     - fileName:   performance/100GB_300_parititons.xml
-      numRuns:    3
+      numRuns:    2
       numDataGenMappers:    *maxMaps
 
