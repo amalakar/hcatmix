@@ -43,11 +43,15 @@ public class TestLoadTestGrapher {
         // See that no exception is thrown
         List<LoadTestStatistics> loadTestStats = new ArrayList<LoadTestStatistics>();
         loadTestStats.add(new LoadTestStatistics("dummy.properties", timeSeries));
-        LoadTestResultsPublisher publisher = new LoadTestResultsPublisher(loadTestStats, "/tmp/hcatmix_load_test_all_results.html");
+        loadTestStats.add(new LoadTestStatistics("dummy_2.properties", timeSeries));
+        LoadTestResultsPublisher publisher = new LoadTestResultsPublisher(loadTestStats,
+                "/tmp/hcatmix_load_test_all_results.html",
+                "/tmp/hcatmix_load_test_all_results.json");
         publisher.publishAll();
     }
 
-    private ReduceResult getReduceResult(double mean, double standardDeviation, long max, long min, int count, int threadCount) {
+    private ReduceResult getReduceResult(double mean, double standardDeviation, long max, long min,
+                                         int count, int threadCount) {
         GroupedTimingStatistics statistics = new GroupedTimingStatistics();
         SortedMap<String, TimingStatistics> statisticsByTag = new TreeMap<String, TimingStatistics>();
 

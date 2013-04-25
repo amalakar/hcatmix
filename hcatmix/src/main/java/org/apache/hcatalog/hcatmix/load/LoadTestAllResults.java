@@ -15,11 +15,11 @@ public class LoadTestAllResults {
     private Map<String, LoadTestStatistics> results;
     private static final Logger LOG = LoggerFactory.getLogger(LoadTestAllResults.class);
     private final String htmlOutFileName;
-//    private final String jsonOutFileName;
+    private final String jsonOutFileName;
 
-    public LoadTestAllResults(final String htmlOutFileName) {
+    public LoadTestAllResults(final String htmlOutFileName, final String jsonOutFileName) {
         this.htmlOutFileName = htmlOutFileName;
-//        this.jsonOutFileName = jsonOutFileName;
+        this.jsonOutFileName = jsonOutFileName;
         results = new HashMap<String, LoadTestStatistics>();
     }
 
@@ -35,7 +35,7 @@ public class LoadTestAllResults {
                     "\nChart URL: " + stats.getChartUrl());
         }
         ResultsPublisher publisher = new LoadTestResultsPublisher(new ArrayList<LoadTestStatistics>(results.values()),
-                htmlOutFileName);
+                htmlOutFileName, jsonOutFileName);
         publisher.publishAll();
     }
 

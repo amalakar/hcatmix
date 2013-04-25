@@ -30,13 +30,17 @@ import java.util.List;
  */
 class LoadTestResultsPublisher extends ResultsPublisher {
     private static final String HTML_TEMPLATE = "loadtest_html_template.vm";
+    private static final String JSON_TEMPLATE = "loadtest_json_template.vm";
+
     private final String htmlFileName;
+    private String jsonFileName;
 
-//    private static final String JSON_TEMPLATE = "loadtest_json_template.vm";
 
-    public LoadTestResultsPublisher(List<LoadTestStatistics> allStats, final String htmlFileName) throws Exception {
+    public LoadTestResultsPublisher(List<LoadTestStatistics> allStats, final String htmlFileName,
+                                    String jsonFileName) throws Exception {
         super();
         this.htmlFileName = htmlFileName;
+        this.jsonFileName = jsonFileName;
         VelocityContext context  = new VelocityContext();
         context.put("loadTestAllResults", allStats);
         context.put("formatter", new HCatMixFormatter());
@@ -46,5 +50,6 @@ class LoadTestResultsPublisher extends ResultsPublisher {
 
     public void publishAll() throws Exception {
         publishUsingTemplate(HTML_TEMPLATE, htmlFileName);
+        publishUsingTemplate(JSON_TEMPLATE, jsonFileName);
     }
 }

@@ -47,6 +47,7 @@ public class TestHCatalogLoad {
     private static final String LOAD_TEST_CONF_FILE_ARG_NAME = "loadTestConfFile";
     private static String resultsDir;
     private static final String RESULTS_ALL_HTML = "load_test_results_all.html";
+    private static final String RESULTS_ALL_JSON = "load_test_results_all.json";
 
 
     @DataProvider(name = "LoadTestConfFiles")
@@ -84,7 +85,8 @@ public class TestHCatalogLoad {
         resultsDirObj.mkdirs();
         LOG.info("Created results directory: " + resultsDirObj.getAbsolutePath());
 
-        loadTestAllResults = new LoadTestAllResults(resultsDir + "/" + RESULTS_ALL_HTML);
+        loadTestAllResults = new LoadTestAllResults(resultsDir + "/" + RESULTS_ALL_HTML,
+                resultsDir + "/" + RESULTS_ALL_JSON);
     }
     @BeforeTest
     public void setUp() throws Exception {
@@ -109,8 +111,8 @@ public class TestHCatalogLoad {
         loadTestAllResults.addResult(new LoadTestStatistics(confFile, results));
 
         // Also print results after each test is run
-        LoadTestAllResults testResult = new LoadTestAllResults(resultsDir + "/"
-                + (new File(confFile).getName()) + ".html");
+        final String resultFileNamePrefix = resultsDir + "/" + (new File(confFile).getName());
+        LoadTestAllResults testResult = new LoadTestAllResults(resultFileNamePrefix + ".html", resultFileNamePrefix + ".json");
         testResult.addResult(new LoadTestStatistics(confFile, results));
         testResult.publish();
     }

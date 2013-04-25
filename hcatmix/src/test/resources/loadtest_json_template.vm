@@ -1,0 +1,48 @@
+{
+"executionTime": "$dateTool.getDate()",
+"results":
+ [
+#set($fileResultSeparator = "")
+#foreach( $loadTestResults in $loadTestAllResults )
+    $fileResultSeparator
+    {
+        "$loadTestResults.FileName":
+        {
+            "chartURL": "$loadTestResults.chartUrl",
+    #if($loadTestResults.getTimeSeries().values().size() > 0)
+        #set ($testMethods = $loadTestResults.getTimeSeries().values().iterator().next().getStatistics().getStatisticsByTag().keySet())
+        #set($methodSeparator = "")
+        #foreach($method in $testMethods)
+        $methodSeparator
+        "$method":
+            {
+            #set($threadResultSeparator = "")
+            #foreach( $entry in $loadTestResults.getTimeSeries().entrySet() )
+                #set ($time  = $entry.Key )
+                #set ($loadTestResult = $entry.Value )
+                #set ($map = $loadTestResult.Statistics.statisticsByTag )
+                #set ($statistics = $map.get($method))
+                #if ($statistics)
+                $threadResultSeparator
+                "$loadTestResult.ThreadCount":
+                {
+                    "mean": $statistics.Mean,
+                    "min": $statistics.Min,
+                    "max": $statistics.Max,
+                    "standardDeviation": $statistics.StandardDeviation,
+                    "count": $statistics.Count,
+                    "error": "$loadTestResult.NumErrors"
+                }
+                    #set($threadResultSeparator = ",")
+                #end
+            #end
+            }
+        #set($methodSeparator = ",")
+        #end
+        }
+     }
+    #end
+    #set($fileResultSeparator = ",")
+#end
+ ]
+}
